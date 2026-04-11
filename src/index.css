@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-serif: "Playfair Display", serif;
+  
+  --color-fb-navy: #002D72;
+  --color-fb-yellow: #FEDD00;
+  --color-fb-gold: #D4AF37;
+  --color-fb-dark: #020408;
+  --color-fb-card: #0A0D14;
+  --color-fb-accent: #1A2333;
+}
+
+@layer base {
+  body {
+    @apply bg-fb-dark text-slate-200 font-sans antialiased overflow-hidden selection:bg-fb-yellow selection:text-fb-navy;
+  }
+}
+
+/* Galaxy Atmosphere */
+.vignette {
+  background: radial-gradient(circle at center, transparent 0%, rgba(2, 4, 8, 0.4) 60%, rgba(2, 4, 8, 0.9) 100%);
+  pointer-events: none;
+}
+
+.galaxy-bg {
+  background: #020408;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(0, 45, 114, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(254, 221, 0, 0.03) 0%, transparent 50%);
+}
+
+.stars-overlay {
+  background-image: 
+    radial-gradient(1px 1px at 25% 25%, #fff, transparent),
+    radial-gradient(1px 1px at 50% 50%, #fff, transparent),
+    radial-gradient(1px 1px at 75% 75%, #fff, transparent),
+    radial-gradient(1px 1px at 10% 90%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 90% 10%, #fff, transparent);
+  background-size: 300px 300px;
+  opacity: 0.2;
+  pointer-events: none;
+  will-change: opacity;
+}
+
+.glass-panel {
+  @apply bg-fb-card/40 backdrop-blur-3xl border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.6)];
+}
+
+.fb-gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-fb-yellow to-fb-gold;
+}
+
+/* Advanced Node Styles */
+.node-group {
+  @apply transition-all duration-500;
+}
+
+.node-circle {
+  @apply transition-all duration-300 ease-out;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.node-label {
+  @apply transition-all duration-500 pointer-events-none;
+}
+
+.link-path {
+  @apply transition-all duration-500 ease-in-out;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: dash 1s ease-in-out forwards;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Centerpiece Animations */
+@keyframes pulse-gold {
+  0%, 100% { opacity: 0.2; transform: scale(1) rotate(0deg); }
+  50% { opacity: 0.5; transform: scale(1.1) rotate(180deg); }
+}
+
+.center-halo {
+  animation: pulse-gold 10s infinite linear;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-fb-yellow/20 transition-colors;
+}
+
+/* Typography Polish */
+.editorial-title {
+  @apply font-serif italic tracking-tight;
+}
+
+.intelligence-label {
+  @apply font-sans font-bold uppercase tracking-[0.3em] text-[10px];
+}
+
+.galaxy-title {
+  @apply font-display font-black tracking-tighter uppercase;
+  text-shadow: 0 0 30px rgba(254, 221, 0, 0.2);
+}
