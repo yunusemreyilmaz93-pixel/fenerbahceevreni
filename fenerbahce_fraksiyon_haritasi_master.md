@@ -234,7 +234,7 @@ Bu belge, paylaşılan ana görsel ile kırpılmış görsellerin birlikte okunm
     - Kiralycılar
     - Yeon-Koungcular (Camia Evlatları)
     - Abbondanzacılar
-    - Dışı Kanaryalar
+    - Dişi Kanaryalar
       - Tedescocular (muhtemelen adını ilk kez dün duydular)
       - Üçlü Sevenler
       - Toshackcılar (Dinozorbahçeliler)
@@ -388,13 +388,13 @@ Bu belge, paylaşılan ana görsel ile kırpılmış görsellerin birlikte okunm
     - Sercan Terzioğlucular
 
   - Manciniciler
-    - Sarriiciler
+    - Sarriciler
     - Gattusocular
     - Glasnerciler
     - Van Bronckhorstçular
     - Graham Pottercılar
-    - Volkan Balılılar
-    - İran Sarıoğlucular
+    - Volkan Balcıcılar
+    - İrfan Saraloğlucular
 
   - Zemancılar
     - Mustafa Denizliciler

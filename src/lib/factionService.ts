@@ -82,17 +82,18 @@ const SPECIFIC_DATA: Record<string, Partial<FactionNode>> = {
       opposite: ['Alman Ekolücüler', 'Ütopikçiler']
     }
   },
-  'Camia Evladıcılar': {
-    motto: 'Bizi Ancak Bizden Biri Anlar',
-    philosophy: 'Aidiyet duygusu onlar için taktik dizilişten çok daha önemlidir. Çubuklunun ruhunu bilmeyen o kulübeye oturmamalıdır.',
-    highlights: 'Tuncay Şanlı, Ümit Özat, Selçuk Şahin, Volkan Demirel, Alex.',
-    description: 'Yabancı hocalara karşı her zaman bir şüpheleri vardır. "Buranın havasını solumuş, derbilerin önemini bilen" bir hoca her zaman bir adım öndedir. Vefa, bu fraksiyonun en büyük motivasyonudur.',
-    vibe: 'Gelenekçi ve Köklü',
-    tone: 'Edebi ve Derin',
-    representation: 'Fenerbahçe\'nin "öz değerlerine dönüş" arzusunu temsil ederler.',
+  'Camia Evladcılar': {
+    summary: '"Bizi en iyi bizi bilen, bu havayı soluyan, bu formanın ağırlığını hisseden anlar."',
+    vibe: 'Aidiyetçi ve köklü',
+    tone: 'Duygusal, gelenekçi, derin hafızalı',
+    representation: "Fenerbahçe'nin öz değerlerine, camia hafızasına ve içeriden gelen figürlere duyulan güçlü bağlılığı temsil eder.",
+    philosophy: 'Camia Evladcılar için aidiyet çoğu zaman taktik tahtasından daha ağır gelir. Onlara göre bu kulübede oturacak, bu formayı taşıyacak ya da bu kulübü temsil edecek kişinin önce Fenerbahçe’yi tanıması gerekir. Derbinin ağırlığını, tribünün sabrını, bu kulübün tansiyonunu ve o meşhur baskıyı yaşamamış biri ne kadar iyi olursa olsun hep bir adım geridedir.',
+    highlights: 'Kuytçular, Bülentçiler, Tuncaycılar, Ümit Özatçılar, Selçuk Şahinciler, Mehmet Topalcılar, Oğuz Çetinciler, Volkancılar, Rıdvan Dilmenciler, Serhat Akıncılar, Gökhan Gönülcüler, Roberto Carloscular, Mert Nobreciler, Sowcular, Avrupa Zicocuları, Pozitif Futbol Sevenler, Zicocular, Deividciler, Titeciler, Hakan Kutlucular, Şenol Cancılar, Mustafa Kaplançılar, Özhan Pulatcılar, Önder Özenciler, Abdullah Ercancılar, Mehmet Topuzcular, Webocular, Müjdat Yetkinciler, Fatih Akyelciler, Ogüncüler, Mirkovicciler, Engin İpekoğlucular, Murat Şahinciler, Rüştücüler, Ahmet Yıldırımcılar, Yusuf Şimşekçiler, Coşkun Demirbakancılar, Metin Diyadinciler, Oktay Derelioğlucular, Semih Şentürkçüler, Orhan Şamcılar, Abdülkerim Durmazcılar, Hasan Ali Kaldırımcılar.',
+    description: 'Bu fraksiyon için Fenerbahçe biraz da hafıza işidir. Kim bu kulüpte iz bıraktı, kim bu armaya gerçekten bağlandı, kim kötü günde de burada kaldı — bunlar onlar için ciddi meseledir. O yüzden dışarıdan gelen parlak ama soğuk profil yerine, içeriden gelen ve bu kulübün duygusunu bilen isimlere daha hızlı ısınırlar. Bazen fazla nostaljik bulunurlar. Bazen de “yine camia çocuğu muhabbeti başladı” tepkisi alırlar. Ama onların bakışında olay yalnızca romantizm değildir; aynı zamanda temsil meselesidir. Fenerbahçe’yi temsil edecek kişinin Fenerbahçe’yi gerçekten hissetmesi gerektiğine inanırlar.',
+    tags: ['CAMİA', 'AİDİYET', 'KULÜPHAFIZASI', 'VEFA'],
     relatedFactions: {
-      similar: ['Hacı İsmail Kartalcılar', 'Düz Fenerbahçeliler'],
-      opposite: ['Portekiz Lobisi', 'Alman Ekolücüler']
+      similar: ['Hacı İsmail Kartalcılar', 'Düz Fenerbahçeliler', 'Emre Bellocular'],
+      opposite: ['Portekiz Lobisi', 'Alman Ekolücüler', 'İsim Takıntılıları']
     }
   },
   'Anadolu İrfanı': {
@@ -227,6 +228,188 @@ const SPECIFIC_DATA: Record<string, Partial<FactionNode>> = {
     relatedFactions: {
       similar: ['Zemancılar', 'Balkan Lobisi', 'Ahrazbahçeliler'],
       opposite: ['Alman Ekolücüler', 'Hollanda Lobisi', 'Düz Fenerbahçeliler']
+    }
+  },
+  'Voleybol Tayfa': {
+    summary: '"Futbol tayfa birbirini yerken onlar kupaya, düzene ve gerçekten işleyen sisteme bakar."',
+    vibe: 'Kalite odaklı ve gururlu',
+    tone: 'Şube kültürlü, seçici, hafif üst perdeden',
+    representation: "Fenerbahçe'yi sadece futbol üzerinden değil, voleybol şubesinin kültürü, istikrarı ve başarı standardı üzerinden de okuyan damarı temsil eder.",
+    philosophy: 'Voleybol Tayfa için Fenerbahçelilik biraz da kurumsal kalite meselesidir. Onlar için yalnızca tutku yetmez; doğru kadro planlaması, doğru koç seçimi, şube ciddiyeti ve kupaya oynayan yapı da gerekir. Bu yüzden bakışları genelde daha seçici, standartları biraz daha yüksektir.',
+    highlights: 'Velascocular, Bernardiciler, Rezendeciler, Lavariniciler, Kiralycılar, Yeon-Koungcular, Abbondanzacılar, Dişi Kanaryalar.',
+    description: 'Bu fraksiyonun insanları çoğu zaman futbol kaosuna dışarıdan bakan akraba gibidir: aynı aileden ama biraz daha düzenli, biraz daha organize, biraz da “biz bu işleri böyle yapmıyoruz” tavrındadırlar. Voleybol şubesinin başarı hafızası, onların beklenti seviyesini ciddi biçimde yükseltmiştir. Bu yüzden sıradanlık onlara kolay kolay yetmez. Kaliteli koç, oturmuş yapı, doğru rol dağılımı ve kazanma kültürü ararlar. Futbolda yaşanan her karmaşada içlerinden biri çıkıp “abi voleybolda böyle mi yönetiliyor?” deme hakkını kendinde görür; açık konuşmak gerekirse bazen çok da haksız sayılmaz.',
+    tags: ['VOLEYBOL', 'ŞUBEKÜLTÜRÜ', 'KALİTESTANDARDI', 'KAZANMAALIŞKANLIĞI'],
+    relatedFactions: {
+      similar: ['Basket Tayfa', 'Alman Ekolücüler', 'Hollanda Lobisi'],
+      opposite: ['Ahrazbahçeliler', 'Serdar Ali Çelikler Terör Örgütü', 'Düz Fenerbahçeliler']
+    }
+  },
+  'Hırvat Lobisi': {
+    summary: '"Bunlar için futbol biraz sertlik, biraz karakter, biraz da Doğu Avrupa ciddiyeti işidir."',
+    vibe: 'Sert, disiplinli, karakterli',
+    tone: 'Soğukkanlı ama mücadeleci',
+    representation: "Fenerbahçe evreninde Balkan çizgisinin daha ciddi, daha omurgalı ve saha karakterine daha çok önem veren kolunu temsil eder.",
+    philosophy: 'Hırvat Lobisi için iyi takım dediğin şey önce karakter koyar. Gerektiğinde kavga eder, mücadeleyi bırakmaz, oyunu yumuşatmaz. Bunlar için futbol biraz da omurga işidir. Sadece isme, parlamaya ya da havalı projelere değil; sahada direnç gösteren, takımı ayakta tutan ve gerektiğinde sertleşebilen profillere yakın dururlar.',
+    highlights: 'Slaven Bilicciler, Niko Kovaccılar, Hakan Keleşçiler, Recep Uçarcılar, Prosineckiciler, Bjelicacılar, Dalicciler, Ünal Karamancılar, Ömer Erdoğancılar, Ertuğrul Sağlamcılar, Filipe Luisciler, Yakın Koşu Kavakçılar, Şenol Çorlucular, Hüseyin Eroğlucular, Sinan Kaloğlucular, Osman Zeki Korkmazcılar, Tomasçılar.',
+    description: 'Bu fraksiyon çok fazla parlatılmış hikâye sevmez. Onların dünyasında takım biraz diri olacak, biraz sert olacak, biraz da “ben buradayım” diyecek. O yüzden bu lobi bazen dışarıdan bakınca aşırı ciddi görünebilir. Çünkü bunlar oyuna biraz savaş, biraz disiplin, biraz da saha psikolojisi üzerinden yaklaşır. Timeline’da çok süslü cümleler kurmayabilirler ama “bu adamın karakteri var” dediklerinde genelde boş konuşmazlar. Hırvat Lobisi biraz da “iyi futbol yumuşaklıkla değil, omurgayla gelir” diyenlerin evidir.',
+    tags: ['BALKAN', 'KARAKTER', 'DİSİPLİN', 'MÜCADELE'],
+    relatedFactions: {
+      similar: ['Balkan Lobisi', 'Rumen Lobisi', 'Anadolu İrfanı'],
+      opposite: ['Ütopikçiler', 'İsim Takıntılıları', 'Portekiz Lobisi']
+    }
+  },
+  'Brezilya Lobisi': {
+    summary: '"Bunlar için futbol biraz sambadır, biraz kalite, biraz da topa değince akan o eski Fenerbahçe hissi."',
+    vibe: 'Yetenekli, estetik, hafif romantik',
+    tone: 'Şık, nostaljik, teknik',
+    representation: "Fenerbahçe evreninde Brezilya bağlantılı futbol aklını, teknik kaliteyi ve sahada iz bırakmış yıldız etkisini temsil eder.",
+    philosophy: 'Brezilya Lobisi için futbol yalnızca plan ve mücadele değildir; biraz da zarafet, teknik kalite ve topun ayağa yakışmasıdır. Bu fraksiyonun insanları sahada fark yaratan oyuncuyu, estetik hissi veren oyunu ve biraz da yıldız ışığını sever. Onlar için bazı figürler sadece oyuncu ya da hoca değil, doğrudan bir dönemin hissidir.',
+    highlights: 'Oldschool Brezilyacılar, Carlos Alberto Parreiracılar, Lazaroniciler, Alexciler, Aureliocular, Spalletticiler, Didiciler.',
+    description: 'Bu fraksiyon biraz duygusal bir hafızayla çalışır. Çünkü Brezilya Lobisi denince iş sadece isim listesine bakmak değildir; aynı zamanda Fenerbahçe’de teknik kaliteyi, sahadaki estetiği ve “o top bu ayağa çok yakışıyor” hissini hatırlamaktır. Bazen romantik bulunurlar, bazen gereğinden fazla geçmişe bağlı gibi görünürler. Ama onların savunduğu şey aslında basittir: Fenerbahçe yalnızca mücadele eden değil, iz bırakan ve izlenirken keyif veren bir takım da olmalıdır. Bu yüzden bu lobi biraz kalite nostaljisi, biraz da futbol zevki taşır.',
+    tags: ['BREZİLYA', 'TEKNİKKALİTE', 'ESTETİK', 'NOSTALJİ'],
+    relatedFactions: {
+      similar: ['Camia Evladcılar', 'Portekiz Lobisi', 'Hollanda Lobisi'],
+      opposite: ['Ahrazbahçeliler', 'Anadolu İrfanı', 'Serdar Ali Çelikler Terör Örgütü']
+    }
+  },
+  'Yabancı Anadolu Hocası İsteyenler': {
+    summary: '"Ne büyük isim peşindeler ne de düz nostalji; onlar biraz gizli cevher, biraz saha aklı, biraz da \'bu adam burada iş yapar\' hissinin peşinde."',
+    vibe: 'Pratik ve keşifçi',
+    tone: 'Niş, gerçekçi, hafif scout kafalı',
+    representation: "Fenerbahçe'de büyük CV yerine, lig gerçekliğini okuyabilen, saha düzeni kurabilen ve Anadolu refleksiyle yabancı dokunuşu birleştirebilen hoca arayışını temsil eder.",
+    philosophy: 'Bu fraksiyon için mesele yalnızca kariyer değil, uyumdur. Onlara göre her büyük isim Fenerbahçe’ye uymaz; bazen daha az parlayan ama ligi, yapıyı, oyuncu grubunu ve saha pratiğini daha doğru okuyacak bir yabancı hoca çok daha değerli olabilir. Biraz “keşif”, biraz “abi bu adam iş yapar” sezgisi, biraz da sistemli pragmatizm bu tayfanın ana damarıdır.',
+    highlights: 'Şumudicacılar, Stoilovcular, Gisdolcüler, Feldkampçılar, Hagiciler, Osieckciler, Thomas Reisçiler, Jakirovicciler, Ömer Kanerciler, Tamer Güneyciler, Vengloscular, Kuntzcular, Lucescucular.',
+    description: 'Bu tayfa popüler isimlerle kolay kolay etkilenmez. Onların radarında bazen hiç manşet olmayan ama sahada net karşılığı olabilecek isimler vardır. Biraz “FM save” hissi, biraz “bu hoca tam burada iş yapar” özgüveni, biraz da büyük kulüp refleksinden kopmadan daha akılcı seçim yapma arzusu taşırlar. Dışarıdan bakınca bazen fazla niş görünebilirler. Ama kendi iç mantıkları güçlüdür: Fenerbahçe’ye gelecek hocanın illa manşet ismi olması gerekmez; doğru profil olması yeterlidir. Bu yüzden bu fraksiyon, büyük gösteriden çok doğru eşleşmeyi savunur.',
+    tags: ['KEŞİF', 'PRAGMATİZM', 'YABANCIHOCA', 'SAHAGERÇEKÇİLİĞİ'],
+    relatedFactions: {
+      similar: ['Anadolu İrfanı', 'Rumen Lobisi', 'Hollanda Lobisi'],
+      opposite: ['İsim Takıntılıları', 'Ütopikçiler', 'Portekiz Lobisi']
+    }
+  },
+  'Arjantin Lobisi': {
+    summary: '"Futbolda biraz delilik, biraz taktik takıntısı, biraz da kenarda sinirli dahi havası arayanların toplandığı yer."',
+    vibe: 'Tutkulu ve teorik',
+    tone: 'Ateşli, oyun odaklı, hafif çılgın',
+    representation: "Fenerbahçe evreninde Arjantin ve Güney Amerika futbol aklının; taktik cesaret, saha karakteri ve yoğun futbol fikri taşıyan kolunu temsil eder.",
+    philosophy: 'Arjantin Lobisi için iyi hoca biraz deli, biraz takıntılı, biraz da oyuna fazlasıyla kafayı takmış biri olabilir. Onlar için kenarda yalnızca duran değil, oyunun içine karakterini de katan figürler daha caziptir. Futbol biraz duygu, biraz taktik, biraz da kişilik meselesidir.',
+    highlights: 'Prandelliciler, Kluivertçiler, Omerovicciler, Stanojevicciler, Sassariniciler, Joao Pereiracılar, Leonardocular, Sampaoliciler, Gallardocular, Anselmiciler, Setienciler, Pellegriniciler, Farioliciler.',
+    description: 'Bu fraksiyonun insanları yalnızca “kim geldi” sorusuna bakmaz; “nasıl oynatacak, ne deneyecek, ne kadar cesur olacak” sorusuna da takılır. Çünkü onların sevdiği profil biraz fikir sahibi, biraz risk alan ve bazen fazla takıntılı görünen teknik adamlardır. Bazen bu tayfa fazla romantik bulunur, bazen de “abi yine çok niş yerlere gittiler” denir. Ama onların bakışında asıl güzellik tam da budur: sıradan çözümler değil, karakteri olan fikirler. Arjantin Lobisi biraz da futbolu düz bir yönetim işi değil, sahadaki bir karakter savaşı gibi görenlerin evidir.',
+    tags: ['ARJANTİN', 'TAKTİKCESARET', 'TUTKU', 'OYUNFİKRİ'],
+    relatedFactions: {
+      similar: ['Portekiz Lobisi', 'Ütopikçiler', 'Hollanda Lobisi'],
+      opposite: ['Düz Fenerbahçeliler', 'Ahrazbahçeliler', 'Hacı İsmail Kartalcılar']
+    }
+  },
+  'Milli Takım Hocası İsteyenler': {
+    summary: '"Kulüp takımına bile biraz turnuva mantığı, biraz kısa vadeli akıl ve biraz \'hemen sonuç\' refleksiyle bakan özel damar."',
+    vibe: 'Sonuç odaklı ve kısa vadeli',
+    tone: 'Pratik, serinkanlı, neticeci',
+    representation: "Fenerbahçe'de kulüp hocalığından çok, milli takım tipi denge, kısa sürede düzen kurma ve doğrudan sonuç alma beklentisini temsil eder.",
+    philosophy: 'Bu fraksiyon için mesele uzun yıllık romantik proje değildir; doğru kadroyu hızlı kuracak, oyuncu grubunu kısa sürede disipline edecek ve doğrudan sonuç alabilecek profil daha değerlidir. Biraz turnuva hocası mantığı, biraz pragmatizm, biraz da “çok uzatmadan takımı toparlasın” hissi bu tayfanın merkezindedir.',
+    highlights: 'Montellacılar.',
+    description: 'Bu fraksiyon çok geniş bir lobi değil ama kendi içinde net bir mantığı var. Onlar için bazen fazla teorik projeler, fazla uzun vadeli masallar ya da aşırı ideolojik hoca kavgaları yorucudur. Daha sade bir şey isterler: takımı toparla, doğru kadroyu kur, oyunu çok karmaşıklaştırma ve sonuç al. Dışarıdan bakınca biraz “az ama öz” görünürler. Çünkü bu tayfa büyük söylemlerden çok pratik etkiye bakar. Bir milli takım hocasının kulüp takımında da belli bir denge, mesafe ve kısa vadeli düzen kurabileceğine inanırlar.',
+    tags: ['MİLLİTAKIM', 'PRAGMATİZM', 'KISAVADE', 'SONUÇODAKLILIK'],
+    relatedFactions: {
+      similar: ['Anadolu İrfanı', 'Alman Ekolücüler', 'Yabancı Anadolu Hocası İsteyenler'],
+      opposite: ['Ütopikçiler', 'İsim Takıntılıları', 'Ahrazbahçeliler']
+    }
+  },
+  'Blancçılar': {
+    summary: '"Takım biraz ağırbaşlı olsun, biraz akıllı dursun, biraz da büyük kulüp gibi görünsün isteyenlerin damarı."',
+    vibe: 'Ağırbaşlı ve seçkin',
+    tone: 'Serinkanlı, düzenli, prestij odaklı',
+    representation: "Fenerbahçe’de saha kenarında bağırıp çağırmaktan çok, karizma, denge ve büyük kulüp ağırlığı arayan damarı temsil eder.",
+    philosophy: 'Blanççılar için teknik direktör yalnızca taktik veren biri değildir; biraz da kulübün yüzüdür. Kenarda panik yapmayan, oyunu uzaktan da olsa kontrol edebilen, takıma bir ağırlık ve seviye hissi veren figürler bunlara daha çok hitap eder. Onlara göre bazen fazla gürültü değil, doğru tonlama ve doğru duruş lazım.',
+    highlights: 'Fernando Santosçular, Defanstan Kısa Pasla Çıkma Fetişistleri, Kenan Koçakçılar, Valverdeciler, Rambo Okancılar, Skibbeciler.',
+    description: 'Bu fraksiyon biraz “bağıran değil bilen hoca” sever. Onlara göre büyük takım refleksi bazen yüksek sesle değil, sakin güvenle kurulur. Fazla kaotik, fazla duygusal ya da tamamen içgüdüsel çözümler onlara biraz yorucu gelir. Blanççılar bazen elitist gibi görünebilir; çünkü teknik direktörde yalnızca enerji değil, estetik bir ağırlık da ararlar. Ama kendi içlerinde mantıkları nettir: Fenerbahçe kulübesinde biraz klas, biraz denge, biraz da dışarıdan bakınca “bu kulübün bir standardı var” hissi olmalıdır.',
+    tags: ['AĞIRBAŞLILIK', 'PRESTİJ', 'DENGE', 'BÜYÜKKULÜPHİSSİ'],
+    relatedFactions: {
+      similar: ['Alman Ekolücüler', 'Hollanda Lobisi', 'Portekiz Lobisi'],
+      opposite: ['Ahrazbahçeliler', 'Serdar Ali Çelikler Terör Örgütü', 'Ersuncular']
+    }
+  },
+  'Ali Koççu Yahudi Lobisi': {
+    summary: '"Kulüpte ne olursa olsun, bir yerden büyük resim çıkarıp olayları stratejik satranç tahtasına bağlayanların mizahi evi."',
+    vibe: 'Komplo-sever ve fazla yaratıcı',
+    tone: 'Mizahi, uçlarda, internet kafası açık',
+    representation: "Fenerbahçe evreninde olayları bazen gereğinden fazla büyük anlatan, her gelişmede görünmez bir satranç hamlesi arayan mizahi damarı temsil eder.",
+    philosophy: 'Bu fraksiyon tamamen hafif absürt, internet doğalı ve memetik bir energy taşır. Onlar için kulüpte yaşanan hiçbir şey dümdüz değildir; her transferin, her açıklamanın, her kriz anının arkasında sanki daha büyük bir senaryo vardır. Ciddiyetle mizahın tam ortasında dolaşırlar.',
+    highlights: 'Bağımsız tek başına geçen mizahi fraksiyonlardan biridir. Belirgin alt kolu yoktur.',
+    description: 'Bu tayfa düz yorum yapmayı pek sevmez. Olayları biraz büyütür, biraz süsler, biraz da “abi bunun arkasında başka işler dönüyor” tadında yorumlar. Elbette tamamen mizahi okunması gereken bir alan burası; olayın eğlencesi de zaten burada başlar. Fenerbahçe internetinin meşhur özelliği olan “bir anda her şeyi fazla büyük okuma” refleksi bu fraksiyonda zirve yapar. Bazen bir yönetim hamlesi, bazen bir açıklama, bazen de alakasız bir gündem başlığı bunların elinde sanki dünya tarihinin dönüm noktasına dönüşebilir.',
+    tags: ['MİZAH', 'MEMEENERJİSİ', 'BÜYÜKRESİM', 'İNTERNETFENERBAHÇE'],
+    relatedFactions: {
+      similar: ['Ahrazbahçeliler', 'Serdar Ali Çelikler Terör Örgütü', 'İsim Takıntılıları'],
+      opposite: ['Düz Fenerbahçeliler', 'Alman Ekolücüler', 'Milli Takım Hocası İsteyenler']
+    }
+  },
+  'Esporcular': {
+    summary: '"Futbol dünyasında bile refleksi dijital, dili hızlı, heyecanı başka çalışan tayfa."',
+    vibe: 'Genç, hızlı, dijital',
+    tone: 'Online, enerjik, refleksif',
+    representation: "Fenerbahçe evreninde klasik futbol tartışmasının dışına taşıp kulübü espor, dijital kültür ve yeni nesil rekabet üzerinden de okuyan damarı temsil eder.",
+    philosophy: 'Esporcular için Fenerbahçe sadece saha içindeki 90 dakikadan ibaret değildir. Kulübün dijital yüzü, yeni nesil rekabet alanları ve internet kültürüyle kurduğu ilişki de işin bir parçasıdır. Onlar biraz daha hızlı düşünür, daha hızlı tepki verir ve klasik taraftar refleksinden daha farklı bir dijital aidiyet taşır.',
+    highlights: '2017 Worldscüler, Nextgenciler, Emre Aksoycular, Arkheciler, Magathçılar, Clementçiler.',
+    description: 'Bu fraksiyon biraz “kulüp dediğin artık yalnızca çim üstünde yaşamaz” diyenlerin alanıdır. Geleneksel futbol tayfaya bazen fazla dağınık, fazla internet çocuğu gibi görünebilirler; ama onların kurduğu aidiyet başka türlü çalışır. Onlar için rekabetin alanı geniştir, tempo yüksektir ve kültür biraz daha dijital akar.',
+    tags: ['ESPOR', 'DİJİTALKÜLTÜR', 'YENİNESİL', 'ONLINEAİDİYET'],
+    relatedFactions: {
+      similar: ['Düz Fenerbahçeliler', 'Basket Tayfa', 'Voleybol Tayfa'],
+      opposite: ['Camia Evladcılar', 'Hacı İsmail Kartalcılar', 'Aykutçular']
+    }
+  },
+  'Finkçiler': {
+    summary: '"Niş isimlerden korkmayan, biraz ters köşe, biraz \'siz bilmezsiniz\' enerjisi taşıyan damar."',
+    vibe: 'Niş ve ters köşe',
+    tone: 'Sessiz, garip derecede özgüvenli, hafif underground',
+    representation: "Fenerbahçe evreninde çok parlamayan ama kendi içinde mantığı olan, daha niş teknik direktör ve futbol aklı arayışını temsil eder.",
+    philosophy: 'Finkçiler için mesele manşet değil, isabet hissidir. Onlar herkesin konuştuğu isimden ziyade, az kişinin dillendirdiği ama doğru şartlarda işleyebilecek profillere bakar. Biraz ters yoldan yürürler ve bu durumdan da rahatsız olmazlar.',
+    highlights: 'Hütterciler, Futbolu Bırakıp Masa Tenisi İzleyenler, Vladimir Petkoviciler, Recep Karatepeciler, Sercan Terzioğlucular.',
+    description: 'Bu fraksiyonun insanları timeline’a “abi siz hep aynı 5 ismi sayıyorsunuz” enerjisiyle girer. Onlarda biraz futbol nerd’lüğü, biraz niş keşif tutkusu ve biraz da “trend değil ama mantıklı” özgüveni vardır. Bazen fazla marjinal görünürler ama kendi içlerinde çizgileri nettir: hoca seçimi popülerlik yarışması değildir.',
+    tags: ['NİŞ', 'TERSKÖŞE', 'FUTBOLNERD', 'UNDERRATED'],
+    relatedFactions: {
+      similar: ['Yabancı Anadolu Hocası İsteyenler', 'Rumen Lobisi', 'Hollanda Lobisi'],
+      opposite: ['İsim Takıntılıları', 'Ütopikçiler', 'Ahrazbahçeliler']
+    }
+  },
+  'Manciniciler': {
+    summary: '"Biraz karizma, biraz büyük kulüp havası, biraz da \'oyunu bilen adam\' etkisi arayanlar."',
+    vibe: 'Karizmatik ve sofistike',
+    tone: 'Şık, dış referanslı, hafif elit',
+    representation: "Fenerbahçe'de yalnızca saha içi düzeni değil, teknik direktör figürünün ağırlığını ve büyük kulüp hissini de önemseyen damarı temsil eder.",
+    philosophy: 'Manciniciler için teknik direktör biraz da vitrin işidir. Takımı yönetecek kişi yalnızca plan yapmayacak; kulübeye ağırlık, maça da bir seviye hissi getirecek. O yüzden bunlar sade çözümden çok karakterli, CV’li ve belli bir aura taşıyan figürlere yakın durur.',
+    highlights: 'Sarriciler, Gattusocular, Glasnerciler, Van Bronckhorstçular, Graham Pottercılar, Volkan Balcıcılar, İrfan Saraloğlucular.',
+    description: 'Bu fraksiyonun içinde biraz teknik akıl, biraz prestij tutkusu ve biraz da “Fenerbahçe kulübesi boş görünmemeli” refleksi vardır. Bazen fazla seçici görünürler, bazen de fazla şık takılırlar. Ama onların derdi sadece isim parlatmak değildir; oyun fikri olan, aynı zamanda kulübeye ağırlık koyan bir profil bulmaktır.',
+    tags: ['AURA', 'KARİZMA', 'BÜYÜKKULÜPHİSSİ', 'DIŞREFERANS'],
+    relatedFactions: {
+      similar: ['Portekiz Lobisi', 'Blancçılar', 'İsim Takıntılıları'],
+      opposite: ['Anadolu İrfanı', 'Düz Fenerbahçeliler', 'Hacı İsmail Kartalcılar']
+    }
+  },
+  'Zemancılar': {
+    summary: '"Savunma dengesi biraz ağlasın ama hayat olsun, tempo olsun, maç bir şeye benzesin diyenlerin damarı."',
+    vibe: 'Cesur ve uçlarda',
+    tone: 'Tempo bağımlısı, romantik, hafif çılgın',
+    representation: "Fenerbahçe evreninde öne oynayan, risk alan, oyunu steril değil hareketli görmek isteyen futbol romantizmini temsil eder.",
+    philosophy: 'Zemancılar için futbol biraz da delilik payı ister. Takım kontrollü ama sıkıcı olacağına, açık vere vere saldıran ve maça hayat getiren bir yapıda olsun daha iyidir. Onlar için oyun bazen kusursuz olmak zorunda değildir; yeter ki cesur olsun, diri olsun, seyir değeri taşısın.',
+    highlights: 'Mustafa Denizliciler, Aragonesciler (İsim Takıntılılar).',
+    description: 'Bu fraksiyonun insanları düzen sever ama fazla kontrollü, fazla steril yapıya da çabuk sıkılır. Onların gönlünde biraz tempo, biraz cesaret, biraz da “abi bu takım en azından bir şey deniyor” hissi vardır. Bazen fazla romantik kaçabilirler, bazen savunma güvenliğini gereğinden az önemseyebilirler; ama onların dünyasında asıl suç, korkak futboldur.',
+    tags: ['TEMPO', 'CESARET', 'FUTBOLROMANTİZMİ', 'RİSK'],
+    relatedFactions: {
+      similar: ['Ersuncular', 'Ütopikçiler', 'Portekiz Lobisi'],
+      opposite: ['Alman Ekolücüler', 'Düz Fenerbahçeliler', 'Milli Takım Hocası İsteyenler']
+    }
+  },
+  'Zeki Murat Göleciler': {
+    summary: '"Geçici çözüm gibi görünen şeyden bile bir ihtimal, bir düzen, bir hikâye çıkarabilen özel internet damarı."',
+    vibe: 'Geçiş dönemi romantikleri',
+    tone: 'Geçici ama ciddiye alan, hafif ironik',
+    representation: "Fenerbahçe evreninde ara dönem, geçici emanet ve beklenmedik teknik sorumluluk figürlerinden bile anlam üretmeye çalışan damarı temsil eder.",
+    philosophy: 'Zeki Murat Göleciler için mesele bazen büyük plan değil, anı doğru okumaktır. Her şey dağılmışken ortaya çıkan geçici bir figürün bile bir etkisi, bir düzeni ya da en azından bir hikâyesi olabileceğine inanırlar. Biraz geçiş dönemi gerçekçiliği, biraz internet ironisi, biraz da “buradan da bir şey çıkar mı?” merakı taşırlar.',
+    highlights: 'Master dosyada bağımsız ve tek başına duran fraksiyonlardan biridir.',
+    description: 'Bu fraksiyon biraz Fenerbahçe internetinin özel ürünüdür. Çünkü bazı isimler vardır; normal şartlarda kimse etrafında büyük bir lobi kurmaz dersin, ama tam da bu yüzden etrafında ilginç bir kült oluşur. Zeki Murat Göleciler biraz o hissin karşılığıdır. Tamamen şaka değildir, tamamen ciddi de değildir. Arada bir yerde durur. Hem dönemin kaosunu, hem geçici çözüm halini, hem de Fenerbahçe taraftarının en beklenmedik anda bile yeni bir damar üretme yeteneğini taşır.',
+    tags: ['GEÇİŞDÖNEMİ', 'İNTERNETFENERBAHÇE', 'ARAÇÖZÜM', 'MİKROKÜLT'],
+    relatedFactions: {
+      similar: ['Zemancılar', 'Ersuncular', 'Düz Fenerbahçeliler'],
+      opposite: ['İsim Takıntılıları', 'Ütopikçiler', 'Portekiz Lobisi']
     }
   },
   'Serdar Ali Çelikler Terör Örgütü': {

@@ -175,12 +175,12 @@ const GALAXY_DATA = `
   - Rezendeciler
   - Lavariniciler
   - Kiralycılar
-  - Yeon-Koungcular
+  - Yeon-Koungcular (Camia Evlatları)
   - Abbondanzacılar
-  - Dışı Kanaryalar
-    - Tedescocular
+  - Dişi Kanaryalar
+    - Tedescocular (muhtemelen adını ilk kez dün duydular)
     - Üçlü Sevenler
-    - Toshackcılar
+    - Toshackcılar (Dinozorbahçeliler)
 - Anadolu İrfanı
   - Yılmazcılar
   - Çağdaşçılar
@@ -207,12 +207,12 @@ const GALAXY_DATA = `
   - Ömer Erdoğancılar
   - Ertuğrul Sağlamcılar
   - Filipe Luisciler
-  - Yakın Koşu Kavakçılar
+  - Yakın Koşu Kavakçılar (343 Lobisi)
   - Şenol Çorlucular
   - Hüseyin Eroğlucular
   - Sinan Kaloğlucular
   - Osman Zeki Korkmazcılar
-  - Tomasçılar
+  - Tomasçılar (Hırvat Lobisi)
 - Brezilya Lobisi
   - Oldschool Brezilyacılar
   - Carlos Alberto Parreiracılar
@@ -222,7 +222,7 @@ const GALAXY_DATA = `
   - Spalletticiler
   - Didiciler
 - Camia Evladcılar
-  - Kuytçular
+  - Kuytçular (Hollanda Lobisi)
   - Bülentçiler
   - Tuncaycılar
   - Ümit Özatçılar
@@ -243,8 +243,8 @@ const GALAXY_DATA = `
   - Titeciler
   - Hakan Kutlucular
   - Şenol Cancılar
-  - Mustafa Kaplançılar
-  - Özhan Pulatcılar
+  - Mustafa Kaplançılar (Ankaralılar)
+  - Özhan Pulatcılar (FM Tayfa)
   - Önder Özenciler
   - Abdullah Ercancılar
   - Mehmet Topuzcular
@@ -252,7 +252,7 @@ const GALAXY_DATA = `
   - Müjdat Yetkinciler
   - Fatih Akyelciler
   - Ogüncüler
-  - Mirkovicciler
+  - Mirkovicciler (Balkan Lobisi)
   - Engin İpekoğlucular
   - Murat Şahinciler
   - Rüştücüler
@@ -286,7 +286,7 @@ const GALAXY_DATA = `
   - Stanojevicciler
   - Sassariniciler
   - Joao Pereiracılar
-  - Leonardocular
+  - Leonardocular (Brezilya Lobisi)
   - Sampaoliciler
   - Gallardocular
   - Anselmiciler
@@ -296,7 +296,7 @@ const GALAXY_DATA = `
 - Milli Takım Hocası İsteyenler
   - Montellacılar
 - Blancçılar
-  - Fernando Santosçular
+  - Fernando Santosçular (Gizli JK’liler)
   - Defanstan Kısa Pasla Çıkma Fetişistleri
   - Kenan Koçakçılar
   - Valverdeciler
@@ -317,16 +317,16 @@ const GALAXY_DATA = `
   - Recep Karatepeciler
   - Sercan Terzioğlucular
 - Manciniciler
-  - Sarriiciler
+  - Sarriciler
   - Gattusocular
   - Glasnerciler
   - Van Bronckhorstçular
   - Graham Pottercılar
-  - Volkan Balılılar
-  - İran Sarıoğlucular
+  - Volkan Balcıcılar
+  - İrfan Saraloğlucular
 - Zemancılar
   - Mustafa Denizliciler
-  - Aragonesciler
+  - Aragonesciler (İsim Takıntılılar)
 - Zeki Murat Göleciler
 `;
 
