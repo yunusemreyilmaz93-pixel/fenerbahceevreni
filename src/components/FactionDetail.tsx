@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { X, Shield, Tag, Info, ChevronRight, Zap, Target, MessageSquare, Users, AlertTriangle, Download, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { toTurkishUppercase } from '../lib/stringUtils';
 import { toPng } from 'html-to-image';
+import ShareCard from './Quiz/ShareCard';
 
 interface FactionDetailProps {
   faction: FactionNode;
@@ -13,22 +14,19 @@ interface FactionDetailProps {
 
 const FactionDetail: React.FC<FactionDetailProps> = ({ faction, onClose, onFactionClick }) => {
   const dossierRef = useRef<HTMLDivElement>(null);
+  const shareCardRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
 
   const handleDownload = async () => {
-    if (!dossierRef.current) return;
+    if (!shareCardRef.current) return;
     
     setIsExporting(true);
     try {
-      const dataUrl = await toPng(dossierRef.current, {
+      const dataUrl = await toPng(shareCardRef.current, {
         quality: 1.0,
         pixelRatio: 2,
         backgroundColor: '#020408',
-        style: {
-          borderRadius: '0',
-          border: 'none'
-        }
       });
       
       const link = document.createElement('a');
@@ -262,6 +260,16 @@ const FactionDetail: React.FC<FactionDetailProps> = ({ faction, onClose, onFacti
           {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : exportSuccess ? <CheckCircle2 className="w-4 h-4" /> : <Download className="w-4 h-4" />}
           {isExporting ? toTurkishUppercase('Hazırlanıyor...') : exportSuccess ? toTurkishUppercase('İndirildi') : toTurkishUppercase('Fraksiyonu Paylaş')}
         </button>
+      </div>
+
+      {/* Hidden Share Card for Export */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0, pointerEvents: 'none' }}>
+        <ShareCard 
+          ref={shareCardRef}
+          mode="dossier"
+          mainFactionName={faction.name}
+          faction={faction}
+        />
       </div>
     </motion.div>
   );

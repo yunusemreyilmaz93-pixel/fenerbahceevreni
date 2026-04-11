@@ -108,7 +108,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ scores, onReset, onExplore 
         }}
         aria-hidden="true"
       >
-        <ShareCard ref={exportCardRef} {...shareCardProps} />
+        <ShareCard ref={exportCardRef} {...shareCardProps} mode="result" />
       </div>
 
       {/* Visible result screen */}
@@ -144,7 +144,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ scores, onReset, onExplore 
                 }}
               >
                 {/* No ref here — this is purely visual */}
-                <ShareCard {...shareCardProps} />
+                <ShareCard {...shareCardProps} mode="result" />
               </div>
             </div>
           </div>
