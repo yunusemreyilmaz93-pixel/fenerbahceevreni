@@ -125,14 +125,14 @@ const GALAXY_DATA = `
 - Ersuncular
   - Tahir Karapınarcılar
   - Derbiden Derbiye İzleyenler
-  - Begiristancılar
+  - Begiristancılar (Sportif Direktör Olarak)
   - Çobani Örgütü
   - Küskün Ersuncular
 - Serdar Ali Çelikler Terör Örgütü
   - Hoca Yiyiciler
   - Dönerci Batıranlar
-  - Aykut Düşmanları
-  - Buvaccılar
+  - Aykut Düşmanları (Vardar Örgütü)
+  - Buvaccılar (Balkan Lobisi)
   - Brendan Rodgersçılar
   - De Zerbiciler
 - İsim Takıntılıları

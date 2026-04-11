@@ -172,6 +172,76 @@ const SPECIFIC_DATA: Record<string, Partial<FactionNode>> = {
       similar: ['Camia Evladıcılar', 'Hacı İsmail Kartalcılar'],
       opposite: ['Ahrazbahçeliler']
     }
+  },
+  'Emre Bellocular': {
+    summary: '"Sahada karakter, kulübede hırs, kenarda da biraz delilik görmeden tam ikna olmazlar."',
+    vibe: 'Hırslı ve sert',
+    tone: 'Ateşli, iddialı, reaksiyoner',
+    representation: "Fenerbahçe'de Emre Belözoğlu figürünü; karakter, liderlik, saha içi sinir, kulüp aidiyeti ve mücadele ruhunun birleşimi olarak gören damarı temsil eder.",
+    philosophy: 'Emre Bellocular için mesele yalnızca teknik direktörlük ya da saha kenarı performansı değildir. Onlar Emre Belözoğlu’nda daha çok karakter, liderlik, oyuna müdahale isteği ve “bu kulübün tansiyonunu taşıyabilme” halini sever. Biraz ateş, biraz ego, biraz kontrol arzusu, biraz da “takımı silkeler” beklentisi bu fraksiyonun temelini oluşturur.',
+    highlights: 'Emre Bellocular, bağımsız tek fraksiyonlardan biri olarak doğrudan kendi başına durur.',
+    description: 'Bu fraksiyonun insanları genelde yumuşak profillere kolay kolay ısınmaz. Onlara göre Fenerbahçe kulübesinde bazen fazla sakinlik değil, biraz öfke, biraz gerilim ve biraz da saha kenarında yaşayan bir karakter gerekir. Emre Belözoğlu sevgileri sadece futbol aklından değil; aynı zamanda sahadaki sinirden, rekabetten ve “bu takım gevşemeyecek” hissinden beslenir. Dışarıdan bakınca bu tayfa bazen fazla reaksiyoner görünür. Ama kendi iç mantıklarında olay nettir: Fenerbahçe gibi bir yerde bazen diplomasi değil, karakter göstermek gerekir.',
+    tags: ['KARAKTER', 'HIRS', 'LİDERLİK', 'AİDİYET'],
+    relatedFactions: {
+      similar: ['Camia Evladıcılar', 'Hacı İsmail Kartalcılar', 'Balkan Lobisi'],
+      opposite: ['Düz Fenerbahçeliler', 'Alman Ekolücüler', 'Hollanda Lobisi']
+    }
+  },
+  'Basket Tayfa': {
+    summary: '"Futbol tartışmasının ortasında bile bir anda Obradovic örneği verip ortamın ayarını değiştirebilirler."',
+    vibe: 'Kültürlü ve özgüvenli',
+    tone: 'Şubeler üstü, hafif elit, kupaya alışık',
+    representation: "Fenerbahçe'yi yalnızca futbol üzerinden okumayan; basketbol şubesinin kültürünü, başarı hafızasını ve teknik seviye beklentisini de taraftarlığın merkezine koyan damarı temsil eder.",
+    philosophy: 'Basket Tayfa için Fenerbahçelilik sadece hafta sonu futbol maçı izlemek değildir. Onlar kulübü daha geniş okur; şube kültürünü, koç etkisini, oyun disiplinini ve Avrupa seviyesinde rekabet alışkanlığını da işin içine katar. Bu yüzden beklentileri çoğu zaman yüksektir: sıradanlık değil, düzen, kalite ve kupaya oynayan yapı isterler.',
+    highlights: 'Djordevicciler, Saraşçılar, Garnierciler, Spahijacılar, Obradovicciler, Tanjevicciler.',
+    description: 'Bu tayfa bazen futbol fraksiyonları arasında ayrı bir cumhuriyet gibi yaşar. Çünkü onların referans seti biraz farklıdır: koç etkisi, sistem disiplini, oyuncu rolü, Avrupa standardı ve kulüp kültürü. Futbolda yaşanan her kaosta içlerinden biri çıkıp “basketbolda böyle mi yapılıyor?” demeye çok yakındır. Biraz haklı özgüvenleri vardır; çünkü başarı hafızaları kuvvetlidir. Bu yüzden sabır eşikleri de garip biçimde seçicidir: kaliteye sabrederler, dağınıklığa hiç sabretmezler. Onlar için büyük kulüp olmak, biraz da organizasyon kalitesi demektir.',
+    tags: ['BASKETBOL', 'ŞUBEKÜLTÜRÜ', 'AVRUPASTANDARTI', 'KALİTEBEKLENTİSİ'],
+    relatedFactions: {
+      similar: ['Alman Ekolücüler', 'Voleybol Tayfa', 'Hollanda Lobisi'],
+      opposite: ['Ahrazbahçeliler', 'Serdar Ali Çelikler Terör Örgütü', 'Düz Fenerbahçeliler']
+    }
+  },
+  'Jesusçular': {
+    summary: '"Oyunda tempo, kenarda karizma, hedefte de Avrupa geceleri olsun isterler."',
+    vibe: 'Coşkulu ve iddialı',
+    tone: 'Enerjik, büyük oynayan, gösterişli',
+    representation: "Fenerbahçe'de Jorge Jesus figürünü; yüksek tempo, büyük hedef, Avrupa iddiası ve kenarda güçlü bir teknik direktör karizmasıyla özdeşleştiren damarı temsil eder.",
+    philosophy: 'Jesusçular için mesele yalnızca maç kazanmak değildir; kazanırken oyunun hissedilmesi de gerekir. Onlar biraz tempo, biraz cesaret, biraz da “büyük takım gibi oynama” duygusu arar. Teknik direktör dediğin şey yalnızca kenarda duran biri değil, sahaya enerji ve iddia yayan bir figür olmalıdır.',
+    highlights: 'Ziraat Edebiyatı Yapanlar, Avrupa Jesusçuları.',
+    description: 'Bu tayfa için Jorge Jesus dönemi biraz “çok şey vaat eden, çok şey hissettiren” bir dönem olarak okunur. Yalnızca sonuç değil, hissiyat da önemlidir. Takım öne bassın, rakibi zorlasın, maç biraz büyük takım havası taşısın isterler. Bazen fazla romantik bulunurlar; çünkü iyi oyunun bıraktığı etkiyi, puan tablosunun üstüne koydukları anlar olur. Ama kendi iç mantıklarında olay nettir: Fenerbahçe gibi bir kulüp bazen sadece kazanmakla değil, baskın ve iddialı görünmekle de tatmin eder.',
+    tags: ['JORGEJESUS', 'TEMPO', 'AVRUPAHEDEFİ', 'BÜYÜKOYUN'],
+    relatedFactions: {
+      similar: ['Portekiz Lobisi', 'Mourinhocular', 'Vitorcular'],
+      opposite: ['Anadolu İrfanı', 'Düz Fenerbahçeliler', 'Hacı İsmail Kartalcılar']
+    }
+  },
+  'Ersuncular': {
+    summary: '"Önde baskı, yüksek tempo, biraz kaos, bol enerji: hayat onlara göre böyle daha güzel."',
+    vibe: 'Ateşli ve tempocu',
+    tone: 'Coşkulu, agresif, inançlı',
+    representation: "Fenerbahçe'de Ersun Yanal figürünü; yüksek tempo, ön alan baskısı, hücum iştahı ve takımı ayağa kaldıran enerjiyle özdeşleştiren damarı temsil eder.",
+    philosophy: 'Ersuncular için futbol biraz nabız işidir. Takım sahada canlı olacak, rakibe çökecek, tribünü ayağa kaldıracak, gerektiğinde kontrolü kaybetme pahasına heyecan üretecek. Onlara göre iyi takım bazen kusursuz değil; diri, cesur ve saldırgan olandır.',
+    highlights: 'Küskün Ersuncular, Çobani Örgütü, Tahir Karapınarcılar, Derbiden Derbiye İzleyenler, Begiristancılar.',
+    description: 'Bu fraksiyonun insanları “oyun temposu” lafını boşuna etmez. Onlar için takım biraz öne basmalı, biraz korkusuz oynamalı, biraz da rakibi boğmalıdır. Bazen bu iş dağılabilir, bazen fazla açık verilebilir, ama onların gözünde asıl günah ruhsuzluk ve temposuzluktur. Ersun Yanal sevgisi burada sadece bir teknik direktör sevgisi değildir; aynı zamanda tribünü ayağa kaldıran, takıma enerji pompalayan ve “bu takımın nabzı yükseldi” hissi veren bir futbol anlayışına bağlılıktır. İçlerinde hâlâ o dönemin gazını taşıyanlar da vardır, kırgın kalanlar da. Zaten alt kollarda bunun izi açıkça görülür.',
+    tags: ['ERSUNYANAL', 'ÖNALANBASKISI', 'YÜKSEKTEMPO', 'ENERJİ'],
+    relatedFactions: {
+      similar: ['Zemancılar', 'Balkan Lobisi', 'Ahrazbahçeliler'],
+      opposite: ['Alman Ekolücüler', 'Hollanda Lobisi', 'Düz Fenerbahçeliler']
+    }
+  },
+  'Serdar Ali Çelikler Terör Örgütü': {
+    summary: '"Timeline\'da huzur varken rahatsız olan, tartışma bitince yeni tartışma açan damar."',
+    vibe: 'Kaotik ve kışkırtıcı',
+    tone: 'Gergin, sert, sürekli tetikte',
+    representation: "Fenerbahçe evreninde sürekli huzursuzluk üreten, gündemi sakin bırakmayan, kavga ve reaksiyonla beslenen fraksiyon hattını temsil eder.",
+    philosophy: 'Bu fraksiyon için asıl mesele çoğu zaman çözümden çok tartışmanın kendisidir. Ortam sakinse biraz rahatsız olurlar; çünkü onların doğal yaşam alanı tansiyon, sert yorum, bitmeyen hoca tartışması ve sürekli yeni bir ayrışma üretmektir. Bir şey yolunda gidiyor gibi görünse bile, mutlaka oradan yeni bir kriz başlığı çıkarabileceklerine dair tuhaf bir özgüven taşırlar.',
+    highlights: 'Hoca Yiyiciler, Dönerci Batıranlar, Aykut Düşmanları (Vardar Örgütü), Buvaccılar, Brendan Rodgersçılar, De Zerbiciler.',
+    description: 'Bu tayfa için fikir beyan etmek bazen başlı başına bir aksiyon sporudur. Her teknik direktör tartışmasını birkaç seviye daha sert, birkaç ton daha gergin ve birkaç adım daha kaotik hale getirebilirler. O yüzden bu fraksiyon yalnızca bir görüş etrafında değil, aynı zamanda bir üslup etrafında şekillenir. İçlerinde gerçekten bir hoca isteyen de vardır, bir başka ismi savunan da; ama hepsini birleştiren ortak nokta şudur: ortamın tansiyonu düşmeyecek. Bir yerde düzen kuruluyor gibi görünüyorsa, bu fraksiyon oraya biraz fitne, biraz sertlik, biraz da “yok abi bu iş böyle olmaz” enerjisi taşır.',
+    tags: ['KAOS', 'GERGİNLİK', 'REAKSİYON', 'GÜNDEMBAĞIMLILIĞI'],
+    relatedFactions: {
+      similar: ['Ahrazbahçeliler', 'Ersuncular', 'Balkan Lobisi'],
+      opposite: ['Alman Ekolücüler', 'Hollanda Lobisi', 'Düz Fenerbahçeliler']
+    }
   }
 };
 
