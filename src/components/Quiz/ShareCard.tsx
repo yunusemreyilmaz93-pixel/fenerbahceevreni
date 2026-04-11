@@ -35,8 +35,116 @@ const getFactionAccent = (name: string): string => {
     'Hacı İsmail Kartalcılar': '#F5C518',
     'Aykutçular': '#64748B',
     'Düz Fenerbahçeliler': '#1E3A5F',
+    'Esporcular': '#00F2FF',
+    'Basket Tayfa': '#FF6B00',
+    'Voleybol Tayfa': '#FF007A',
+    'Arjantin Lobisi': '#75AADB',
+    'Brezilya Lobisi': '#009739',
   };
   return accents[name] || YELLOW;
+};
+
+const getFactionIcon = (name: string): string => {
+  if (name.includes('Balkan')) return '⚔️';
+  if (name.includes('Alman')) return '⚙️';
+  if (name.includes('Portekiz')) return '🍷';
+  if (name.includes('Hollanda')) return '🌷';
+  if (name.includes('Brezilya')) return '⚽';
+  if (name.includes('Arjantin')) return '🧉';
+  if (name.includes('Basket')) return '🏀';
+  if (name.includes('Voleybol')) return '🏐';
+  if (name.includes('Espor')) return '🎮';
+  if (name.includes('İsim')) return '💎';
+  if (name.includes('Ütopik')) return '🚀';
+  if (name.includes('Anadolu')) return '🌾';
+  if (name.includes('Aykut')) return '📐';
+  if (name.includes('Camia')) return '🏠';
+  if (name.includes('İsmail')) return '📿';
+  return '🛡️';
+};
+
+const getRadarData = (name: string) => {
+  // Deterministic values based on name for variety
+  const s = name.length;
+  return [
+    { label: 'KAOS', value: 30 + (s * 7) % 70 },
+    { label: 'ROMANTİZM', value: 20 + (s * 13) % 80 },
+    { label: 'TAKTIK', value: 40 + (s * 3) % 60 },
+    { label: 'NOSTALJI', value: 10 + (s * 17) % 90 },
+    { label: 'REALIZM', value: 20 + (s * 5) % 80 },
+  ];
+};
+
+const RadarChart = ({ data, color }: { data: { label: string, value: number }[], color: string }) => {
+  const size = 300;
+  const center = size / 2;
+  const radius = size * 0.35;
+  const angleStep = (Math.PI * 2) / data.length;
+
+  const points = data.map((d, i) => {
+    const r = (d.value / 100) * radius;
+    const x = center + r * Math.cos(i * angleStep - Math.PI / 2);
+    const y = center + r * Math.sin(i * angleStep - Math.PI / 2);
+    return `${x},${y}`;
+  }).join(' ');
+
+  const gridLevels = [0.25, 0.5, 0.75, 1];
+
+  return (
+    <div style={{ position: 'relative', width: size, height: size }}>
+      <svg width={size} height={size} style={{ overflow: 'visible' }}>
+        {/* Grid lines */}
+        {gridLevels.map(level => (
+          <polygon
+            key={level}
+            points={data.map((_, i) => {
+              const r = radius * level;
+              const x = center + r * Math.cos(i * angleStep - Math.PI / 2);
+              const y = center + r * Math.sin(i * angleStep - Math.PI / 2);
+              return `${x},${y}`;
+            }).join(' ')}
+            fill="none"
+            stroke="rgba(255,255,255,0.1)"
+            strokeWidth="1"
+          />
+        ))}
+        {/* Axis lines */}
+        {data.map((_, i) => {
+          const x = center + radius * Math.cos(i * angleStep - Math.PI / 2);
+          const y = center + radius * Math.sin(i * angleStep - Math.PI / 2);
+          return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />;
+        })}
+        {/* Data polygon */}
+        <polygon
+          points={points}
+          fill={`${color}33`}
+          stroke={color}
+          strokeWidth="3"
+        />
+        {/* Labels */}
+        {data.map((d, i) => {
+          const r = radius + 35;
+          const x = center + r * Math.cos(i * angleStep - Math.PI / 2);
+          const y = center + r * Math.sin(i * angleStep - Math.PI / 2);
+          return (
+            <text
+              key={i}
+              x={x}
+              y={y}
+              fill={MUTED}
+              fontSize="12"
+              fontWeight="900"
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              style={{ fontFamily: 'Arial, sans-serif', letterSpacing: '1px' }}
+            >
+              {d.label}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
 };
 
 const toUpperTR = (str: string): string =>
@@ -48,6 +156,7 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
     const accent = getFactionAccent(mainFactionName);
     const displayNearby = nearbyFactions.slice(0, isHybrid ? 2 : 3);
     const isDossier = mode === 'dossier';
+    const radarData = getRadarData(mainFactionName);
 
     // Dynamic font size for long faction names
     const nameLength = mainFactionName.length;
@@ -70,6 +179,16 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           boxSizing: 'border-box',
         }}
       >
+        {/* Background Pattern */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: 0.03,
+          backgroundImage: `radial-gradient(${accent} 1px, transparent 1px)`,
+          backgroundSize: '40px 40px',
+          pointerEvents: 'none',
+        }} />
+
         {/* Accent glow — top left */}
         <div style={{
           position: 'absolute',
@@ -78,7 +197,7 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           width: '600px',
           height: '600px',
           borderRadius: '50%',
-          background: `radial-gradient(circle, ${accent}20 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${accent}25 0%, transparent 70%)`,
           pointerEvents: 'none',
         }} />
 
@@ -90,7 +209,7 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           width: '500px',
           height: '500px',
           borderRadius: '50%',
-          background: `radial-gradient(circle, ${accent}15 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${accent}20 0%, transparent 70%)`,
           pointerEvents: 'none',
         }} />
 
@@ -100,6 +219,7 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           justifyContent: 'space-between',
           alignItems: 'flex-start',
           marginBottom: '48px',
+          zIndex: 10,
         }}>
           <div>
             <div style={{
@@ -124,38 +244,50 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           </div>
 
           <div style={{
-            width: '80px',
-            height: '80px',
+            width: '100px',
+            height: '100px',
             backgroundColor: '#1A2333',
-            borderRadius: '20px',
-            border: `1px solid ${YELLOW}30`,
+            borderRadius: '24px',
+            border: `2px solid ${accent}40`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '40px',
+            fontSize: '50px',
+            boxShadow: `0 0 40px ${accent}15`,
           }}>
-            {isDossier ? '📁' : '🏆'}
+            {getFactionIcon(mainFactionName)}
           </div>
         </div>
 
         <div style={{
-          height: '2px',
-          background: `linear-gradient(to right, ${accent}, transparent)`,
+          height: '4px',
+          background: `linear-gradient(to right, ${accent}, ${accent}33, transparent)`,
           marginBottom: '60px',
-          opacity: 0.5,
+          borderRadius: '2px',
         }} />
 
         {/* ZONE 3 — Main result / Faction Name */}
-        <div style={{ marginBottom: isDossier ? '60px' : '0', flex: isDossier ? 'none' : 1, display: 'flex', flexDirection: 'column', justifyContent: isDossier ? 'flex-start' : 'center' }}>
+        <div style={{ 
+          marginBottom: isDossier ? '60px' : '0', 
+          flex: isDossier ? 'none' : 1, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: isDossier ? 'flex-start' : 'center',
+          zIndex: 10,
+        }}>
           <div style={{
             fontSize: '18px',
-            fontWeight: '700',
+            fontWeight: '900',
             color: accent,
-            letterSpacing: '6px',
+            letterSpacing: '8px',
             textTransform: 'uppercase',
-            marginBottom: '20px',
+            marginBottom: '24px',
             fontFamily: 'Arial, sans-serif',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
           }}>
+            <div style={{ width: '40px', height: '2px', backgroundColor: accent }} />
             {isDossier ? 'FRAKSİYON TANIMI' : 'EVRENDEKİ YERLEŞİMİN'}
           </div>
 
@@ -163,23 +295,29 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             fontSize: `${nameFontSize}px`,
             fontWeight: '900',
             color: WHITE,
-            lineHeight: 1,
+            lineHeight: 0.9,
             fontStyle: 'italic',
             textTransform: 'uppercase',
             fontFamily: "'Arial Black', sans-serif",
-            letterSpacing: '-2px',
+            letterSpacing: '-3px',
+            textShadow: `0 10px 30px rgba(0,0,0,0.5)`,
           }}>
             {toUpperTR(mainFactionName)}
           </div>
 
           {profile?.motto && (
             <div style={{
-              marginTop: '24px',
-              fontSize: '24px',
+              marginTop: '32px',
+              fontSize: '28px',
               color: YELLOW,
               fontWeight: '900',
               fontStyle: 'italic',
-              letterSpacing: '2px',
+              letterSpacing: '3px',
+              backgroundColor: 'rgba(0,0,0,0.3)',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              display: 'inline-block',
+              alignSelf: 'flex-start',
             }}>
               "{toUpperTR(profile.motto)}"
             </div>
@@ -188,74 +326,96 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
 
         {isDossier ? (
           /* DOSSIER MODE CONTENT */
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '48px' }}>
-            {/* Identity Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-              <div style={{ padding: '24px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ fontSize: '14px', color: MUTED, fontWeight: '700', marginBottom: '12px', letterSpacing: '2px' }}>KARAKTER / VIBE</div>
-                <div style={{ fontSize: '20px', color: WHITE, fontWeight: '700' }}>{profile.vibe || 'BİLİNMİYOR'}</div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '48px', zIndex: 10 }}>
+            {/* Identity Grid & Radar */}
+            <div style={{ display: 'flex', gap: '48px', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                <div style={{ padding: '32px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ fontSize: '14px', color: MUTED, fontWeight: '900', marginBottom: '16px', letterSpacing: '3px' }}>KARAKTER / VIBE</div>
+                  <div style={{ fontSize: '24px', color: WHITE, fontWeight: '900', textTransform: 'uppercase' }}>{profile.vibe || 'BİLİNMİYOR'}</div>
+                </div>
+                <div style={{ padding: '32px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div style={{ fontSize: '14px', color: MUTED, fontWeight: '900', marginBottom: '16px', letterSpacing: '3px' }}>GENEL TON</div>
+                  <div style={{ fontSize: '24px', color: WHITE, fontWeight: '900', textTransform: 'uppercase' }}>{profile.tone || 'BİLİNMİYOR'}</div>
+                </div>
               </div>
-              <div style={{ padding: '24px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ fontSize: '14px', color: MUTED, fontWeight: '700', marginBottom: '12px', letterSpacing: '2px' }}>GENEL TON</div>
-                <div style={{ fontSize: '20px', color: WHITE, fontWeight: '700' }}>{profile.tone || 'BİLİNMİYOR'}</div>
+              
+              <div style={{ 
+                padding: '40px', 
+                backgroundColor: 'rgba(0,0,0,0.4)', 
+                borderRadius: '32px', 
+                border: `1px solid ${accent}33`,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}>
+                <div style={{ fontSize: '14px', color: accent, fontWeight: '900', marginBottom: '24px', letterSpacing: '4px' }}>AURA HARİTASI</div>
+                <RadarChart data={radarData} color={accent} />
               </div>
             </div>
 
             {/* Representation */}
             {profile.representation && (
-              <div style={{ padding: '24px', backgroundColor: 'rgba(254, 221, 0, 0.03)', borderRadius: '16px', border: `1px solid ${YELLOW}20` }}>
-                <div style={{ fontSize: '14px', color: YELLOW, fontWeight: '900', marginBottom: '12px', letterSpacing: '2px' }}>TEMSİLİYET</div>
-                <div style={{ fontSize: '20px', color: WHITE, fontWeight: '500', fontStyle: 'italic', lineHeight: 1.4 }}>
-                  "{profile.representation}"
+              <div style={{ padding: '40px', backgroundColor: `${accent}08`, borderRadius: '24px', border: `1px solid ${accent}20`, position: 'relative' }}>
+                <div style={{ position: 'absolute', top: '20px', right: '30px', fontSize: '60px', opacity: 0.1, color: accent }}>"</div>
+                <div style={{ fontSize: '14px', color: accent, fontWeight: '900', marginBottom: '20px', letterSpacing: '4px' }}>TEMSİLİYET</div>
+                <div style={{ fontSize: '24px', color: WHITE, fontWeight: '500', fontStyle: 'italic', lineHeight: 1.5 }}>
+                  {profile.representation}
                 </div>
               </div>
             )}
 
-            {/* Philosophy */}
-            {profile.philosophy && (
-              <div style={{ spaceY: '16px' }}>
-                <div style={{ fontSize: '16px', color: YELLOW, fontWeight: '900', letterSpacing: '4px', marginBottom: '16px' }}>FELSEFESİ</div>
-                <div style={{ fontSize: '24px', color: WHITE, lineHeight: 1.6, fontStyle: 'italic', opacity: 0.9 }}>
-                  "{profile.philosophy}"
+            {/* Philosophy & Highlights */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px' }}>
+              {profile.philosophy && (
+                <div style={{ padding: '32px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '24px', borderLeft: `8px solid ${YELLOW}` }}>
+                  <div style={{ fontSize: '16px', color: YELLOW, fontWeight: '900', letterSpacing: '4px', marginBottom: '20px' }}>FELSEFESİ</div>
+                  <div style={{ fontSize: '22px', color: WHITE, lineHeight: 1.6, fontStyle: 'italic', opacity: 0.9 }}>
+                    {profile.philosophy}
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Highlights */}
-            {profile.highlights && (
-              <div style={{ spaceY: '16px' }}>
-                <div style={{ fontSize: '16px', color: YELLOW, fontWeight: '900', letterSpacing: '4px', marginBottom: '16px' }}>ÖNE ÇIKANLAR</div>
-                <div style={{ fontSize: '24px', color: WHITE, lineHeight: 1.4, fontWeight: '800' }}>
-                  {profile.highlights}
+              )}
+              {profile.highlights && (
+                <div style={{ padding: '32px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '24px', borderLeft: `8px solid ${accent}` }}>
+                  <div style={{ fontSize: '16px', color: accent, fontWeight: '900', letterSpacing: '4px', marginBottom: '20px' }}>ÖNE ÇIKANLAR</div>
+                  <div style={{ fontSize: '22px', color: WHITE, lineHeight: 1.5, fontWeight: '800' }}>
+                    {profile.highlights}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Description */}
             {profile.description && (
-              <div style={{ spaceY: '16px' }}>
-                <div style={{ fontSize: '16px', color: YELLOW, fontWeight: '900', letterSpacing: '4px', marginBottom: '16px' }}>ANALİZ VE DETAYLAR</div>
-                <div style={{ fontSize: '22px', color: MUTED, lineHeight: 1.6 }}>
+              <div style={{ padding: '40px', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ fontSize: '16px', color: YELLOW, fontWeight: '900', letterSpacing: '4px', marginBottom: '20px' }}>ANALİZ VE DETAYLAR</div>
+                <div style={{ fontSize: '24px', color: MUTED, lineHeight: 1.6 }}>
                   {profile.description}
                 </div>
               </div>
             )}
 
             {/* Relations */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-              <div>
-                <div style={{ fontSize: '14px', color: '#22C55E', fontWeight: '900', letterSpacing: '2px', marginBottom: '16px' }}>YAKIN / BENZER</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px' }}>
+              <div style={{ padding: '32px', backgroundColor: 'rgba(34, 197, 94, 0.05)', borderRadius: '24px', border: '1px solid rgba(34, 197, 94, 0.1)' }}>
+                <div style={{ fontSize: '16px', color: '#22C55E', fontWeight: '900', letterSpacing: '3px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#22C55E' }} />
+                  MÜTTEFİK / BENZER
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {profile.relatedFactions?.similar?.map(name => (
-                    <div key={name} style={{ fontSize: '18px', color: WHITE, fontWeight: '700' }}>• {name}</div>
+                    <div key={name} style={{ fontSize: '20px', color: WHITE, fontWeight: '800' }}>{toUpperTR(name)}</div>
                   ))}
                 </div>
               </div>
-              <div>
-                <div style={{ fontSize: '14px', color: '#EF4444', fontWeight: '900', letterSpacing: '2px', marginBottom: '16px' }}>UZAK / ZIT</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ padding: '32px', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: '24px', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                <div style={{ fontSize: '16px', color: '#EF4444', fontWeight: '900', letterSpacing: '3px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#EF4444' }} />
+                  EZELİ RAKİP / ZIT
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {profile.relatedFactions?.opposite?.map(name => (
-                    <div key={name} style={{ fontSize: '18px', color: WHITE, fontWeight: '700' }}>• {name}</div>
+                    <div key={name} style={{ fontSize: '20px', color: WHITE, fontWeight: '800' }}>{toUpperTR(name)}</div>
                   ))}
                 </div>
               </div>
@@ -266,15 +426,17 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
           <>
             {/* ZONE 4 — Description */}
             {profile?.shortSummary && (
-              <div style={{ marginTop: '40px', maxWidth: '880px' }}>
+              <div style={{ marginTop: '40px', maxWidth: '880px', zIndex: 10 }}>
                 <div style={{
-                  fontSize: '26px',
+                  fontSize: '32px',
                   color: WHITE,
-                  lineHeight: 1.5,
+                  lineHeight: 1.4,
                   fontStyle: 'italic',
                   fontWeight: '500',
-                  opacity: 0.85,
+                  opacity: 0.9,
                   fontFamily: 'Arial, sans-serif',
+                  borderLeft: `12px solid ${accent}`,
+                  paddingLeft: '40px',
                 }}>
                   "{profile.shortSummary}"
                 </div>
@@ -284,12 +446,12 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             <div style={{ flex: 1 }} />
 
             {/* ZONE 5 — Bottom section */}
-            <div style={{ paddingTop: '40px' }}>
+            <div style={{ paddingTop: '40px', zIndex: 10 }}>
               <div style={{
-                height: '1px',
+                height: '2px',
                 backgroundColor: MUTED,
-                opacity: 0.15,
-                marginBottom: '32px',
+                opacity: 0.1,
+                marginBottom: '48px',
               }} />
 
               <div style={{
@@ -300,30 +462,31 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
                 {/* Nearby factions */}
                 <div>
                   <div style={{
-                    fontSize: '14px',
-                    fontWeight: '700',
+                    fontSize: '16px',
+                    fontWeight: '900',
                     color: MUTED,
-                    letterSpacing: '4px',
+                    letterSpacing: '5px',
                     textTransform: 'uppercase',
-                    marginBottom: '16px',
+                    marginBottom: '24px',
                     fontFamily: 'Arial, sans-serif',
                   }}>
                     YAKIN DAMARLAR
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {displayNearby.map((name) => (
-                      <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{
-                          width: '8px',
-                          height: '8px',
+                          width: '12px',
+                          height: '12px',
                           borderRadius: '50%',
                           backgroundColor: accent,
                           flexShrink: 0,
+                          boxShadow: `0 0 15px ${accent}`,
                         }} />
                         <span style={{
-                          fontSize: '22px',
+                          fontSize: '28px',
                           color: WHITE,
-                          fontWeight: '700',
+                          fontWeight: '900',
                           textTransform: 'uppercase',
                           letterSpacing: '-0.5px',
                           fontFamily: "'Arial Black', sans-serif",
@@ -338,25 +501,26 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
                 {/* Hybrid badge */}
                 {isHybrid && hybridFaction && (
                   <div style={{
-                    padding: '16px 24px',
-                    borderRadius: '16px',
-                    backgroundColor: `${YELLOW}08`,
-                    border: `1px solid ${YELLOW}25`,
-                    maxWidth: '280px',
+                    padding: '24px 32px',
+                    borderRadius: '24px',
+                    backgroundColor: `${YELLOW}10`,
+                    border: `2px solid ${YELLOW}30`,
+                    maxWidth: '350px',
+                    boxShadow: `0 10px 40px rgba(0,0,0,0.3)`,
                   }}>
                     <div style={{
-                      fontSize: '12px',
-                      fontWeight: '700',
+                      fontSize: '14px',
+                      fontWeight: '900',
                       color: YELLOW,
-                      letterSpacing: '3px',
+                      letterSpacing: '4px',
                       textTransform: 'uppercase',
-                      marginBottom: '8px',
+                      marginBottom: '12px',
                       fontFamily: 'Arial, sans-serif',
                     }}>
                       KARMA PROFİL
                     </div>
                     <div style={{
-                      fontSize: '20px',
+                      fontSize: '28px',
                       fontWeight: '900',
                       color: YELLOW,
                       fontStyle: 'italic',
@@ -373,12 +537,12 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
         )}
 
         {/* Footer — Common for both */}
-        <div style={{ marginTop: '60px' }}>
+        <div style={{ marginTop: '60px', zIndex: 10 }}>
           <div style={{
-            height: '1px',
+            height: '2px',
             backgroundColor: MUTED,
-            opacity: 0.15,
-            marginBottom: '32px',
+            opacity: 0.1,
+            marginBottom: '40px',
           }} />
           
           <div style={{
@@ -386,9 +550,17 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-            <div style={{ display: 'flex', gap: '24px' }}>
-              {isDossier && profile.tags?.slice(0, 3).map(tag => (
-                <div key={tag} style={{ fontSize: '16px', color: MUTED, fontWeight: '700' }}>#{toUpperTR(tag)}</div>
+            <div style={{ display: 'flex', gap: '32px' }}>
+              {isDossier && profile.tags?.slice(0, 4).map(tag => (
+                <div key={tag} style={{ 
+                  fontSize: '18px', 
+                  color: WHITE, 
+                  fontWeight: '900', 
+                  letterSpacing: '2px',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                }}>#{toUpperTR(tag)}</div>
               ))}
             </div>
 
@@ -396,19 +568,19 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'flex-end',
-              gap: '6px',
+              gap: '8px',
             }}>
               <div style={{
-                fontSize: '16px',
-                fontWeight: '700',
+                fontSize: '18px',
+                fontWeight: '900',
                 color: MUTED,
                 fontFamily: 'Arial, sans-serif',
-                letterSpacing: '1px',
+                letterSpacing: '2px',
               }}>
                 @BasitBiOyun
               </div>
               <div style={{
-                fontSize: '18px',
+                fontSize: '22px',
                 fontWeight: '900',
                 color: YELLOW,
                 fontFamily: "'Arial Black', sans-serif",
@@ -419,6 +591,31 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
             </div>
           </div>
         </div>
+
+        {/* Dossier Stamp */}
+        {isDossier && (
+          <div style={{
+            position: 'absolute',
+            top: '400px',
+            right: '80px',
+            width: '250px',
+            height: '100px',
+            border: `6px solid ${accent}44`,
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: `${accent}44`,
+            fontSize: '40px',
+            fontWeight: '900',
+            transform: 'rotate(-15deg)',
+            pointerEvents: 'none',
+            letterSpacing: '8px',
+            fontFamily: "'Arial Black', sans-serif",
+          }}>
+            ONAYLANDI
+          </div>
+        )}
       </div>
     );
   }
