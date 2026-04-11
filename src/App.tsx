@@ -397,15 +397,24 @@ export default function App() {
       <div className="absolute inset-0 z-10">
         {/* Credit Card */}
         <div className="fixed top-6 right-6 z-30 hidden md:block">
-          <div className="glass-panel p-4 rounded-2xl border-white/10 max-w-[280px] space-y-2">
-            <p className="text-[10px] text-white font-bold uppercase tracking-widest leading-tight">
+          <div className="bg-white p-5 rounded-2xl border-2 border-fb-yellow shadow-[0_0_30px_rgba(254,221,0,0.3)] max-w-[300px] space-y-3">
+            <p className="text-[14px] text-fb-navy font-black uppercase tracking-tight leading-tight">
               @caglarnefreti'nin fraksiyon görseli temel alınarak hazırlanmıştır.
             </p>
-            <div className="h-px bg-white/10 w-full" />
-            <p className="text-[11px] text-fb-yellow font-medium">
-              Hazırlayan: <span className="font-black">Yunus Emre YILMAZ</span>
-            </p>
-            <p className="text-[10px] text-white font-mono">x.com/@basitbioyun</p>
+            <div className="h-0.5 bg-fb-navy/10 w-full" />
+            <div className="space-y-1">
+              <p className="text-[14px] text-fb-navy font-bold">
+                Hazırlayan: <span className="font-black text-fb-accent">Yunus Emre YILMAZ</span>
+              </p>
+              <a 
+                href="https://x.com/BasitBiOyun" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-[14px] text-fb-accent font-black hover:underline flex items-center gap-1 transition-all"
+              >
+                x.com/basitbioyun
+              </a>
+            </div>
           </div>
         </div>
 

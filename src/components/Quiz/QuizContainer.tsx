@@ -96,15 +96,15 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ onClose, onExplore }) => 
 
         {/* Progress indicator — center */}
         {status === 'in-progress' && (
-          <div className="flex flex-col items-center gap-1.5 flex-1 px-4">
-            <div className="h-[2px] w-full max-w-xs bg-white/5 rounded-full overflow-hidden">
+          <div className="flex flex-col items-center gap-2 flex-1 px-4">
+            <div className="h-[3px] w-full max-w-xs bg-white/10 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-fb-yellow shadow-[0_0_8px_rgba(254,221,0,0.5)]"
+                className="h-full bg-fb-yellow shadow-[0_0_10px_rgba(254,221,0,0.6)]"
                 animate={{ width: `${progress}%` }}
                 transition={{ type: 'spring', stiffness: 200, damping: 30 }}
               />
             </div>
-            <span className="intelligence-label text-slate-500 text-[9px] tracking-widest">
+            <span className="intelligence-label text-slate-400 text-[14px] font-bold tracking-widest">
               {currentIndex + 1} / {TOTAL}
             </span>
           </div>
@@ -132,8 +132,8 @@ const QuizContainer: React.FC<QuizContainerProps> = ({ onClose, onExplore }) => 
             className="max-w-2xl text-center space-y-10"
           >
             <div className="space-y-5">
-              <div className="inline-block px-3 py-1 rounded-full border border-fb-yellow/20 bg-fb-yellow/5">
-                <span className="intelligence-label text-fb-yellow text-[9px] tracking-widest">
+              <div className="inline-block px-4 py-2 rounded-full border border-fb-yellow/30 bg-fb-yellow/10">
+                <span className="intelligence-label text-fb-yellow text-[14px] font-bold tracking-widest">
                   {TOTAL} SORU · 5 ŞIK · 12 FRAKSİYON
                 </span>
               </div>

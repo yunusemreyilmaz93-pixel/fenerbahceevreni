@@ -82,8 +82,8 @@ const QuestionScreen: React.FC<QuestionScreenProps> = ({ question, onAnswer }) =
 
                 {/* Option text */}
                 <p className={`
-                  text-sm md:text-base leading-relaxed transition-colors duration-200
-                  ${isSelected ? 'text-white font-medium' : 'text-slate-300 group-hover:text-white'}
+                  text-[14px] md:text-lg leading-relaxed transition-colors duration-200
+                  ${isSelected ? 'text-white font-bold' : 'text-slate-200 group-hover:text-white'}
                 `}>
                   {option.text}
                 </p>
