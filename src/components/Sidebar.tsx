@@ -10,9 +10,10 @@ interface SidebarProps {
   onSelectFaction: (node: FactionNode) => void;
   isOpen: boolean;
   onToggle: () => void;
+  onOpenPredictor: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ data, onSelectFaction, isOpen, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ data, onSelectFaction, isOpen, onToggle, onOpenPredictor }) => {
   return (
     <>
       {/* Mobile Toggle Button */}
@@ -63,6 +64,18 @@ const Sidebar: React.FC<SidebarProps> = ({ data, onSelectFaction, isOpen, onTogg
                   onClose={onToggle}
                 />
               </div>
+
+              {/* Predictor Shortcut */}
+              <button 
+                onClick={() => {
+                  onOpenPredictor();
+                  onToggle();
+                }}
+                className="w-full mt-4 p-4 rounded-2xl bg-fb-yellow text-fb-navy font-black italic uppercase text-sm flex items-center justify-between group hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(254,221,0,0.1)]"
+              >
+                <span>ŞAMPİYONLUK YOLU</span>
+                <Activity className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              </button>
             </div>
           </motion.div>
         )}

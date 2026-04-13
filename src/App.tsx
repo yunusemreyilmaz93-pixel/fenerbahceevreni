@@ -5,9 +5,10 @@ import TreeVisualization from './components/TreeVisualization';
 import FactionDetail from './components/FactionDetail';
 import QuizContainer from './components/Quiz/QuizContainer';
 import Sidebar from './components/Sidebar';
+import PredictorPage from './components/Predictor/PredictorPage';
 import { FactionNode } from './types';
 import { AnimatePresence, motion } from 'motion/react';
-import { Zap } from 'lucide-react';
+import { Zap, X } from 'lucide-react';
 import { toTurkishUppercase } from './lib/stringUtils';
 
 // Using the full markdown provided by the user
@@ -333,6 +334,7 @@ const GALAXY_DATA = `
 export default function App() {
   const [selectedFaction, setSelectedFaction] = useState<FactionNode | null>(null);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [isPredictorOpen, setIsPredictorOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [zoomToNodeId, setZoomToNodeId] = useState<string | null>(null);
 
@@ -370,6 +372,7 @@ export default function App() {
         onSelectFaction={handleSelectFaction}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onOpenPredictor={() => setIsPredictorOpen(true)}
       />
 
       {/* Quiz Trigger Button */}
@@ -473,6 +476,28 @@ export default function App() {
               }
             }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Predictor Overlay */}
+      <AnimatePresence>
+        {isPredictorOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] overflow-y-auto bg-[#0D1117]"
+          >
+            <div className="relative">
+              <button 
+                onClick={() => setIsPredictorOpen(false)}
+                className="fixed top-8 right-8 z-[70] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <PredictorPage />
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
