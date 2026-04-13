@@ -536,7 +536,7 @@ const ShareCard = React.forwardRef<
                 }}>
                   <div style={{ fontSize: '28px', fontWeight: 900, fontStyle: 'italic', color: isFirst ? color : MUTED, opacity: isFirst ? 1 : 0.5, lineHeight: 1, width: '22px' }}>{i + 1}</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '11px', fontWeight: 700, color: MUTED, letterSpacing: '2px', textTransform: 'uppercase', fontFamily: 'Arial, sans-serif' }}>{team.name.slice(0, 10)}</div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: MUTED, letterSpacing: '2px', textTransform: 'uppercase', fontFamily: 'Arial, sans-serif' }}>{team.name}</div>
                     <div style={{ fontSize: '26px', fontWeight: 900, fontStyle: 'italic', color: isFirst ? color : WHITE, lineHeight: 1 }}>{team.points}</div>
                   </div>
                   {isFirst && <div style={{ fontSize: '20px' }}>🏆</div>}
@@ -628,7 +628,7 @@ const ShareCard = React.forwardRef<
                           {isHome ? 'İç Saha' : 'Deplasman'}
                           {match.isDerby && <span style={{ color: YELLOW }}> · DERBİ</span>}
                         </div>
-                        <div style={{ fontSize: '22px', fontWeight: 900, fontStyle: 'italic', textTransform: 'uppercase', color: WHITE, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-0.3px' }}>
+                        <div style={{ fontSize: '22px', fontWeight: 900, fontStyle: 'italic', textTransform: 'uppercase', color: WHITE, lineHeight: 1, letterSpacing: '-0.3px' }}>
                           {opponent}
                         </div>
                       </div>
