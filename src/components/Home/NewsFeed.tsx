@@ -1,12 +1,51 @@
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Clock, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { LATEST_NEWS } from '../../constants/homeData';
+import { fetchFenerbahceNews, type FenerNewsItem } from '../../lib/newsService';
 
 const NewsFeed: React.FC = () => {
-  const featured = LATEST_NEWS[0];
-  const others = LATEST_NEWS.slice(1);
+  const [liveNews, setLiveNews] = useState<FenerNewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchFenerbahceNews(5)
+      .then((items) => {
+        if (mounted && items.length > 0) {
+          setLiveNews(items);
+        }
+      })
+      .catch(() => {
+        // fallback below
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const normalizedFallback = useMemo(
+    () =>
+      LATEST_NEWS.map((item) => ({
+        id: item.id,
+        title: item.title,
+        summary: item.summary,
+        url: item.url || '#',
+        image: item.image,
+        date: item.date,
+        source: 'Fenerbahçe Evreni',
+        category: item.category,
+      })),
+    [],
+  );
+
+  const feed = liveNews.length > 0 ? liveNews : normalizedFallback;
+  const featured = feed[0];
+  const others = feed.slice(1, 5);
 
   return (
     <section className="py-24">
@@ -17,7 +56,7 @@ const NewsFeed: React.FC = () => {
             <h2 className="text-4xl font-display font-black uppercase italic tracking-tighter">HABERLER & ANALİZLER</h2>
           </div>
           <a
-            href="https://www.fenerbahce.org/haberler/futbol"
+            href="https://news.google.com/rss/search?q=Fenerbah%C3%A7e&hl=tr&gl=TR&ceid=TR:tr"
             target="_blank"
             rel="noreferrer"
             className="group flex items-center gap-2 text-sm font-bold text-slate-400 transition-colors hover:text-fb-yellow"
@@ -35,10 +74,13 @@ const NewsFeed: React.FC = () => {
             whileHover={{ y: -5 }}
             className="lg:col-span-7 group relative rounded-[32px] overflow-hidden aspect-[16/9] cursor-pointer"
           >
-            <img src={featured.image} alt={featured.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <img src={featured.image || 'https://picsum.photos/seed/fb-live/1200/700'} alt={featured.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
             <div className="absolute inset-0 bg-gradient-to-t from-fb-dark via-fb-dark/40 to-transparent" />
             
             <div className="absolute bottom-0 left-0 p-8 md:p-12 w-full">
+              <div className="mb-2 text-[10px] font-black tracking-[0.16em] text-slate-400">
+                {isLoading ? 'HABERLER GÜNCELLENİYOR…' : `KAYNAK: ${featured.source || 'GOOGLE NEWS'}`}
+              </div>
               <div className="flex items-center gap-3 mb-4">
                 <span className="px-3 py-1 bg-fb-yellow text-fb-navy text-[10px] font-black rounded-full uppercase tracking-widest">
                   {featured.category}
@@ -68,7 +110,7 @@ const NewsFeed: React.FC = () => {
                 className="group flex gap-6 items-center cursor-pointer"
               >
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden flex-shrink-0 border border-white/5">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <img src={item.image || `https://picsum.photos/seed/news-${item.id}/500/500`} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">

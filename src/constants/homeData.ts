@@ -24,20 +24,6 @@ export interface Poll {
   totalVotes: number;
 }
 
-export interface PlatformMetric {
-  id: string;
-  value: string;
-  label: string;
-  detail: string;
-}
-
-export interface PlatformPillar {
-  id: string;
-  title: string;
-  description: string;
-}
-
-
 export interface MatchSource {
   label: string;
   url: string;
@@ -307,45 +293,6 @@ export const VIDEOS: VideoItem[] = [
     duration: '15:00',
     category: 'ARŞİV',
     url: 'https://www.youtube.com/@fenerbahce',
-  },
-];
-
-export const PLATFORM_METRICS: PlatformMetric[] = [
-  {
-    id: 'm1',
-    value: '24/7',
-    label: 'CANLI MAÇ DOSYASI',
-    detail: 'Gündem, sakatlık ve muhtemel 11 içeriği tek merkezde.',
-  },
-  {
-    id: 'm2',
-    value: '300+',
-    label: 'FRAKSİYON HARİTASI',
-    detail: 'Taraftar kimliği ve topluluk haritası deneyimi.',
-  },
-  {
-    id: 'm3',
-    value: '5',
-    label: 'ANA DENEYİM ALANI',
-    detail: 'Maç merkezi, haber, video, anket, evren deneyimi.',
-  },
-];
-
-export const PLATFORM_PILLARS: PlatformPillar[] = [
-  {
-    id: 'p1',
-    title: 'CANLI VE GÜVENİLİR VERİ',
-    description: 'Son güncelleme zamanı, kaynak şeffaflığı ve editoryal notlarla doğrulanabilir maç bilgisi.',
-  },
-  {
-    id: 'p2',
-    title: 'TOPLULUK MERKEZLİ DENEYİM',
-    description: 'Anket, ruh hali ve etkileşim katmanlarıyla taraftarı sadece izleyen değil üreten hale getirir.',
-  },
-  {
-    id: 'p3',
-    title: 'TEK EKRANDA FUTBOL ZEKÂSI',
-    description: 'Muhtemel 11, fikstür, ceza-sakatlık ve maç öncesi kritik içgörüleri tek akışta sunar.',
   },
 ];
 

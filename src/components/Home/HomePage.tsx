@@ -30,6 +30,7 @@ const HomePage: React.FC<HomePageProps> = ({ onEnterUniverse, onStartQuiz, onNav
         <PlatformVision />
       </motion.div>
       
+
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}

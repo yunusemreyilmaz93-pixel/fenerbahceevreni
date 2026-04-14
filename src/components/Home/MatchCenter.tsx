@@ -11,6 +11,7 @@ import {
   Users,
 } from 'lucide-react';
 import { MATCH_CENTER_DATA, type SquadNote } from '../../constants/homeData';
+import { fetchLiveFenerbahceSchedule, type LiveFixtureItem } from '../../lib/matchService';
 
 interface TimeLeft {
   days: number;
@@ -64,8 +65,40 @@ const TeamAvailability: React.FC<{ title: string; notes: SquadNote[] }> = ({ tit
 const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-center' | 'news') => void }> = ({
   onNavigate,
 }) => {
-  const targetMs = useRef(new Date(MATCH_CENTER_DATA.date).getTime());
+  const [nextMatchDate, setNextMatchDate] = useState(MATCH_CENTER_DATA.date);
+  const [liveFixtures, setLiveFixtures] = useState<LiveFixtureItem[]>(MATCH_CENTER_DATA.fixtureFocus);
+  const [isLiveLoading, setIsLiveLoading] = useState(true);
+  const targetMs = useRef(new Date(nextMatchDate).getTime());
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calcTimeLeft(targetMs.current));
+
+  useEffect(() => {
+    targetMs.current = new Date(nextMatchDate).getTime();
+    setTimeLeft(calcTimeLeft(targetMs.current));
+  }, [nextMatchDate]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchLiveFenerbahceSchedule()
+      .then((snapshot) => {
+        if (!mounted) return;
+        if (snapshot.nextMatch?.date) {
+          setNextMatchDate(snapshot.nextMatch.date);
+        }
+        if (snapshot.fixtures.length > 0) {
+          setLiveFixtures(snapshot.fixtures);
+        }
+      })
+      .catch(() => {
+        // fallback uses static constants
+      })
+      .finally(() => {
+        if (mounted) setIsLiveLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => setTimeLeft(calcTimeLeft(targetMs.current)), 1000);
@@ -73,8 +106,8 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
   }, []);
 
   const localDate = useMemo(
-    () => new Date(MATCH_CENTER_DATA.date).toLocaleString('tr-TR', { dateStyle: 'full', timeStyle: 'short' }),
-    [],
+    () => new Date(nextMatchDate).toLocaleString('tr-TR', { dateStyle: 'full', timeStyle: 'short' }),
+    [nextMatchDate],
   );
 
   const updatedDate = useMemo(
@@ -107,6 +140,9 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
               </span>
               <span className="inline-flex items-center gap-2">
                 <MapPin size={14} /> {MATCH_CENTER_DATA.venue}
+              </span>
+              <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[10px] font-black tracking-[0.15em] text-emerald-300">
+                {isLiveLoading ? 'CANLI API BAĞLANIYOR' : 'CANLI API AKTİF'}
               </span>
             </div>
 
@@ -153,7 +189,7 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
               <span className="text-xs font-black tracking-[0.2em]">2025-2026 SÜPER LİG KALAN FİKSTÜR</span>
             </div>
             <div className="space-y-2">
-              {MATCH_CENTER_DATA.fixtureFocus.map((item) => {
+              {liveFixtures.map((item) => {
                 const matchDate = new Date(item.date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
                 return (
                   <div key={`${item.date}-${item.home}`} className="rounded-xl border border-white/10 bg-fb-navy/60 p-3">
