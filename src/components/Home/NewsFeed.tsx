@@ -16,14 +16,22 @@ const NewsFeed: React.FC = () => {
             <div className="intelligence-label text-fb-yellow mb-2">GÜNCEL AKIŞ</div>
             <h2 className="text-4xl font-display font-black uppercase italic tracking-tighter">HABERLER & ANALİZLER</h2>
           </div>
-          <button className="group flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-fb-yellow transition-colors">
-            TÜMÜNÜ GÖR <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
+          <a
+            href="https://www.fenerbahce.org/haberler/futbol"
+            target="_blank"
+            rel="noreferrer"
+            className="group flex items-center gap-2 text-sm font-bold text-slate-400 transition-colors hover:text-fb-yellow"
+          >
+            TÜMÜNÜ GÖR <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </a>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Featured News */}
-          <motion.div 
+          <motion.a
+            href={featured.url}
+            target={featured.url?.startsWith('http') ? '_blank' : undefined}
+            rel={featured.url?.startsWith('http') ? 'noreferrer' : undefined}
             whileHover={{ y: -5 }}
             className="lg:col-span-7 group relative rounded-[32px] overflow-hidden aspect-[16/9] cursor-pointer"
           >
@@ -46,13 +54,16 @@ const NewsFeed: React.FC = () => {
                 {featured.summary}
               </p>
             </div>
-          </motion.div>
+          </motion.a>
 
           {/* Secondary News */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             {others.map((item) => (
-              <motion.div 
+              <motion.a
                 key={item.id}
+                href={item.url}
+                target={item.url?.startsWith('http') ? '_blank' : undefined}
+                rel={item.url?.startsWith('http') ? 'noreferrer' : undefined}
                 whileHover={{ x: 10 }}
                 className="group flex gap-6 items-center cursor-pointer"
               >
@@ -71,7 +82,7 @@ const NewsFeed: React.FC = () => {
                     OKU <ArrowUpRight className="w-3 h-3" />
                   </div>
                 </div>
-              </motion.div>
+              </motion.a>
             ))}
           </div>
         </div>

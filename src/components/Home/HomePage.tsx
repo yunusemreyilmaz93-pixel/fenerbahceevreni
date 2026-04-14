@@ -8,6 +8,7 @@ import NewsFeed from './NewsFeed';
 import VideoShelf from './VideoShelf';
 import UniverseEntry from './UniverseEntry';
 import Footer from './Footer';
+import PlatformVision from './PlatformVision';
 
 interface HomePageProps {
   onEnterUniverse: () => void;
@@ -19,6 +20,15 @@ const HomePage: React.FC<HomePageProps> = ({ onEnterUniverse, onStartQuiz, onNav
   return (
     <div className="bg-fb-dark min-h-screen overflow-x-hidden">
       <HeroSection onEnterUniverse={onEnterUniverse} onStartQuiz={onStartQuiz} />
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        viewport={{ once: true }}
+      >
+        <PlatformVision />
+      </motion.div>
       
       <motion.div
         initial={{ opacity: 0 }}
@@ -26,7 +36,9 @@ const HomePage: React.FC<HomePageProps> = ({ onEnterUniverse, onStartQuiz, onNav
         transition={{ duration: 1 }}
         viewport={{ once: true }}
       >
-        <MatchCenter onNavigate={onNavigate} />
+        <div id="mac-merkezi">
+          <MatchCenter onNavigate={onNavigate} />
+        </div>
       </motion.div>
 
       <motion.div
@@ -53,7 +65,9 @@ const HomePage: React.FC<HomePageProps> = ({ onEnterUniverse, onStartQuiz, onNav
         transition={{ duration: 1 }}
         viewport={{ once: true }}
       >
-        <NewsFeed />
+        <div id="haberler">
+          <NewsFeed />
+        </div>
       </motion.div>
 
       <motion.div
@@ -62,7 +76,9 @@ const HomePage: React.FC<HomePageProps> = ({ onEnterUniverse, onStartQuiz, onNav
         transition={{ duration: 1 }}
         viewport={{ once: true }}
       >
-        <VideoShelf />
+        <div id="videolar">
+          <VideoShelf />
+        </div>
       </motion.div>
 
       <Footer />
