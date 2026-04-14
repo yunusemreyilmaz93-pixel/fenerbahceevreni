@@ -1,15 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { parseMarkdownToTree } from './lib/markdownParser';
 import { enrichFactionData } from './lib/factionService';
-import TreeVisualization from './components/TreeVisualization';
-import FactionDetail from './components/FactionDetail';
-import QuizContainer from './components/Quiz/QuizContainer';
-import Sidebar from './components/Sidebar';
-import PredictorPage from './components/Predictor/PredictorPage';
+import UniverseView from './components/UniverseView';
+import HomePage from './components/Home/HomePage';
+import Navbar from './components/Home/Navbar';
 import { FactionNode } from './types';
 import { AnimatePresence, motion } from 'motion/react';
-import { Zap, X } from 'lucide-react';
-import { toTurkishUppercase } from './lib/stringUtils';
 
 // Using the full markdown provided by the user
 const GALAXY_DATA = `
@@ -331,178 +327,122 @@ const GALAXY_DATA = `
 - Zeki Murat Göleciler
 `;
 
+import MatchCenter from './components/Home/MatchCenter';
+
+import PredictorPage from './components/Predictor/PredictorPage';
+
 export default function App() {
-  const [selectedFaction, setSelectedFaction] = useState<FactionNode | null>(null);
+  const [view, setView] = useState<'home' | 'universe' | 'match-center' | 'news' | 'predictor'>('home');
   const [isQuizOpen, setIsQuizOpen] = useState(false);
-  const [isPredictorOpen, setIsPredictorOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [zoomToNodeId, setZoomToNodeId] = useState<string | null>(null);
 
   const treeData = useMemo(() => {
     const basicTree = parseMarkdownToTree(GALAXY_DATA);
     return enrichFactionData(basicTree);
   }, []);
 
-  const handleSelectFaction = (node: FactionNode) => {
-    setSelectedFaction(node);
-    setZoomToNodeId(node.id);
-    // Reset zoomToNodeId after a delay so it can be triggered again
-    setTimeout(() => setZoomToNodeId(null), 1500);
-  };
+  // Scroll to top when switching views
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-fb-dark">
-      {/* Galaxy Background Elements */}
-      <div className="absolute inset-0 galaxy-bg" />
-      <div className="absolute inset-0 stars-overlay" />
-      
-      {/* Main Header - Optimized for Mobile */}
-      <motion.header 
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", damping: 20, stiffness: 100 }}
-        className="absolute top-2 md:top-4 left-1/2 -translate-x-1/2 z-30 text-center pointer-events-none w-full px-4"
-      >
-        <h1 className="galaxy-title fb-gradient-text text-3xl md:text-5xl lg:text-6xl">{toTurkishUppercase('Fenerbahçe Evreni')}</h1>
-      </motion.header>
-
-      {/* Sidebar with Hierarchy Menu */}
-      <Sidebar 
-        data={treeData} 
-        onSelectFaction={handleSelectFaction}
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        onOpenPredictor={() => setIsPredictorOpen(true)}
-      />
-
-      {/* Quiz Trigger Button */}
-      <motion.div
-        initial={{ x: 50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay: 0.5, type: "spring", damping: 20, stiffness: 100 }}
-        className="absolute bottom-8 right-8 z-40"
-      >
-        <button
-          onClick={() => setIsQuizOpen(true)}
-          className="group relative flex items-center gap-4 p-1 pr-6 rounded-full bg-fb-navy/80 backdrop-blur-md border border-fb-yellow/30 hover:border-fb-yellow transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-        >
-          <div className="w-12 h-12 rounded-full bg-fb-yellow flex items-center justify-center shadow-[0_0_20px_rgba(254,221,0,0.3)] group-hover:scale-110 transition-transform">
-            <Zap className="w-6 h-6 text-fb-navy fill-fb-navy" />
-          </div>
-          <div className="text-left">
-            <span className="intelligence-label text-fb-yellow text-[8px] block leading-none mb-1">KİMLİK ANALİZİ</span>
-            <span className="text-xs font-black text-white uppercase tracking-tighter">HANGİ FRAKSİYONDASIN?</span>
-          </div>
-        </button>
-      </motion.div>
-
-      {/* Visualization Layer */}
-      <div className="absolute inset-0 z-10">
-        {/* Credit Card */}
-        <div className="fixed top-6 right-6 z-30 hidden md:block">
-          <div className="bg-white p-5 rounded-2xl border-2 border-fb-yellow shadow-[0_0_30px_rgba(254,221,0,0.3)] max-w-[300px] space-y-3">
-            <p className="text-[14px] text-fb-navy font-black uppercase tracking-tight leading-tight">
-              @caglarnefreti'nin fraksiyon görseli temel alınarak hazırlanmıştır.
-            </p>
-            <div className="h-0.5 bg-fb-navy/10 w-full" />
-            <div className="space-y-1">
-              <p className="text-[14px] text-fb-navy font-bold">
-                Hazırlayan: <span className="font-black text-fb-accent">Yunus Emre YILMAZ</span>
-              </p>
-              <a 
-                href="https://x.com/BasitBiOyun" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-[14px] text-fb-accent font-black hover:underline flex items-center gap-1 transition-all"
-              >
-                x.com/basitbioyun
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <TreeVisualization
-          data={treeData}
-          onNodeClick={setSelectedFaction}
-          selectedNodeId={selectedFaction?.id}
-          zoomToNodeId={zoomToNodeId}
+    <div className="bg-fb-dark min-h-screen">
+      {/* Navbar is hidden in Universe view to avoid clutter as requested */}
+      {view !== 'universe' && (
+        <Navbar 
+          currentView={view} 
+          onNavigate={setView} 
+          onStartQuiz={() => {
+            setView('universe');
+            setIsQuizOpen(true);
+          }} 
         />
-      </div>
+      )}
 
-      {/* Detail Panel */}
       <AnimatePresence mode="wait">
-        {selectedFaction && (
-          <FactionDetail
-            faction={selectedFaction}
-            onClose={() => setSelectedFaction(null)}
-            onFactionClick={(name) => {
-              const findNode = (node: FactionNode): FactionNode | null => {
-                if (node.name === name) return node;
-                if (node.children) {
-                  for (const child of node.children) {
-                    const found = findNode(child);
-                    if (found) return found;
-                  }
-                }
-                return null;
-              };
-              const target = findNode(treeData);
-              if (target) handleSelectFaction(target);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Quiz Overlay */}
-      <AnimatePresence>
-        {isQuizOpen && (
-          <QuizContainer 
-            onClose={() => setIsQuizOpen(false)} 
-            onExplore={(factionName) => {
-              const findNode = (node: FactionNode): FactionNode | null => {
-                if (node.name === factionName) return node;
-                if (node.children) {
-                  for (const child of node.children) {
-                    const found = findNode(child);
-                    if (found) return found;
-                  }
-                }
-                return null;
-              };
-              const target = findNode(treeData);
-              if (target) {
-                handleSelectFaction(target);
-                setIsQuizOpen(false);
-              }
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Predictor Overlay */}
-      <AnimatePresence>
-        {isPredictorOpen && (
+        {view === 'home' && (
           <motion.div
+            key="home"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] overflow-y-auto bg-[#0D1117]"
+            transition={{ duration: 0.5 }}
           >
-            <div className="relative">
-              <button 
-                onClick={() => setIsPredictorOpen(false)}
-                className="fixed top-8 right-8 z-[70] w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <PredictorPage />
+            <HomePage 
+              onEnterUniverse={() => setView('universe')} 
+              onStartQuiz={() => {
+                setView('universe');
+                setIsQuizOpen(true);
+              }} 
+              onNavigate={setView}
+            />
+          </motion.div>
+        )}
+        {view === 'universe' && (
+          <motion.div
+            key="universe"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <UniverseView 
+              treeData={treeData} 
+              isQuizOpen={isQuizOpen} 
+              setIsQuizOpen={setIsQuizOpen} 
+              onBack={() => setView('home')}
+            />
+          </motion.div>
+        )}
+        {view === 'match-center' && (
+          <motion.div
+            key="match-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="pt-24"
+          >
+            <div className="container mx-auto px-6 py-12">
+              <MatchCenter onNavigate={setView} />
+              
+              <div className="mt-12 bg-fb-navy/50 rounded-[2.5rem] border border-white/5 p-8">
+                <h3 className="text-2xl font-black italic text-white mb-4 tracking-tight">DİĞER MAÇLAR</h3>
+                <p className="text-slate-400">Fikstür ve geçmiş maç sonuçları çok yakında burada listelenecek.</p>
+              </div>
             </div>
           </motion.div>
         )}
+        {view === 'news' && (
+          <motion.div
+            key="news"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="pt-24"
+          >
+            <div className="container mx-auto px-6 py-12">
+              <h1 className="text-4xl font-black italic text-fb-yellow mb-8 tracking-tighter">HABERLER</h1>
+              <div className="bg-fb-navy/50 rounded-[2.5rem] border border-white/5 p-8">
+                <p className="text-slate-400">En güncel Fenerbahçe haberleri çok yakında burada.</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        {view === 'predictor' && (
+          <motion.div
+            key="predictor"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="pt-20"
+          >
+            <PredictorPage />
+          </motion.div>
+        )}
       </AnimatePresence>
-
-      {/* Ambient Overlays */}
-      <div className="absolute inset-0 vignette pointer-events-none z-20" />
     </div>
   );
 }

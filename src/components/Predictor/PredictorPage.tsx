@@ -13,7 +13,13 @@ const PANEL  = '#111827';
 const MUTED  = '#64748B';
 const WHITE  = '#FFFFFF';
 
-type Prediction = 'H' | 'D' | 'A' | null;
+type PredictionResult = 'H' | 'D' | 'A' | null;
+
+interface MatchPrediction {
+  result: PredictionResult;
+  homeScore: string;
+  awayScore: string;
+}
 
 const TEAMS = ['GALATASARAY', 'FENERBAHÇE', 'TRABZONSPOR'] as const;
 type TeamName = typeof TEAMS[number];
@@ -35,11 +41,12 @@ const TEAM_LOGOS: Record<TeamName, string> = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function calcStandings(predictions: Record<string, Prediction>): TeamStanding[] {
+function calcStandings(predictions: Record<string, MatchPrediction>): TeamStanding[] {
   const standings = JSON.parse(JSON.stringify(INITIAL_STANDINGS)) as Record<string, TeamStanding>;
   FIXTURES.forEach((match) => {
-    const result = predictions[match.id];
-    if (!result) return;
+    const pred = predictions[match.id];
+    if (!pred || !pred.result) return;
+    const result = pred.result;
     if (TEAMS.includes(match.homeTeam as TeamName)) {
       if (result === 'H') standings[match.homeTeam].points += 3;
       else if (result === 'D') standings[match.homeTeam].points += 1;
@@ -52,11 +59,12 @@ function calcStandings(predictions: Record<string, Prediction>): TeamStanding[] 
   return Object.values(standings).sort((a, b) => b.points - a.points);
 }
 
-function predictedPoints(teamName: string, predictions: Record<string, Prediction>): number {
+function predictedPoints(teamName: string, predictions: Record<string, MatchPrediction>): number {
   let pts = 0;
   FIXTURES.forEach((m) => {
-    const r = predictions[m.id];
-    if (!r) return;
+    const pred = predictions[m.id];
+    if (!pred || !pred.result) return;
+    const r = pred.result;
     const isHome = m.homeTeam === teamName;
     const isAway = m.awayTeam === teamName;
     if (!isHome && !isAway) return;
@@ -71,37 +79,57 @@ const toUpperTR = (s: string) => s.replace(/i/g, 'İ').replace(/ı/g, 'I').toUpp
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const PredictorPage: React.FC = () => {
-  const [predictions, setPredictions] = useState<Record<string, Prediction>>({});
+  const [predictions, setPredictions] = useState<Record<string, MatchPrediction>>({});
   const [isExporting, setIsExporting] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
   const exportCardRef = useRef<HTMLDivElement>(null);
 
   const currentStandings = useMemo(() => calcStandings(predictions), [predictions]);
 
-  const handlePredict = useCallback((matchId: string, result: Prediction) => {
-    setPredictions((prev) => ({
-      ...prev,
-      [matchId]: prev[matchId] === result ? null : result,
-    }));
+  const handlePredict = useCallback((matchId: string, result: PredictionResult) => {
+    setPredictions((prev) => {
+      const current = prev[matchId] || { result: null, homeScore: '', awayScore: '' };
+      return {
+        ...prev,
+        [matchId]: {
+          ...current,
+          result: current.result === result ? null : result,
+        },
+      };
+    });
+  }, []);
+
+  const handleScoreChange = useCallback((matchId: string, side: 'home' | 'away', val: string) => {
+    setPredictions((prev) => {
+      const current = prev[matchId] || { result: null, homeScore: '', awayScore: '' };
+      const next = { ...current, [side === 'home' ? 'homeScore' : 'awayScore']: val };
+      
+      // Auto-calculate result if both scores are present
+      if (next.homeScore !== '' && next.awayScore !== '') {
+        const h = parseInt(next.homeScore);
+        const a = parseInt(next.awayScore);
+        if (!isNaN(h) && !isNaN(a)) {
+          if (h > a) next.result = 'H';
+          else if (a > h) next.result = 'A';
+          else next.result = 'D';
+        }
+      }
+      
+      return { ...prev, [matchId]: next };
+    });
   }, []);
 
   const handleExport = async () => {
     if (!exportCardRef.current) return;
     setIsExporting(true);
     try {
-      await document.fonts.ready;
-      await new Promise((r) => setTimeout(r, 200));
       const dataUrl = await toPng(exportCardRef.current, {
-        width: 1920,
-        height: 1080,
-        quality: 1.0,
-        pixelRatio: 1,
-        backgroundColor: DARK,
+        quality: 0.95,
+        pixelRatio: 2,
         cacheBust: true,
-        skipFonts: false,
       });
       const link = document.createElement('a');
-      link.download = `fenerbahce-evreni-sampiyonluk-${Date.now()}.png`;
+      link.download = `fenerbahce-sampiyonluk-senaryom-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
       setExportSuccess(true);
@@ -113,13 +141,26 @@ const PredictorPage: React.FC = () => {
     }
   };
 
-  const handleShareX = () => {
-    const leader = currentStandings[0]?.name ?? 'FENERBAHÇE';
-    const text = `Fenerbahçe Evreni'nde 2025-2026 şampiyonluk senaryomu oluşturdum.\nLiderim: ${leader}.\nSen de kur: https://fenerbahceevreni.com\n#FenerbahçeEvreni #Süperlig`;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+  const handleShareX = async () => {
+    if (!exportCardRef.current) return;
+    setIsExporting(true);
+    try {
+      const dataUrl = await toPng(exportCardRef.current, {
+        quality: 0.9,
+        pixelRatio: 1.5,
+      });
+      // In a real app, you'd upload this to a server and get a URL.
+      // For now, we'll just open X with a text.
+      const text = encodeURIComponent("Fenerbahçe için şampiyonluk senaryom hazır! 💛💙 #Fenerbahçe #ŞampiyonlukYolu");
+      window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+    } catch (err) {
+      console.error('Share failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  const totalPredicted = Object.values(predictions).filter(Boolean).length;
+  const totalPredicted = Object.values(predictions).filter((p: MatchPrediction) => p.result).length;
 
   return (
     <>
@@ -236,7 +277,7 @@ const PredictorPage: React.FC = () => {
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-bold tracking-widest truncate" style={{ color: MUTED }}>
+                    <div className="text-xs font-bold tracking-widest" style={{ color: MUTED }}>
                       {team.name}
                     </div>
                     <div className="flex items-baseline gap-2 mt-0.5">
@@ -343,6 +384,7 @@ const PredictorPage: React.FC = () => {
                             prediction={predictions[match.id]}
                             teamColor={color}
                             onPredict={handlePredict}
+                            onScoreChange={handleScoreChange}
                           />
                         </motion.div>
                       ))}
@@ -368,18 +410,20 @@ const PredictorPage: React.FC = () => {
 const MatchCard: React.FC<{
   teamName: string;
   match: Match;
-  prediction: Prediction;
+  prediction: MatchPrediction | undefined;
   teamColor: string;
-  onPredict: (id: string, res: Prediction) => void;
-}> = ({ teamName, match, prediction, teamColor, onPredict }) => {
+  onPredict: (id: string, res: PredictionResult) => void;
+  onScoreChange: (id: string, side: 'home' | 'away', val: string) => void;
+}> = ({ teamName, match, prediction, teamColor, onPredict, onScoreChange }) => {
   const isHome = match.homeTeam === teamName;
   const opponent = isHome ? match.awayTeam : match.homeTeam;
-  const winResult: Prediction = isHome ? 'H' : 'A';
-  const lossResult: Prediction = isHome ? 'A' : 'H';
+  const winResult: PredictionResult = isHome ? 'H' : 'A';
+  const lossResult: PredictionResult = isHome ? 'A' : 'H';
 
-  const isWin  = prediction === winResult;
-  const isDraw = prediction === 'D';
-  const isLoss = prediction === lossResult;
+  const result = prediction?.result ?? null;
+  const isWin  = result === winResult;
+  const isDraw = result === 'D';
+  const isLoss = result === lossResult;
 
   return (
     <div
@@ -404,20 +448,41 @@ const MatchCard: React.FC<{
             {isHome ? 'İÇ SAHA' : 'DEPLASMAN'} · H{match.week}
             {match.isDerby && <span style={{ color: YELLOW }}> · DERBİ</span>}
           </div>
-          <div className="text-sm font-black italic uppercase truncate" style={{ lineHeight: 1.2 }}>
+          <div className="text-sm font-black italic uppercase" style={{ lineHeight: 1.2 }}>
             {opponent}
           </div>
         </div>
 
+        {/* Score Inputs */}
+        <div className="flex items-center gap-1 bg-black/20 rounded-lg p-1 border border-white/5">
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="-"
+            value={prediction?.homeScore ?? ''}
+            onChange={(e) => onScoreChange(match.id, 'home', e.target.value.replace(/\D/g, '').slice(0, 2))}
+            className="w-7 h-7 bg-transparent text-center text-xs font-black focus:outline-none text-white placeholder:text-white/20"
+          />
+          <span className="text-[10px] font-bold opacity-30">:</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="-"
+            value={prediction?.awayScore ?? ''}
+            onChange={(e) => onScoreChange(match.id, 'away', e.target.value.replace(/\D/g, '').slice(0, 2))}
+            className="w-7 h-7 bg-transparent text-center text-xs font-black focus:outline-none text-white placeholder:text-white/20"
+          />
+        </div>
+
         {/* Prediction buttons */}
-        <div className="flex gap-1.5 shrink-0">
+        <div className="flex gap-1 shrink-0">
           <PredictBtn
             active={isWin}
             color="#22C55E"
             onClick={() => onPredict(match.id, winResult)}
             title="Galibiyet"
           >
-            <Check className="w-3.5 h-3.5" />
+            <Check className="w-3 h-3" />
           </PredictBtn>
           <PredictBtn
             active={isDraw}
@@ -425,7 +490,7 @@ const MatchCard: React.FC<{
             onClick={() => onPredict(match.id, 'D')}
             title="Beraberlik"
           >
-            <Minus className="w-3.5 h-3.5" />
+            <Minus className="w-3 h-3" />
           </PredictBtn>
           <PredictBtn
             active={isLoss}
@@ -433,7 +498,7 @@ const MatchCard: React.FC<{
             onClick={() => onPredict(match.id, lossResult)}
             title="Mağlubiyet"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3 h-3" />
           </PredictBtn>
         </div>
       </div>
@@ -470,7 +535,7 @@ const PredictBtn: React.FC<{
 
 const ShareCard = React.forwardRef<
   HTMLDivElement,
-  { predictions: Record<string, Prediction>; currentStandings: TeamStanding[] }
+  { predictions: Record<string, MatchPrediction>; currentStandings: TeamStanding[] }
 >(({ predictions, currentStandings }, ref) => {
 
   const NOISE = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")`;
@@ -595,11 +660,11 @@ const ShareCard = React.forwardRef<
                   const isHome = match.homeTeam === teamName;
                   const opponent = isHome ? match.awayTeam : match.homeTeam;
                   const p = predictions[match.id];
-                  const isWin  = p && ((isHome && p === 'H') || (!isHome && p === 'A'));
-                  const isDraw = p === 'D';
-                  const isLoss = p && ((isHome && p === 'A') || (!isHome && p === 'H'));
+                  const isWin  = p && p.result && ((isHome && p.result === 'H') || (!isHome && p.result === 'A'));
+                  const isDraw = p && p.result === 'D';
+                  const isLoss = p && p.result && ((isHome && p.result === 'A') || (!isHome && p.result === 'H'));
 
-                  const badge = !p
+                  const badge = !p || !p.result
                     ? { bg: 'rgba(100,116,139,0.12)', border: 'rgba(100,116,139,0.25)', color: MUTED, label: '?' }
                     : isWin
                     ? { bg: 'rgba(34,197,94,0.15)',  border: 'rgba(34,197,94,0.35)',  color: '#22C55E', label: 'G' }
@@ -632,6 +697,20 @@ const ShareCard = React.forwardRef<
                           {opponent}
                         </div>
                       </div>
+                      
+                      {/* Score display in card */}
+                      {p && p.homeScore !== '' && p.awayScore !== '' && (
+                        <div style={{
+                          display: 'flex', alignItems: 'center', gap: '4px',
+                          background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '8px',
+                          fontSize: '18px', fontWeight: 900, color: YELLOW, fontFamily: 'Arial, sans-serif'
+                        }}>
+                          <span>{isHome ? p.homeScore : p.awayScore}</span>
+                          <span style={{ opacity: 0.3 }}>-</span>
+                          <span>{isHome ? p.awayScore : p.homeScore}</span>
+                        </div>
+                      )}
+
                       <div style={{
                         width: '48px', height: '48px', borderRadius: '12px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
