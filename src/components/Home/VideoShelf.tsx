@@ -16,15 +16,23 @@ const VideoShelf: React.FC = () => {
             <div className="intelligence-label text-fb-yellow mb-2">MEDYA MERKEZİ</div>
             <h2 className="text-4xl font-display font-black uppercase italic tracking-tighter">VİDEO GALERİ</h2>
           </div>
-          <button className="group flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-fb-yellow transition-colors">
-            YOUTUBE KANALINA GİT <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
+          <a
+            href="https://www.youtube.com/@fenerbahce"
+            target="_blank"
+            rel="noreferrer"
+            className="group flex items-center gap-2 text-sm font-bold text-slate-400 transition-colors hover:text-fb-yellow"
+          >
+            YOUTUBE KANALINA GİT <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </a>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {VIDEOS.map((video, i) => (
-            <motion.div
+            <motion.a
               key={video.id}
+              href={video.url}
+              target="_blank"
+              rel="noreferrer"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
@@ -57,7 +65,7 @@ const VideoShelf: React.FC = () => {
                   {video.title}
                 </h3>
               </div>
-            </motion.div>
+            </motion.a>
           ))}
         </div>
       </div>
