@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, Zap, Map } from 'lucide-react';
-import { toTurkishUppercase } from '../../lib/stringUtils';
+import { Menu, X, Zap } from 'lucide-react';
 
 interface NavbarProps {
   onNavigate: (view: 'home' | 'universe' | 'match-center' | 'news' | 'predictor') => void;
@@ -29,6 +28,15 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onStartQuiz, currentView })
     { label: 'ŞAMPİYONLUK YOLU', view: 'predictor' as const },
     { label: 'HABERLER', view: 'news' as const },
   ];
+
+  const scrollToSection = (sectionId: string) => {
+    if (currentView !== 'home') {
+      onNavigate('home');
+      setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
+      return;
+    }
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
@@ -76,9 +84,29 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onStartQuiz, currentView })
           <button 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="lg:hidden w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white"
+            aria-label={isMobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
+        </div>
+      </div>
+
+      <div className="hidden border-t border-white/5 bg-fb-dark/50 py-2 md:block">
+        <div className="container mx-auto flex items-center justify-center gap-6 px-6">
+          {[
+            { label: 'VİZYON', id: 'platform-vizyonu' },
+            { label: 'MAÇ MERKEZİ', id: 'mac-merkezi' },
+            { label: 'HABERLER', id: 'haberler' },
+            { label: 'VİDEOLAR', id: 'videolar' },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => scrollToSection(item.id)}
+              className="text-[10px] font-black tracking-[0.2em] text-slate-400 transition hover:text-fb-yellow"
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
 

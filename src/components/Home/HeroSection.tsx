@@ -2,7 +2,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Zap, Map, ChevronRight } from 'lucide-react';
-import { toTurkishUppercase } from '../../lib/stringUtils';
 
 interface HeroSectionProps {
   onEnterUniverse: () => void;
@@ -10,6 +9,10 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onStartQuiz }) => {
+  const scrollToMatchCenter = () => {
+    document.getElementById('mac-merkezi')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
       {/* Background Atmosphere */}
@@ -61,6 +64,15 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onStartQuiz 
               <Zap className="w-5 h-5 text-fb-yellow" />
               FRAKSİYONUNU KEŞFET
             </motion.button>
+
+            <button
+              onClick={scrollToMatchCenter}
+              className="inline-flex items-center gap-2 text-xs font-black tracking-[0.18em] text-slate-400 transition hover:text-fb-yellow"
+              aria-label="Maç merkezi bölümüne kaydır"
+            >
+              MAÇ MERKEZİNE İN
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </motion.div>
 
