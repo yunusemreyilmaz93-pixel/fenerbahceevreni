@@ -4,19 +4,17 @@ import {
   Calendar,
   ChevronRight,
   Clock3,
-  ExternalLink,
   MapPin,
   Radio,
   RefreshCcw,
-  ShieldCheck,
   Sparkles,
-  Timer,
   Trophy,
   Users,
 } from 'lucide-react';
 import {
   fetchLiveFenerbahceSchedule,
   type LiveFixtureItem,
+  type LineupPlayer,
   type LiveMatchSnapshot,
   type MatchEventItem,
   type MatchStatItem,
@@ -82,14 +80,14 @@ const buildHeadline = (snapshot?: LiveMatchSnapshot) => {
   }
 
   if (match.statusState === 'post' && match.homeScore != null && match.awayScore != null) {
-    return `${match.homeTeam} - ${match.awayTeam} maçının sonucu: ${match.homeScore}-${match.awayScore}. Resmi ilk 11, olay akışı, lider oyuncular ve puan tablosu etkisi aşağıda.`;
+    return `${match.homeTeam} - ${match.awayTeam} maçının sonucu: ${match.homeScore}-${match.awayScore}. İlk 11, olay akışı, lider oyuncular ve puan tablosu etkisi aşağıda.`;
   }
 
   if (match.statusState === 'in') {
     return `${match.homeTeam} - ${match.awayTeam} karşılaşması canlı durumda. Skor, istatistikler, oyuncu liderleri ve maç olayları otomatik güncelleniyor.`;
   }
 
-  return `${match.homeTeam} - ${match.awayTeam} maçı öncesi tüm kritik bilgiler tek ekranda: saat, stat, form durumu, puan tablosu bağlamı ve resmi ilk 11 açıklandığında kadrolar.`;
+  return `${match.homeTeam} - ${match.awayTeam} maçı öncesi tüm kritik bilgiler tek ekranda: saat, stat, form durumu, puan tablosu bağlamı ve ilk 11 açıklandığında kadrolar.`;
 };
 
 const scorelineLabel = (match?: LiveMatchSnapshot['currentMatch']) => {
@@ -98,12 +96,38 @@ const scorelineLabel = (match?: LiveMatchSnapshot['currentMatch']) => {
   return `${match.homeScore} - ${match.awayScore}`;
 };
 
+const chunkLineup = (players: LineupPlayer[]) => {
+  if (players.length === 0) return [] as LineupPlayer[][];
+  if (players.length === 11) {
+    return [players.slice(0, 1), players.slice(1, 5), players.slice(5, 8), players.slice(8, 11)];
+  }
+  if (players.length === 10) {
+    return [players.slice(0, 1), players.slice(1, 4), players.slice(4, 7), players.slice(7, 10)];
+  }
+  if (players.length === 9) {
+    return [players.slice(0, 1), players.slice(1, 4), players.slice(4, 6), players.slice(6, 9)];
+  }
+
+  const rows: LineupPlayer[][] = [];
+  const firstRow = players.slice(0, 1);
+  const remaining = players.slice(1);
+  const rowCount = Math.min(4, Math.max(2, Math.ceil(remaining.length / 3)));
+  const rowSize = Math.ceil(remaining.length / rowCount);
+  rows.push(firstRow);
+
+  for (let index = 0; index < remaining.length; index += rowSize) {
+    rows.push(remaining.slice(index, index + rowSize));
+  }
+
+  return rows;
+};
+
 const TeamLineupCard: React.FC<{
   title: string;
   lineup?: TeamLineup;
 }> = ({ title, lineup }) => {
   const starters = lineup?.starters ?? [];
-  const bench = lineup?.bench ?? [];
+  const rows = chunkLineup(starters);
 
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
@@ -119,26 +143,36 @@ const TeamLineupCard: React.FC<{
       </div>
 
       {starters.length > 0 ? (
-        <>
-          <ol className="grid gap-2 text-sm text-slate-200 md:grid-cols-2">
-            {starters.map((player, index) => (
-              <li key={`${title}-${player.name}-${index}`} className="rounded-2xl border border-white/10 bg-fb-navy/60 px-3 py-3">
-                <span className="mr-2 text-fb-yellow">{player.jersey || index + 1}.</span>
-                {player.name}
-                {player.position ? <span className="ml-2 text-xs text-slate-400">{player.position}</span> : null}
-              </li>
+        <div className="relative overflow-hidden rounded-[2rem] border border-emerald-400/20 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.2),_rgba(3,7,18,0.95)_58%)] p-5">
+          <div className="pointer-events-none absolute inset-4 rounded-[1.5rem] border border-white/10" />
+          <div className="pointer-events-none absolute inset-x-[18%] top-4 h-[18%] rounded-b-[999px] border border-white/10 border-t-0" />
+          <div className="pointer-events-none absolute inset-x-[18%] bottom-4 h-[18%] rounded-t-[999px] border border-white/10 border-b-0" />
+          <div className="pointer-events-none absolute left-1/2 top-4 bottom-4 w-px -translate-x-1/2 bg-white/10" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/15" />
+
+          <div className="relative z-10 flex min-h-[520px] flex-col justify-between gap-6 py-3">
+            {rows.map((row, rowIndex) => (
+              <div key={`${title}-row-${rowIndex}`} className="flex items-center justify-center gap-3 md:gap-5">
+                {row.map((player, index) => (
+                  <div
+                    key={`${title}-${player.name}-${index}`}
+                    className="w-[88px] rounded-2xl border border-white/15 bg-fb-navy/70 px-2 py-3 text-center shadow-[0_8px_24px_rgba(2,6,23,0.35)] backdrop-blur"
+                  >
+                    <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-fb-yellow text-sm font-black text-fb-navy">
+                      {player.jersey || rowIndex + index + 1}
+                    </div>
+                    <p className="text-[11px] font-black leading-tight text-white">{player.name}</p>
+                    {player.position ? <p className="mt-1 text-[10px] tracking-[0.14em] text-slate-300">{player.position}</p> : null}
+                  </div>
+                ))}
+              </div>
             ))}
-          </ol>
-          {bench.length > 0 ? (
-            <div className="mt-4 rounded-2xl border border-white/10 bg-fb-navy/45 p-4">
-              <p className="mb-2 text-[11px] font-black tracking-[0.16em] text-slate-400">YEDEK KULÜBESİ</p>
-              <p className="text-sm leading-relaxed text-slate-300">{bench.map((player) => player.name).join(', ')}</p>
-            </div>
-          ) : null}
-        </>
+          </div>
+        </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-white/15 bg-fb-navy/40 p-4 text-sm text-slate-300">
-          Resmi ilk 11 henüz açıklanmadı. Kadrolar yayınlandığında bu alan otomatik güncellenecek.
+          İlk 11 henüz açıklanmadı. Kadrolar yayınlandığında bu alan otomatik güncellenecek.
         </div>
       )}
     </div>
@@ -510,9 +544,6 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
                     </div>
                   ))}
                 </div>
-                {snapshot.standingsImpact.note ? (
-                  <p className="mt-4 text-xs text-slate-400">{snapshot.standingsImpact.note}</p>
-                ) : null}
               </>
             ) : (
               <div className="rounded-2xl border border-dashed border-white/15 bg-fb-navy/40 p-4 text-sm text-slate-300">
@@ -523,63 +554,15 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <TeamLineupCard title={`Resmi İlk 11 · ${currentMatch?.homeTeam || 'Fenerbahçe'}`} lineup={snapshot?.lineups?.home} />
-          <TeamLineupCard title={`Resmi İlk 11 · ${currentMatch?.awayTeam || 'Rakip'}`} lineup={snapshot?.lineups?.away} />
+          <TeamLineupCard title={`İlk 11 · ${currentMatch?.homeTeam || 'Fenerbahçe'}`} lineup={snapshot?.lineups?.home} />
+          <TeamLineupCard title={`İlk 11 · ${currentMatch?.awayTeam || 'Rakip'}`} lineup={snapshot?.lineups?.away} />
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <Timer size={18} className="text-fb-yellow" />
-              <h4 className="text-lg font-black text-white">Neler Eklendi?</h4>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              {[
-                'Canlı veya son skor artık doğrudan güncel maç verisinden geliyor.',
-                'Resmi ilk 11 ve yedek kulübesi açıklanır açıklanmaz ekrana düşüyor.',
-                'Topa sahip olma, şut, isabet, korner ve kart verileri anlık gösteriliyor.',
-                'Son maç olayları tek ekranda okunabilir zaman çizgisi halinde sunuluyor.',
-                'Oyuncu liderleri bölümüyle maçın öne çıkan isimleri görünür hale geliyor.',
-                'Puan durumu etkisi bölümüyle bu maçın yarışa etkisi bağlam kazanıyor.',
-              ].map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-fb-navy/55 p-4 text-sm text-slate-300">
-                  {item}
-                </div>
-              ))}
-            </div>
+        {hasError ? (
+          <div className="mt-6 rounded-3xl border border-rose-400/30 bg-rose-400/10 p-4 text-sm text-rose-200">
+            Canlı veri akışında geçici bir hata oluştu. Sayfayı yenilediğinde veya birkaç saniye sonra yeniden denendiğinde veriler geri gelecektir.
           </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <ShieldCheck size={18} className="text-fb-yellow" />
-              <h4 className="text-lg font-black text-white">Kaynaklar ve Veri Notu</h4>
-            </div>
-            <p className="mb-3 text-sm text-slate-300">
-              Bu alan canlı maç özeti, skor, resmi ilk 11, oyuncu liderleri ve temel maç olaylarını güncel kaynaktan çeker. Son yenilenme zamanı:
-              <strong className="ml-1">{updatedDate}</strong>
-            </p>
-            <ul className="space-y-2 text-sm text-slate-300">
-              {(snapshot?.sources || []).map((source) => (
-                <li key={source.url}>
-                  <a href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-fb-yellow">
-                    <ExternalLink size={14} />
-                    {source.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            {hasError ? (
-              <p className="mt-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200">
-                Canlı veri akışında geçici bir hata oluştu. Sayfayı yenilediğinde veya birkaç saniye sonra yeniden denendiğinde veriler geri gelecektir.
-              </p>
-            ) : null}
-            {isLoading ? (
-              <p className="mt-4 rounded-2xl border border-white/10 bg-fb-navy/45 p-3 text-sm text-slate-300">
-                Maç merkezi güncel verileri yüklüyor.
-              </p>
-            ) : null}
-          </div>
-        </div>
+        ) : null}
       </div>
     </section>
   );
