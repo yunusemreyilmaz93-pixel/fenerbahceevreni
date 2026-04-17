@@ -1,20 +1,44 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Fenerbahce Evreni
 
-# Run and deploy your AI Studio app
+Fenerbahce taraftarlari icin deneyim odakli bir web platformu.
 
-This contains everything you need to run your app locally.
+## Ozellikler
 
-View your app in AI Studio: https://ai.studio/apps/218cd76b-df84-4081-87a9-9266b1cafc29
+- Fraksiyon haritasi ve evren kesfi
+- Mac merkezi ve fikstur odakli ekranlar
+- Haber ve video raflari
+- Sampiyonluk yolu tahminleyici
 
-## Run Locally
+## Teknoloji
 
-**Prerequisites:**  Node.js
+- React 19
+- Vite 6
+- TypeScript
+- Tailwind CSS 4
+- Motion
 
+## Kurulum
 
-1. Install dependencies:
+Gereksinimler:
+
+- Node.js 20+
+- npm 10+
+
+Adimlar:
+
+1. Bagimliliklari yukleyin:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Gelistirme sunucusunu baslatin:
    `npm run dev`
+3. Uretim derlemesi alin:
+   `npm run build`
+4. Tip kontrolu calistirin:
+   `npm run lint`
+
+## Ortam Degiskenleri
+
+Bu repo icin zorunlu bir degisken bulunmuyor. Ileride AI entegrasyonu acilacaksa `.env.local` dosyasina `GEMINI_API_KEY` eklenebilir.
+
+## Hedef
+
+Bu proje, asama asama dunyanin en iyi taraftar platformuna donusmek uzere urun ve teknik temelin guclendirilmesi hedefiyle gelistirilmektedir.
