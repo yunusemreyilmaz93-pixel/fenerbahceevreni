@@ -1,17 +1,26 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import {
-  AlertTriangle,
   Calendar,
   ChevronRight,
   Clock3,
   ExternalLink,
   MapPin,
-  ShieldAlert,
+  Radio,
+  RefreshCcw,
+  ShieldCheck,
+  Timer,
+  Trophy,
   Users,
 } from 'lucide-react';
-import { MATCH_CENTER_DATA, type SquadNote } from '../../constants/homeData';
-import { fetchLiveFenerbahceSchedule, type LiveFixtureItem } from '../../lib/matchService';
+import {
+  fetchLiveFenerbahceSchedule,
+  type LiveFixtureItem,
+  type LiveMatchSnapshot,
+  type MatchEventItem,
+  type MatchStatItem,
+  type TeamLineup,
+} from '../../lib/matchService';
 
 interface TimeLeft {
   days: number;
@@ -19,93 +28,6 @@ interface TimeLeft {
   minutes: number;
   seconds: number;
 }
-
-type DuelEdge = 'FENERBAHCE' | 'RIZESPOR' | 'DENGE';
-type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
-
-const editorialBriefs = [
-  {
-    id: 'b1',
-    title: 'MAÇ HİKAYESİ',
-    detail:
-      'Kadıköyde hedef ilk 20 dakikada tempo üstünlüğü. Erken gol, oyunu Fenerbahçe lehine stratejik olarak açar.',
-  },
-  {
-    id: 'b2',
-    title: 'SKOR KORİDORU',
-    detail:
-      '0-0 uzarsa Rizesporun geçiş tehdidi yükselir. İlk yarı xG üretimi maçın psikolojik eksenini belirler.',
-  },
-  {
-    id: 'b3',
-    title: 'ŞAMPİYONLUK BAĞLAMI',
-    detail:
-      '3 puan sadece sıralama değil, derbi haftasına girişte kadro yönetimi ve özgüven dengesi açısından da kritik.',
-  },
-] as const;
-
-const tacticalRadar = [
-  {
-    id: 't1',
-    label: 'ÖN ALAN BASKI ŞİDDETİ',
-    score: '8.5/10',
-    detail: 'Top kaybı sonrası 8 saniye reaksiyon penceresi belirleyici.',
-  },
-  {
-    id: 't2',
-    label: 'GEÇİŞ SAVUNMASI DİSİPLİNİ',
-    score: '7.8/10',
-    detail: 'Rizesporun ilk pası kırılırsa kontra tehdit ciddi düşer.',
-  },
-  {
-    id: 't3',
-    label: 'SET HÜCUM KALİTESİ',
-    score: '8.2/10',
-    detail: 'Half-space koşuları ve ters kanat değişimleri kilit plan.',
-  },
-] as const;
-
-const keyDuels: ReadonlyArray<{ id: string; title: string; detail: string; edge: DuelEdge }> = [
-  {
-    id: 'd1',
-    title: 'FRED + GUENDOUZI vs LACI + PAPANIKOLAOU',
-    detail: 'Merkezde ikinci topları kim alırsa maç ritmini o takım belirler.',
-    edge: 'FENERBAHCE',
-  },
-  {
-    id: 'd2',
-    title: 'KANAT GEÇİŞLERİ',
-    detail: 'Fenerbahçe beklerinin ileri çıkışı sonrası arkaya atılan toplar kritik risk üretir.',
-    edge: 'DENGE',
-  },
-  {
-    id: 'd3',
-    title: 'DURAN TOP SAVUNMASI',
-    detail: 'Rizesporun yan toplarda fizik avantajı, birebir eşleşme kalitesini zorlayabilir.',
-    edge: 'RIZESPOR',
-  },
-];
-
-const riskBoard: ReadonlyArray<{ id: string; title: string; level: RiskLevel; detail: string }> = [
-  {
-    id: 'r1',
-    title: 'KART YÖNETİMİ',
-    level: 'HIGH',
-    detail: 'Derbi haftası öncesi sınırdaki oyuncular için agresiflik dozajı dikkat gerektiriyor.',
-  },
-  {
-    id: 'r2',
-    title: 'İLK GOLÜN ZAMANLAMASI',
-    level: 'MEDIUM',
-    detail: 'Dakika 60 sonrası gelen ilk gol, maçı kaotik ve kırılgan hale getirebilir.',
-  },
-  {
-    id: 'r3',
-    title: 'KADRO DERİNLİĞİ KULLANIMI',
-    level: 'LOW',
-    detail: 'Skor avantajı alınırsa 65-75 bandındaki doğru hamleler oyunu güvene alır.',
-  },
-];
 
 const calcTimeLeft = (target: number): TimeLeft => {
   const dist = Math.max(0, target - Date.now());
@@ -117,85 +39,207 @@ const calcTimeLeft = (target: number): TimeLeft => {
   };
 };
 
-const statusColor: Record<SquadNote['status'], string> = {
-  OUT: 'bg-rose-500/15 text-rose-300 border-rose-500/40',
-  ŞÜPHELİ: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
-  SINIRDA: 'bg-sky-500/15 text-sky-300 border-sky-500/40',
+const statusTone: Record<'pre' | 'in' | 'post', string> = {
+  pre: 'border-sky-400/35 bg-sky-400/10 text-sky-200',
+  in: 'border-emerald-400/35 bg-emerald-400/10 text-emerald-200',
+  post: 'border-fb-yellow/35 bg-fb-yellow/10 text-fb-yellow',
 };
 
-const statusLabel: Record<SquadNote['status'], string> = {
-  OUT: 'YOK',
-  ŞÜPHELİ: 'ŞÜPHELİ',
-  SINIRDA: 'SINIRDA',
+const eventTone = (type: string) => {
+  if (type.includes('Gol')) return 'border-emerald-400/35 bg-emerald-400/10 text-emerald-200';
+  if (type.includes('Kırmızı')) return 'border-rose-400/35 bg-rose-400/10 text-rose-200';
+  if (type.includes('Sarı')) return 'border-amber-400/35 bg-amber-400/10 text-amber-200';
+  return 'border-white/15 bg-white/5 text-slate-200';
 };
 
-const duelEdgeTone: Record<DuelEdge, string> = {
-  FENERBAHCE: 'border-fb-yellow/40 bg-fb-yellow/10 text-fb-yellow',
-  RIZESPOR: 'border-sky-400/40 bg-sky-400/10 text-sky-300',
-  DENGE: 'border-white/20 bg-white/5 text-slate-300',
+const formatLocalDate = (value?: string, includeWeekday = true) => {
+  if (!value) return 'Tarih güncelleniyor';
+
+  return new Date(value).toLocaleString('tr-TR', {
+    weekday: includeWeekday ? 'long' : undefined,
+    day: '2-digit',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Istanbul',
+  });
 };
 
-const riskTone: Record<RiskLevel, string> = {
-  LOW: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
-  MEDIUM: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
-  HIGH: 'border-rose-500/40 bg-rose-500/10 text-rose-300',
+const fixtureDateLabel = (value: string) =>
+  new Date(value).toLocaleDateString('tr-TR', {
+    day: '2-digit',
+    month: 'short',
+    weekday: 'short',
+    timeZone: 'Europe/Istanbul',
+  });
+
+const buildHeadline = (snapshot?: LiveMatchSnapshot) => {
+  const match = snapshot?.currentMatch;
+  if (!match) {
+    return 'Fenerbahçe için güncel maç verileri yükleniyor.';
+  }
+
+  if (match.statusState === 'post' && match.homeScore != null && match.awayScore != null) {
+    return `${match.homeTeam} - ${match.awayTeam} maçının sonucu: ${match.homeScore}-${match.awayScore}. Resmi ilk 11, olay akışı ve temel istatistikler aşağıda.`;
+  }
+
+  if (match.statusState === 'in') {
+    return `${match.homeTeam} - ${match.awayTeam} karşılaşması canlı durumda. Skor, istatistikler ve maç olayları otomatik güncelleniyor.`;
+  }
+
+  return `${match.homeTeam} - ${match.awayTeam} maçı öncesi tüm kritik bilgiler tek ekranda: saat, stat, form durumu, resmi ilk 11 açıklandığında kadrolar ve maç akışı.`;
 };
 
-const TeamAvailability: React.FC<{ title: string; notes: SquadNote[] }> = ({ title, notes }) => (
-  <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-    <h4 className="mb-4 text-lg font-black tracking-tight text-white">{title}</h4>
-    <div className="space-y-3">
-      {notes.map((note) => (
-        <div key={`${title}-${note.player}`} className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <strong className="text-white">{note.player}</strong>
-            <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black tracking-wide ${statusColor[note.status]}`}>
-              {statusLabel[note.status]}
-            </span>
-          </div>
-          <p className="text-sm text-slate-300">{note.reason}</p>
-          <p className="mt-1 text-xs text-slate-400">{note.detail}</p>
+const scorelineLabel = (match?: LiveMatchSnapshot['currentMatch']) => {
+  if (!match) return 'VS';
+  if (match.homeScore == null || match.awayScore == null) return 'VS';
+  return `${match.homeScore} - ${match.awayScore}`;
+};
+
+const TeamLineupCard: React.FC<{
+  title: string;
+  lineup?: TeamLineup;
+}> = ({ title, lineup }) => {
+  const starters = lineup?.starters ?? [];
+  const bench = lineup?.bench ?? [];
+
+  return (
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h4 className="inline-flex items-center gap-2 text-lg font-black text-white">
+          <Users size={18} /> {title}
+        </h4>
+        {lineup?.formation ? (
+          <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-black tracking-[0.16em] text-slate-300">
+            DİZİLİŞ {lineup.formation}
+          </span>
+        ) : null}
+      </div>
+
+      {starters.length > 0 ? (
+        <>
+          <ol className="grid gap-2 text-sm text-slate-200 md:grid-cols-2">
+            {starters.map((player, index) => (
+              <li key={`${title}-${player.name}-${index}`} className="rounded-2xl border border-white/10 bg-fb-navy/60 px-3 py-3">
+                <span className="mr-2 text-fb-yellow">{player.jersey || index + 1}.</span>
+                {player.name}
+                {player.position ? <span className="ml-2 text-xs text-slate-400">{player.position}</span> : null}
+              </li>
+            ))}
+          </ol>
+          {bench.length > 0 ? (
+            <div className="mt-4 rounded-2xl border border-white/10 bg-fb-navy/45 p-4">
+              <p className="mb-2 text-[11px] font-black tracking-[0.16em] text-slate-400">YEDEK KULÜBESİ</p>
+              <p className="text-sm leading-relaxed text-slate-300">{bench.map((player) => player.name).join(', ')}</p>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-white/15 bg-fb-navy/40 p-4 text-sm text-slate-300">
+          Resmi ilk 11 henüz açıklanmadı. Kadrolar yayınlandığında bu alan otomatik güncellenecek.
         </div>
-      ))}
+      )}
+    </div>
+  );
+};
+
+const MatchStatCard: React.FC<{ stat: MatchStatItem; homeTeam?: string; awayTeam?: string }> = ({ stat, homeTeam, awayTeam }) => (
+  <div className="rounded-2xl border border-white/10 bg-fb-navy/55 p-4">
+    <p className="text-[10px] font-black tracking-[0.16em] text-slate-400">{stat.label}</p>
+    <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+      <div>
+        <p className="text-xs text-slate-400">{homeTeam || 'Ev Sahibi'}</p>
+        <p className="text-2xl font-black text-white">{stat.homeValue}</p>
+      </div>
+      <span className="text-xs font-black tracking-[0.16em] text-slate-500">VS</span>
+      <div className="text-right">
+        <p className="text-xs text-slate-400">{awayTeam || 'Deplasman'}</p>
+        <p className="text-2xl font-black text-white">{stat.awayValue}</p>
+      </div>
     </div>
   </div>
 );
 
+const MatchEventCard: React.FC<{ event: MatchEventItem }> = ({ event }) => (
+  <div className="rounded-2xl border border-white/10 bg-fb-navy/55 p-4">
+    <div className="mb-2 flex items-center justify-between gap-3">
+      <span className="text-lg font-black text-fb-yellow">{event.minute}</span>
+      <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black tracking-[0.16em] ${eventTone(event.type)}`}>
+        {event.type}
+      </span>
+    </div>
+    <p className="text-sm font-bold text-white">{event.team || 'Maç Merkezi'}</p>
+    <p className="mt-1 text-sm text-slate-300">{event.text}</p>
+  </div>
+);
+
+const FixtureCard: React.FC<{ item: LiveFixtureItem }> = ({ item }) => {
+  const hasScore = item.homeScore != null && item.awayScore != null;
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <p className="text-xs text-slate-400">{fixtureDateLabel(item.date)} · {item.competition}</p>
+        <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-black tracking-[0.14em] text-slate-300">
+          {item.status}
+        </span>
+      </div>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="font-bold text-white">{item.home}</p>
+          <p className="font-bold text-white">{item.away}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-xl font-black text-fb-yellow">{hasScore ? `${item.homeScore}-${item.awayScore}` : 'VS'}</p>
+          {item.note ? <p className="text-xs text-slate-400">{item.note}</p> : null}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-center' | 'news') => void }> = ({
   onNavigate,
 }) => {
-  const [nextMatchDate, setNextMatchDate] = useState(MATCH_CENTER_DATA.date);
-  const [liveFixtures, setLiveFixtures] = useState<LiveFixtureItem[]>(MATCH_CENTER_DATA.fixtureFocus);
-  const [isLiveLoading, setIsLiveLoading] = useState(true);
-  const targetMs = useRef(new Date(nextMatchDate).getTime());
+  const [snapshot, setSnapshot] = useState<LiveMatchSnapshot | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const targetMs = useRef(Date.now());
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calcTimeLeft(targetMs.current));
 
   useEffect(() => {
-    targetMs.current = new Date(nextMatchDate).getTime();
-    setTimeLeft(calcTimeLeft(targetMs.current));
-  }, [nextMatchDate]);
-
-  useEffect(() => {
     let mounted = true;
-    fetchLiveFenerbahceSchedule()
-      .then((snapshot) => {
+
+    const loadData = async (showLoader = false) => {
+      if (showLoader && mounted) {
+        setIsLoading(true);
+      }
+
+      try {
+        const liveSnapshot = await fetchLiveFenerbahceSchedule();
         if (!mounted) return;
-        if (snapshot.nextMatch?.date) {
-          setNextMatchDate(snapshot.nextMatch.date);
+        setSnapshot(liveSnapshot);
+        setHasError(false);
+        if (liveSnapshot.currentMatch?.date) {
+          targetMs.current = new Date(liveSnapshot.currentMatch.date).getTime();
+          setTimeLeft(calcTimeLeft(targetMs.current));
         }
-        if (snapshot.fixtures.length > 0) {
-          setLiveFixtures(snapshot.fixtures);
+      } catch {
+        if (!mounted) return;
+        setHasError(true);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
         }
-      })
-      .catch(() => {
-        // fallback uses static constants
-      })
-      .finally(() => {
-        if (mounted) setIsLiveLoading(false);
-      });
+      }
+    };
+
+    loadData(true);
+    const refreshId = setInterval(() => void loadData(false), 60_000);
 
     return () => {
       mounted = false;
+      clearInterval(refreshId);
     };
   }, []);
 
@@ -204,103 +248,136 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
     return () => clearInterval(id);
   }, []);
 
-  const localDate = useMemo(
-    () =>
-      new Date(nextMatchDate).toLocaleString('tr-TR', {
-        weekday: 'long',
-        day: '2-digit',
-        month: 'long',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Europe/Istanbul',
-      }),
-    [nextMatchDate],
+  const currentMatch = snapshot?.currentMatch;
+  const headline = useMemo(() => buildHeadline(snapshot ?? undefined), [snapshot]);
+  const updatedDate = useMemo(
+    () => (snapshot?.updatedAt ? new Date(snapshot.updatedAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }) : 'Güncelleniyor'),
+    [snapshot?.updatedAt],
   );
 
-  const updatedDate = useMemo(
-    () => new Date(MATCH_CENTER_DATA.updatedAt).toLocaleString('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }),
-    [],
-  );
+  const summaryCards = useMemo(() => {
+    if (!currentMatch) return [];
+
+    return [
+      {
+        label: 'Durum',
+        value: currentMatch.statusText,
+      },
+      {
+        label: 'Organizasyon',
+        value: currentMatch.competition,
+      },
+      {
+        label: 'Stat',
+        value: currentMatch.venue || 'Stat bilgisi bekleniyor',
+      },
+      {
+        label: 'Form',
+        value: `${currentMatch.homeTeam}: ${currentMatch.formHome || '-'} | ${currentMatch.awayTeam}: ${currentMatch.formAway || '-'}`,
+      },
+    ];
+  }, [currentMatch]);
 
   return (
-    <section className="relative overflow-hidden py-16 md:py-24">
+    <section id="match-center" className="relative overflow-hidden py-16 md:py-24">
       <div className="container mx-auto px-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <p className="mb-2 text-xs font-black tracking-[0.25em] text-fb-yellow">SIRADAKİ MAÇ · CANLI DOSYA</p>
+          <p className="mb-2 text-xs font-black tracking-[0.25em] text-fb-yellow">MAÇ GÜNÜ · CANLI VERİ KATMANI</p>
           <h2
             className="text-4xl font-black uppercase italic tracking-tighter text-white md:text-5xl"
             style={{ fontFamily: "'Barlow Condensed', 'Arial Narrow', Arial, sans-serif" }}
           >
             MAÇ MERKEZİ
           </h2>
-          <p className="mt-3 max-w-4xl text-slate-300">{MATCH_CENTER_DATA.summary}</p>
-          <p className="mt-3 text-xs font-bold tracking-[0.12em] text-slate-500">
-            EDİTÖR MODU: Taktik çerçeve + risk yönetimi + kadro etkisi tek ekranda.
-          </p>
+          <p className="mt-3 max-w-4xl text-slate-300">{headline}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+              <RefreshCcw size={14} /> Son güncelleme: {updatedDate}
+            </span>
+            <span className={`rounded-full border px-3 py-1.5 font-black tracking-[0.14em] ${statusTone[currentMatch?.statusState || 'pre']}`}>
+              {currentMatch?.statusState === 'in' ? 'CANLI' : currentMatch?.statusText || 'GÜNCELLENİYOR'}
+            </span>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">Tamamen Türkçe canlı veri akışı</span>
+          </div>
         </motion.div>
 
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[2rem] border border-white/10 bg-white/5 p-7 backdrop-blur">
             <div className="mb-5 flex flex-wrap items-center gap-3 text-xs text-slate-300">
               <span className="rounded-full border border-fb-yellow/40 bg-fb-yellow/10 px-3 py-1 font-bold text-fb-yellow">
-                {MATCH_CENTER_DATA.competition}
+                {currentMatch?.competition || 'Süper Lig'}
               </span>
               <span className="inline-flex items-center gap-2">
-                <Calendar size={14} /> {localDate}
+                <Calendar size={14} /> {formatLocalDate(currentMatch?.date)}
               </span>
               <span className="inline-flex items-center gap-2">
-                <MapPin size={14} /> {MATCH_CENTER_DATA.venue}
+                <MapPin size={14} /> {currentMatch?.venue || 'Stat bilgisi güncelleniyor'}
               </span>
               <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[10px] font-black tracking-[0.15em] text-slate-300">
                 TSİ
-              </span>
-              <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[10px] font-black tracking-[0.15em] text-emerald-300">
-                {isLiveLoading ? 'CANLI API BAĞLANIYOR' : 'CANLI API AKTİF'}
               </span>
             </div>
 
             <div className="mb-6 grid items-center gap-4 text-center md:grid-cols-[1fr_auto_1fr]">
               <div>
-                <img src={MATCH_CENTER_DATA.homeLogo} alt={MATCH_CENTER_DATA.homeTeam} className="mx-auto mb-2 h-20 w-20 object-contain" />
-                <p className="text-2xl font-black italic text-white">{MATCH_CENTER_DATA.homeTeam}</p>
-                <p className="mt-1 text-xs text-slate-400">{MATCH_CENTER_DATA.scoreboardContext.fenerbahce}</p>
+                {currentMatch?.homeLogo ? (
+                  <img src={currentMatch.homeLogo} alt={currentMatch.homeTeam} className="mx-auto mb-2 h-20 w-20 object-contain" />
+                ) : null}
+                <p className="text-2xl font-black italic text-white">{currentMatch?.homeTeam || 'Fenerbahçe'}</p>
+                <p className="mt-1 text-xs text-slate-400">Genel derece: {currentMatch?.homeRecord || '-'}</p>
               </div>
-              <div className="text-4xl font-black italic text-fb-yellow">VS</div>
               <div>
-                <img src={MATCH_CENTER_DATA.awayLogo} alt={MATCH_CENTER_DATA.awayTeam} className="mx-auto mb-2 h-20 w-20 object-contain" />
-                <p className="text-2xl font-black italic text-white">{MATCH_CENTER_DATA.awayTeam}</p>
-                <p className="mt-1 text-xs text-slate-400">{MATCH_CENTER_DATA.scoreboardContext.rizespor}</p>
+                <div className="text-4xl font-black italic text-fb-yellow">{scorelineLabel(currentMatch)}</div>
+                <p className="mt-2 text-xs font-black tracking-[0.16em] text-slate-400">{currentMatch?.statusText || 'GÜNCELLENİYOR'}</p>
+              </div>
+              <div>
+                {currentMatch?.awayLogo ? (
+                  <img src={currentMatch.awayLogo} alt={currentMatch.awayTeam} className="mx-auto mb-2 h-20 w-20 object-contain" />
+                ) : null}
+                <p className="text-2xl font-black italic text-white">{currentMatch?.awayTeam || 'Rakip'}</p>
+                <p className="mt-1 text-xs text-slate-400">Genel derece: {currentMatch?.awayRecord || '-'}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 rounded-2xl border border-white/10 bg-fb-navy/60 p-4 text-center md:grid-cols-4">
-              {[
-                ['GÜN', timeLeft.days],
-                ['SAAT', timeLeft.hours],
-                ['DAKİKA', timeLeft.minutes],
-                ['SANİYE', timeLeft.seconds],
-              ].map(([label, value]) => (
-                <div key={label as string}>
-                  <div className="text-3xl font-black text-white">{String(value).padStart(2, '0')}</div>
-                  <div className="text-[10px] font-black tracking-[0.18em] text-slate-400">{label}</div>
+            {currentMatch?.statusState === 'pre' ? (
+              <div className="grid grid-cols-2 gap-3 rounded-2xl border border-white/10 bg-fb-navy/60 p-4 text-center md:grid-cols-4">
+                {[
+                  ['GÜN', timeLeft.days],
+                  ['SAAT', timeLeft.hours],
+                  ['DAKİKA', timeLeft.minutes],
+                  ['SANİYE', timeLeft.seconds],
+                ].map(([label, value]) => (
+                  <div key={label as string}>
+                    <div className="text-3xl font-black text-white">{String(value).padStart(2, '0')}</div>
+                    <div className="text-[10px] font-black tracking-[0.18em] text-slate-400">{label}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-[10px] font-black tracking-[0.16em] text-slate-400">MAÇ DURUMU</p>
+                    <p className="mt-2 text-xl font-black text-white">{currentMatch?.statusText || 'Güncelleniyor'}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-[10px] font-black tracking-[0.16em] text-slate-400">SKOR</p>
+                    <p className="mt-2 text-xl font-black text-white">{scorelineLabel(currentMatch)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-[10px] font-black tracking-[0.16em] text-slate-400">GÜNCELLEME</p>
+                    <p className="mt-2 text-xl font-black text-white">{updatedDate}</p>
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
-            <div className="mt-5 grid gap-3 md:grid-cols-3">
-              {MATCH_CENTER_DATA.keyInsights.map((item) => (
-                <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-slate-300">
-                  {item}
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {summaryCards.map((item) => (
+                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-[10px] font-black tracking-[0.16em] text-slate-400">{item.label}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-white">{item.value}</p>
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-6 grid gap-3 md:grid-cols-3">
-              {editorialBriefs.map((item) => (
-                <article key={item.id} className="rounded-2xl border border-white/10 bg-fb-navy/45 p-4">
-                  <p className="text-[10px] font-black tracking-[0.18em] text-fb-yellow">{item.title}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{item.detail}</p>
-                </article>
               ))}
             </div>
           </div>
@@ -308,19 +385,17 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
           <div className="rounded-[2rem] border border-white/10 bg-white/5 p-7">
             <div className="mb-4 flex items-center gap-2 text-fb-yellow">
               <Clock3 size={16} />
-              <span className="text-xs font-black tracking-[0.2em]">2025-2026 SÜPER LİG KALAN FİKSTÜR</span>
+              <span className="text-xs font-black tracking-[0.2em]">FENERBAHÇE FİKSTÜR AKIŞI</span>
             </div>
-            <div className="space-y-2">
-              {liveFixtures.map((item) => {
-                const matchDate = new Date(item.date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
-                return (
-                  <div key={`${item.date}-${item.home}`} className="rounded-xl border border-white/10 bg-fb-navy/60 p-3">
-                    <p className="text-xs text-slate-400">{matchDate} · {item.competition}</p>
-                    <p className="font-bold text-white">{item.home} - {item.away}</p>
-                    {item.note && <p className="text-xs text-fb-yellow">{item.note}</p>}
-                  </div>
-                );
-              })}
+            <div className="space-y-3">
+              {(snapshot?.fixtures || []).map((item) => (
+                <FixtureCard key={item.id} item={item} />
+              ))}
+              {!snapshot?.fixtures?.length ? (
+                <div className="rounded-2xl border border-dashed border-white/15 bg-fb-navy/40 p-4 text-sm text-slate-300">
+                  Fikstür akışı yükleniyor.
+                </div>
+              ) : null}
             </div>
             <button
               onClick={() => onNavigate?.('match-center')}
@@ -332,109 +407,102 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
           </div>
         </div>
 
-        <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
-          <h4 className="mb-4 text-lg font-black text-white">TAKTİK RADAR</h4>
-          <div className="grid gap-3 md:grid-cols-3">
-            {tacticalRadar.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
-                <p className="text-[10px] font-black tracking-[0.15em] text-slate-400">{item.label}</p>
-                <p className="mt-2 text-2xl font-black text-fb-yellow">{item.score}</p>
-                <p className="mt-2 text-sm text-slate-300">{item.detail}</p>
-              </div>
-            ))}
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1fr]">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <Trophy size={18} className="text-fb-yellow" />
+              <h4 className="text-lg font-black text-white">Temel İstatistikler</h4>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {(snapshot?.stats || []).map((stat) => (
+                <MatchStatCard
+                  key={stat.key}
+                  stat={stat}
+                  homeTeam={currentMatch?.homeTeam}
+                  awayTeam={currentMatch?.awayTeam}
+                />
+              ))}
+              {!snapshot?.stats?.length ? (
+                <div className="rounded-2xl border border-dashed border-white/15 bg-fb-navy/40 p-4 text-sm text-slate-300 md:col-span-2">
+                  Maç istatistikleri henüz oluşmadı. Karşılaşma başladığında bu alan otomatik güncellenecek.
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <Radio size={18} className="text-fb-yellow" />
+              <h4 className="text-lg font-black text-white">Maç Olayları</h4>
+            </div>
+            <div className="space-y-3">
+              {(snapshot?.events || []).map((event) => (
+                <MatchEventCard key={event.id} event={event} />
+              ))}
+              {!snapshot?.events?.length ? (
+                <div className="rounded-2xl border border-dashed border-white/15 bg-fb-navy/40 p-4 text-sm text-slate-300">
+                  Olay akışı henüz oluşmadı. Maç başladığında gol, kart ve oyuncu değişiklikleri burada görünecek.
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <TeamLineupCard title={`Resmi İlk 11 · ${currentMatch?.homeTeam || 'Fenerbahçe'}`} lineup={snapshot?.lineups?.home} />
+          <TeamLineupCard title={`Resmi İlk 11 · ${currentMatch?.awayTeam || 'Rakip'}`} lineup={snapshot?.lineups?.away} />
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.9fr]">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <h4 className="mb-4 text-lg font-black text-white">KRİTİK EŞLEŞMELER</h4>
-            <div className="space-y-3">
-              {keyDuels.map((duel) => (
-                <div key={duel.id} className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="font-black text-white">{duel.title}</p>
-                    <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black tracking-[0.12em] ${duelEdgeTone[duel.edge]}`}>
-                      {duel.edge === 'FENERBAHCE' ? 'FB EDGE' : duel.edge === 'RIZESPOR' ? 'RİZE EDGE' : 'DENGE'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-300">{duel.detail}</p>
+            <div className="mb-4 flex items-center gap-2">
+              <Timer size={18} className="text-fb-yellow" />
+              <h4 className="text-lg font-black text-white">Neler Eklendi?</h4>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {[
+                'Canlı veya son skor artık doğrudan güncel maç verisinden geliyor.',
+                'Resmi ilk 11 ve yedek kulübesi açıklanır açıklanmaz ekrana düşüyor.',
+                'Topa sahip olma, şut, isabet, korner ve kart verileri anlık gösteriliyor.',
+                'Son maç olayları tek ekranda okunabilir zaman çizgisi halinde sunuluyor.',
+              ].map((item) => (
+                <div key={item} className="rounded-2xl border border-white/10 bg-fb-navy/55 p-4 text-sm text-slate-300">
+                  {item}
                 </div>
               ))}
             </div>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <h4 className="mb-4 text-lg font-black text-white">RİSK PANOSU</h4>
-            <div className="space-y-3">
-              {riskBoard.map((risk) => (
-                <div key={risk.id} className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="font-black text-white">{risk.title}</p>
-                    <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black tracking-[0.12em] ${riskTone[risk.level]}`}>
-                      {risk.level}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-300">{risk.detail}</p>
-                </div>
-              ))}
+            <div className="mb-4 flex items-center gap-2">
+              <ShieldCheck size={18} className="text-fb-yellow" />
+              <h4 className="text-lg font-black text-white">Kaynaklar ve Veri Notu</h4>
             </div>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <TeamAvailability title="Fenerbahçe · Sakat/Ceza Durumu" notes={MATCH_CENTER_DATA.fenerbahceAvailability} />
-          <TeamAvailability title="Çaykur Rizespor · Sakat/Ceza Durumu" notes={MATCH_CENTER_DATA.rizesporAvailability} />
-        </div>
-
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <h4 className="mb-4 inline-flex items-center gap-2 text-lg font-black text-white"><Users size={18} /> Muhtemel 11 · Fenerbahçe</h4>
-            <ol className="grid gap-2 text-sm text-slate-200 md:grid-cols-2">
-              {MATCH_CENTER_DATA.predictedLineups.fenerbahce.map((player, index) => (
-                <li key={player} className="rounded-xl border border-white/10 bg-fb-navy/60 px-3 py-2">
-                  <span className="mr-2 text-fb-yellow">{index + 1}.</span>
-                  {player}
+            <p className="mb-3 text-sm text-slate-300">
+              Bu alan canlı maç özeti, skor, resmi ilk 11 ve temel maç olaylarını güncel kaynaktan çeker. Son yenilenme zamanı:
+              <strong className="ml-1">{updatedDate}</strong>
+            </p>
+            <ul className="space-y-2 text-sm text-slate-300">
+              {(snapshot?.sources || []).map((source) => (
+                <li key={source.url}>
+                  <a href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-fb-yellow">
+                    <ExternalLink size={14} />
+                    {source.label}
+                  </a>
                 </li>
               ))}
-            </ol>
+            </ul>
+            {hasError ? (
+              <p className="mt-4 rounded-2xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200">
+                Canlı veri akışında geçici bir hata oluştu. Sayfayı yenilediğinde veya birkaç saniye sonra yeniden denendiğinde veriler geri gelecektir.
+              </p>
+            ) : null}
+            {isLoading ? (
+              <p className="mt-4 rounded-2xl border border-white/10 bg-fb-navy/45 p-3 text-sm text-slate-300">
+                Maç merkezi güncel verileri yüklüyor.
+              </p>
+            ) : null}
           </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
-            <h4 className="mb-4 inline-flex items-center gap-2 text-lg font-black text-white"><Users size={18} /> Muhtemel 11 · Ç. Rizespor</h4>
-            <ol className="grid gap-2 text-sm text-slate-200 md:grid-cols-2">
-              {MATCH_CENTER_DATA.predictedLineups.rizespor.map((player, index) => (
-                <li key={player} className="rounded-xl border border-white/10 bg-fb-navy/60 px-3 py-2">
-                  <span className="mr-2 text-fb-yellow">{index + 1}.</span>
-                  {player}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-
-        <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <ShieldAlert size={18} className="text-fb-yellow" />
-            <h4 className="text-lg font-black text-white">Veri Notu ve Kaynaklar</h4>
-          </div>
-          <p className="mb-3 text-sm text-slate-300">
-            Son veri güncellemesi: <strong>{updatedDate}</strong>. Bu sayfa canlı bahis/medya akışına göre değil,
-            derlenmiş maç önü bilgi ekranı olarak tasarlanmıştır. Son resmi kadrolar maç gününde kulüp hesaplarından teyit edilmelidir.
-          </p>
-          <ul className="space-y-2 text-sm text-slate-300">
-            {MATCH_CENTER_DATA.sources.map((source) => (
-              <li key={source.url}>
-                <a href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:text-fb-yellow">
-                  <ExternalLink size={14} />
-                  {source.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 inline-flex items-center gap-2 text-xs text-amber-300">
-            <AlertTriangle size={14} />
-            Muhtemel 11 ve kart/sakatlık değerlendirmesi editöryel tahmindir; resmi maç kadrosu değildir.
-          </p>
         </div>
       </div>
     </section>
