@@ -9,6 +9,7 @@ import {
   Radio,
   RefreshCcw,
   ShieldCheck,
+  Sparkles,
   Timer,
   Trophy,
   Users,
@@ -19,6 +20,7 @@ import {
   type LiveMatchSnapshot,
   type MatchEventItem,
   type MatchStatItem,
+  type PlayerLeaderItem,
   type TeamLineup,
 } from '../../lib/matchService';
 
@@ -80,14 +82,14 @@ const buildHeadline = (snapshot?: LiveMatchSnapshot) => {
   }
 
   if (match.statusState === 'post' && match.homeScore != null && match.awayScore != null) {
-    return `${match.homeTeam} - ${match.awayTeam} maçının sonucu: ${match.homeScore}-${match.awayScore}. Resmi ilk 11, olay akışı ve temel istatistikler aşağıda.`;
+    return `${match.homeTeam} - ${match.awayTeam} maçının sonucu: ${match.homeScore}-${match.awayScore}. Resmi ilk 11, olay akışı, lider oyuncular ve puan tablosu etkisi aşağıda.`;
   }
 
   if (match.statusState === 'in') {
-    return `${match.homeTeam} - ${match.awayTeam} karşılaşması canlı durumda. Skor, istatistikler ve maç olayları otomatik güncelleniyor.`;
+    return `${match.homeTeam} - ${match.awayTeam} karşılaşması canlı durumda. Skor, istatistikler, oyuncu liderleri ve maç olayları otomatik güncelleniyor.`;
   }
 
-  return `${match.homeTeam} - ${match.awayTeam} maçı öncesi tüm kritik bilgiler tek ekranda: saat, stat, form durumu, resmi ilk 11 açıklandığında kadrolar ve maç akışı.`;
+  return `${match.homeTeam} - ${match.awayTeam} maçı öncesi tüm kritik bilgiler tek ekranda: saat, stat, form durumu, puan tablosu bağlamı ve resmi ilk 11 açıklandığında kadrolar.`;
 };
 
 const scorelineLabel = (match?: LiveMatchSnapshot['currentMatch']) => {
@@ -197,6 +199,25 @@ const FixtureCard: React.FC<{ item: LiveFixtureItem }> = ({ item }) => {
     </div>
   );
 };
+
+const LeaderCard: React.FC<{ leader: PlayerLeaderItem }> = ({ leader }) => (
+  <div className="rounded-2xl border border-white/10 bg-fb-navy/55 p-4">
+    <p className="text-[10px] font-black tracking-[0.16em] text-slate-400">{leader.label}</p>
+    <div className="mt-3 space-y-3">
+      {leader.players.map((player, index) => (
+        <div key={`${leader.key}-${player.name}-${index}`} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-bold text-white">{player.name}</p>
+              <p className="text-xs text-slate-400">{player.team}</p>
+            </div>
+            <span className="text-lg font-black text-fb-yellow">{player.value}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-center' | 'news') => void }> = ({
   onNavigate,
@@ -448,6 +469,59 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
           </div>
         </div>
 
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1fr]">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <Sparkles size={18} className="text-fb-yellow" />
+              <h4 className="text-lg font-black text-white">Oyuncu Liderleri</h4>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {(snapshot?.leaders || []).map((leader) => (
+                <LeaderCard key={leader.key} leader={leader} />
+              ))}
+              {!snapshot?.leaders?.length ? (
+                <div className="rounded-2xl border border-dashed border-white/15 bg-fb-navy/40 p-4 text-sm text-slate-300 md:col-span-2">
+                  Oyuncu liderleri henüz yayınlanmadı. Maç akışı oluştuğunda bu alan otomatik güncellenecek.
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <Trophy size={18} className="text-fb-yellow" />
+              <h4 className="text-lg font-black text-white">Puan Durumu Etkisi</h4>
+            </div>
+            {snapshot?.standingsImpact ? (
+              <>
+                <p className="rounded-2xl border border-white/10 bg-fb-navy/55 p-4 text-sm leading-relaxed text-slate-200">
+                  {snapshot.standingsImpact.summary}
+                </p>
+                <div className="mt-4 space-y-3">
+                  {snapshot.standingsImpact.table.map((entry) => (
+                    <div key={`${entry.rank}-${entry.team}`} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-black text-white">{entry.rank}. {entry.team}</p>
+                          <p className="text-xs text-slate-400">Oynanan maç: {entry.played}{entry.goalDiff ? ` · Averaj: ${entry.goalDiff}` : ''}</p>
+                        </div>
+                        <span className="text-2xl font-black text-fb-yellow">{entry.points}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {snapshot.standingsImpact.note ? (
+                  <p className="mt-4 text-xs text-slate-400">{snapshot.standingsImpact.note}</p>
+                ) : null}
+              </>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/15 bg-fb-navy/40 p-4 text-sm text-slate-300">
+                Puan tablosu bağlamı henüz yüklenmedi.
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <TeamLineupCard title={`Resmi İlk 11 · ${currentMatch?.homeTeam || 'Fenerbahçe'}`} lineup={snapshot?.lineups?.home} />
           <TeamLineupCard title={`Resmi İlk 11 · ${currentMatch?.awayTeam || 'Rakip'}`} lineup={snapshot?.lineups?.away} />
@@ -465,6 +539,8 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
                 'Resmi ilk 11 ve yedek kulübesi açıklanır açıklanmaz ekrana düşüyor.',
                 'Topa sahip olma, şut, isabet, korner ve kart verileri anlık gösteriliyor.',
                 'Son maç olayları tek ekranda okunabilir zaman çizgisi halinde sunuluyor.',
+                'Oyuncu liderleri bölümüyle maçın öne çıkan isimleri görünür hale geliyor.',
+                'Puan durumu etkisi bölümüyle bu maçın yarışa etkisi bağlam kazanıyor.',
               ].map((item) => (
                 <div key={item} className="rounded-2xl border border-white/10 bg-fb-navy/55 p-4 text-sm text-slate-300">
                   {item}
@@ -479,7 +555,7 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
               <h4 className="text-lg font-black text-white">Kaynaklar ve Veri Notu</h4>
             </div>
             <p className="mb-3 text-sm text-slate-300">
-              Bu alan canlı maç özeti, skor, resmi ilk 11 ve temel maç olaylarını güncel kaynaktan çeker. Son yenilenme zamanı:
+              Bu alan canlı maç özeti, skor, resmi ilk 11, oyuncu liderleri ve temel maç olaylarını güncel kaynaktan çeker. Son yenilenme zamanı:
               <strong className="ml-1">{updatedDate}</strong>
             </p>
             <ul className="space-y-2 text-sm text-slate-300">
