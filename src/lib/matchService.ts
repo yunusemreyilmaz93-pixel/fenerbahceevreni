@@ -1,74 +1,337 @@
 export interface LiveFixtureItem {
+  id: string;
   date: string;
   home: string;
   away: string;
   competition: string;
   note?: string;
+  status: string;
+  homeScore?: string;
+  awayScore?: string;
+}
+
+export interface MatchStatItem {
+  key: string;
+  label: string;
+  homeValue: string;
+  awayValue: string;
+}
+
+export interface MatchEventItem {
+  id: string;
+  minute: string;
+  team: string;
+  type: string;
+  text: string;
+}
+
+export interface LineupPlayer {
+  name: string;
+  jersey?: string;
+  position?: string;
+}
+
+export interface TeamLineup {
+  teamName: string;
+  formation?: string;
+  starters: LineupPlayer[];
+  bench: LineupPlayer[];
 }
 
 export interface LiveMatchSnapshot {
-  nextMatch?: {
+  updatedAt: string;
+  currentMatch?: {
+    id: string;
     date: string;
+    competition: string;
     venue?: string;
     homeTeam: string;
     awayTeam: string;
-    competition: string;
+    homeLogo?: string;
+    awayLogo?: string;
+    homeScore?: string;
+    awayScore?: string;
+    statusText: string;
+    statusState: 'pre' | 'in' | 'post';
+    formHome?: string;
+    formAway?: string;
+    homeRecord?: string;
+    awayRecord?: string;
   };
   fixtures: LiveFixtureItem[];
+  stats: MatchStatItem[];
+  events: MatchEventItem[];
+  lineups?: {
+    home?: TeamLineup;
+    away?: TeamLineup;
+  };
+  sources: { label: string; url: string }[];
 }
 
-const ESPN_SCHEDULE_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/tur.1/teams/436/schedule';
+const TEAM_ID = '436';
+const LEAGUE_SLUG = 'tur.1';
+const ESPN_SCHEDULE_URL = `https://site.api.espn.com/apis/site/v2/sports/soccer/${LEAGUE_SLUG}/teams/${TEAM_ID}/schedule`;
+const ESPN_SUMMARY_URL = (eventId: string) =>
+  `https://site.api.espn.com/apis/site/v2/sports/soccer/${LEAGUE_SLUG}/summary?event=${eventId}`;
 
-function mapEvent(event: any): LiveFixtureItem | null {
+const teamNameMap: Record<string, string> = {
+  Fenerbahce: 'Fenerbahçe',
+  'Caykur Rizespor': 'Çaykur Rizespor',
+  Galatasaray: 'Galatasaray',
+  'Istanbul Basaksehir': 'İstanbul Başakşehir',
+  Basaksehir: 'Başakşehir',
+  Konyaspor: 'Konyaspor',
+  Eyupspor: 'Eyüpspor',
+  Besiktas: 'Beşiktaş',
+  'Fatih Karagumruk': 'Fatih Karagümrük',
+  Goztepe: 'Göztepe',
+  Samsunspor: 'Samsunspor',
+  'Genclerbirligi': 'Gençlerbirliği',
+  'Gençlerbirliği': 'Gençlerbirliği',
+  Kayserispor: 'Kayserispor',
+  'Gaziantep FK': 'Gaziantep FK',
+};
+
+const statusMap: Record<string, string> = {
+  FT: 'Maç Sonu',
+  'Full Time': 'Maç Sonu',
+  Scheduled: 'Planlandı',
+  STATUS_SCHEDULED: 'Planlandı',
+  'In Progress': 'Canlı',
+  Halftime: 'Devre Arası',
+  HT: 'Devre Arası',
+  Postponed: 'Ertelendi',
+  Cancelled: 'İptal',
+  Final: 'Maç Sonu',
+};
+
+const statLabelMap: Record<string, string> = {
+  possessionPct: 'Topa Sahip Olma',
+  totalShots: 'Şut',
+  shotsOnTarget: 'İsabetli Şut',
+  wonCorners: 'Korner',
+  yellowCards: 'Sarı Kart',
+  redCards: 'Kırmızı Kart',
+  foulsCommitted: 'Faul',
+  saves: 'Kurtarış',
+};
+
+const eventTypeMap: Record<string, string> = {
+  Goal: 'Gol',
+  'Yellow Card': 'Sarı Kart',
+  'Red Card': 'Kırmızı Kart',
+  Substitution: 'Oyuncu Değişikliği',
+  Penalty: 'Penaltı',
+};
+
+function trText(value?: string): string {
+  if (!value) return '';
+  const trimmed = value.replace(/\s+/g, ' ').trim();
+  return teamNameMap[trimmed] || trimmed;
+}
+
+function trStatus(value?: string): string {
+  if (!value) return 'Güncelleniyor';
+  return statusMap[value] || value;
+}
+
+function trEventType(value?: string): string {
+  if (!value) return 'Maç Olayı';
+  return eventTypeMap[value] || value;
+}
+
+function findCompetitor(event: any, side: 'home' | 'away') {
+  return event?.competitions?.[0]?.competitors?.find((item: any) => item.homeAway === side);
+}
+
+function mapFixture(event: any): LiveFixtureItem | null {
   const competition = event?.competitions?.[0];
-  const competitors = competition?.competitors;
-  if (!Array.isArray(competitors) || competitors.length < 2) {
+  const home = findCompetitor(event, 'home');
+  const away = findCompetitor(event, 'away');
+
+  if (!competition || !home?.team?.displayName || !away?.team?.displayName) {
     return null;
   }
 
-  const home = competitors.find((c: any) => c.homeAway === 'home')?.team?.displayName;
-  const away = competitors.find((c: any) => c.homeAway === 'away')?.team?.displayName;
-
-  if (!home || !away) {
-    return null;
-  }
+  const statusDetail = competition?.status?.type?.shortDetail || competition?.status?.type?.detail || competition?.status?.type?.description;
 
   return {
-    date: event?.date,
-    home,
-    away,
-    competition: event?.league?.name || 'Süper Lig',
-    note: event?.status?.type?.description || undefined,
+    id: String(event?.id || competition?.id || `${event?.date}-${home.team.displayName}`),
+    date: event?.date || competition?.date,
+    home: trText(home.team.displayName),
+    away: trText(away.team.displayName),
+    competition: trText(event?.league?.name || 'Süper Lig'),
+    note: statusDetail ? trStatus(statusDetail) : undefined,
+    status: trStatus(statusDetail || competition?.status?.type?.description),
+    homeScore: home?.score?.displayValue,
+    awayScore: away?.score?.displayValue,
   };
+}
+
+function pickTargetEvent(events: any[]): any | undefined {
+  const liveEvent = events.find((event) => event?.competitions?.[0]?.status?.type?.state === 'in');
+  if (liveEvent) return liveEvent;
+
+  const recentEvent = events.find((event) => {
+    const state = event?.competitions?.[0]?.status?.type?.state;
+    const dateValue = new Date(event?.date || 0).getTime();
+    return state === 'post' && Date.now() - dateValue < 1000 * 60 * 60 * 72;
+  });
+  if (recentEvent) return recentEvent;
+
+  return events.find((event) => new Date(event?.date || 0).getTime() >= Date.now()) || events[0];
+}
+
+function mapLineupTeam(rosterItem: any): TeamLineup | undefined {
+  const players = Array.isArray(rosterItem?.roster) ? rosterItem.roster : [];
+  if (players.length === 0) return undefined;
+
+  const starters = players
+    .filter((item: any) => item?.starter)
+    .map((item: any) => ({
+      name: trText(item?.athlete?.displayName || item?.athlete?.fullName),
+      jersey: item?.jersey,
+      position: trText(item?.position?.abbreviation || item?.position?.displayName),
+    }));
+
+  const bench = players
+    .filter((item: any) => !item?.starter)
+    .slice(0, 12)
+    .map((item: any) => ({
+      name: trText(item?.athlete?.displayName || item?.athlete?.fullName),
+      jersey: item?.jersey,
+      position: trText(item?.position?.abbreviation || item?.position?.displayName),
+    }));
+
+  return {
+    teamName: trText(rosterItem?.team?.displayName),
+    formation: rosterItem?.formation,
+    starters,
+    bench,
+  };
+}
+
+function mapStats(summary: any): MatchStatItem[] {
+  const teams = Array.isArray(summary?.boxscore?.teams) ? summary.boxscore.teams : [];
+  const homeStats = Array.isArray(teams[0]?.statistics) ? teams[0].statistics : [];
+  const awayStats = Array.isArray(teams[1]?.statistics) ? teams[1].statistics : [];
+
+  return Object.entries(statLabelMap)
+    .map(([key, label]) => {
+      const home = homeStats.find((item: any) => item?.name === key)?.displayValue;
+      const away = awayStats.find((item: any) => item?.name === key)?.displayValue;
+      if (home == null || away == null) return null;
+      return {
+        key,
+        label,
+        homeValue: key === 'possessionPct' ? `${home}%` : String(home),
+        awayValue: key === 'possessionPct' ? `${away}%` : String(away),
+      };
+    })
+    .filter((item): item is MatchStatItem => item !== null);
+}
+
+function mapEvents(summary: any): MatchEventItem[] {
+  const commentary = Array.isArray(summary?.commentary) ? summary.commentary : [];
+
+  return commentary.slice(-8).reverse().map((item: any) => {
+    const athleteNames = Array.isArray(item?.play?.participants)
+      ? item.play.participants
+          .map((participant: any) => trText(participant?.athlete?.displayName))
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
+    return {
+      id: String(item?.play?.id || item?.time?.displayValue || Math.random()),
+      minute: item?.time?.displayValue || item?.play?.clock?.displayValue || '-',
+      team: trText(item?.play?.team?.displayName || item?.team?.displayName),
+      type: trEventType(item?.play?.type?.text),
+      text: athleteNames || trText(item?.text),
+    };
+  });
+}
+
+function mapSources(summary: any, eventId: string) {
+  const links = Array.isArray(summary?.header?.links) ? summary.header.links : [];
+  const preferred = links.filter((item: any) => ['summary', 'stats', 'commentary', 'lineups'].some((rel) => item?.rel?.includes?.(rel)));
+
+  if (preferred.length > 0) {
+    return preferred.slice(0, 4).map((item: any) => ({
+      label: trText(item?.text || 'Kaynak'),
+      url: item?.href,
+    }));
+  }
+
+  return [
+    {
+      label: 'ESPN Maç Özeti',
+      url: `https://www.espn.com/soccer/match/_/gameId/${eventId}`,
+    },
+  ];
 }
 
 export async function fetchLiveFenerbahceSchedule(): Promise<LiveMatchSnapshot> {
-  const response = await fetch(ESPN_SCHEDULE_URL);
-  if (!response.ok) {
-    throw new Error(`ESPN schedule error: ${response.status}`);
+  const scheduleResponse = await fetch(ESPN_SCHEDULE_URL);
+  if (!scheduleResponse.ok) {
+    throw new Error(`ESPN schedule error: ${scheduleResponse.status}`);
   }
 
-  const data = await response.json();
-  const events: any[] = Array.isArray(data?.events) ? data.events : [];
-  const upcoming = events.filter((event) => new Date(event?.date).getTime() > Date.now());
+  const scheduleData = await scheduleResponse.json();
+  const events: any[] = Array.isArray(scheduleData?.events) ? scheduleData.events : [];
+  const fixtures = events.map(mapFixture).filter((item): item is LiveFixtureItem => item !== null).slice(0, 6);
+  const targetEvent = pickTargetEvent(events);
 
-  const mapped = upcoming
-    .map(mapEvent)
-    .filter((item): item is LiveFixtureItem => item !== null)
-    .slice(0, 6);
+  if (!targetEvent) {
+    return {
+      updatedAt: new Date().toISOString(),
+      fixtures,
+      stats: [],
+      events: [],
+      sources: [],
+    };
+  }
 
-  const first = mapped[0];
+  const summaryResponse = await fetch(ESPN_SUMMARY_URL(String(targetEvent.id)));
+  if (!summaryResponse.ok) {
+    throw new Error(`ESPN summary error: ${summaryResponse.status}`);
+  }
+
+  const summaryData = await summaryResponse.json();
+  const headerCompetition = summaryData?.header?.competitions?.[0];
+  const home = headerCompetition?.competitors?.find((item: any) => item?.homeAway === 'home');
+  const away = headerCompetition?.competitors?.find((item: any) => item?.homeAway === 'away');
+  const rosters = Array.isArray(summaryData?.rosters) ? summaryData.rosters : [];
+  const homeRoster = rosters.find((item: any) => item?.homeAway === 'home');
+  const awayRoster = rosters.find((item: any) => item?.homeAway === 'away');
 
   return {
-    nextMatch: first
-      ? {
-          date: first.date,
-          venue: data?.events?.[0]?.competitions?.[0]?.venue?.fullName,
-          homeTeam: first.home,
-          awayTeam: first.away,
-          competition: first.competition,
-        }
-      : undefined,
-    fixtures: mapped,
+    updatedAt: new Date().toISOString(),
+    currentMatch: {
+      id: String(targetEvent?.id),
+      date: headerCompetition?.date || targetEvent?.date,
+      competition: trText(summaryData?.header?.season?.name || targetEvent?.league?.name || 'Süper Lig'),
+      venue: trText(targetEvent?.competitions?.[0]?.venue?.fullName || summaryData?.gameInfo?.venue?.fullName),
+      homeTeam: trText(home?.team?.displayName),
+      awayTeam: trText(away?.team?.displayName),
+      homeLogo: home?.team?.logos?.[0]?.href,
+      awayLogo: away?.team?.logos?.[0]?.href,
+      homeScore: home?.score,
+      awayScore: away?.score,
+      statusText: trStatus(headerCompetition?.status?.type?.shortDetail || headerCompetition?.status?.type?.detail || headerCompetition?.status?.type?.description),
+      statusState: headerCompetition?.status?.type?.state || 'pre',
+      formHome: home?.team?.form,
+      formAway: away?.team?.form,
+      homeRecord: home?.record?.find((item: any) => item?.type === 'total')?.displayValue,
+      awayRecord: away?.record?.find((item: any) => item?.type === 'total')?.displayValue,
+    },
+    fixtures,
+    stats: mapStats(summaryData),
+    events: mapEvents(summaryData),
+    lineups: {
+      home: mapLineupTeam(homeRoster),
+      away: mapLineupTeam(awayRoster),
+    },
+    sources: mapSources(summaryData, String(targetEvent?.id)),
   };
 }
