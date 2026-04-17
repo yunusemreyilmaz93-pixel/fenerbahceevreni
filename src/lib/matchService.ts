@@ -358,7 +358,10 @@ function readStat(stats: any[], candidates: string[]): string | undefined {
     ),
   );
 
-  return found?.displayValue || found?.value != null ? String(found?.displayValue || found?.value) : undefined;
+  if (!found) return undefined;
+  if (found.displayValue != null) return String(found.displayValue);
+  if (found.value != null) return String(found.value);
+  return undefined;
 }
 
 function buildStandingsImpact(summary: any, currentMatch?: LiveMatchSnapshot['currentMatch']): StandingsImpact | undefined {
@@ -369,7 +372,7 @@ function buildStandingsImpact(summary: any, currentMatch?: LiveMatchSnapshot['cu
     .map((entry: any) => {
       const stats = Array.isArray(entry?.stats) ? entry.stats : [];
       return {
-        rank: String(entry?.stats?.find?.((item: any) => ['rank', 'standingSummary', 'rankDisplayValue'].includes(item?.name))?.displayValue || readStat(stats, ['rank']) || '-'),
+        rank: String(readStat(stats, ['rank']) || entry?.stats?.find?.((item: any) => item?.name === 'rank')?.displayValue || '-'),
         team: trText(entry?.team?.displayName),
         points: readStat(stats, ['points', 'pts']) || '-',
         played: readStat(stats, ['gamesPlayed', 'gp']) || '-',
