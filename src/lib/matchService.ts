@@ -38,6 +38,28 @@ export interface TeamLineup {
   bench: LineupPlayer[];
 }
 
+export interface PlayerLeaderItem {
+  key: string;
+  label: string;
+  players: {
+    name: string;
+    team: string;
+    value: string;
+  }[];
+}
+
+export interface StandingsImpact {
+  summary: string;
+  table: {
+    rank: string;
+    team: string;
+    points: string;
+    played: string;
+    goalDiff?: string;
+  }[];
+  note?: string;
+}
+
 export interface LiveMatchSnapshot {
   updatedAt: string;
   currentMatch?: {
@@ -61,6 +83,8 @@ export interface LiveMatchSnapshot {
   fixtures: LiveFixtureItem[];
   stats: MatchStatItem[];
   events: MatchEventItem[];
+  leaders: PlayerLeaderItem[];
+  standingsImpact?: StandingsImpact;
   lineups?: {
     home?: TeamLineup;
     away?: TeamLineup;
@@ -86,7 +110,7 @@ const teamNameMap: Record<string, string> = {
   'Fatih Karagumruk': 'Fatih Karagümrük',
   Goztepe: 'Göztepe',
   Samsunspor: 'Samsunspor',
-  'Genclerbirligi': 'Gençlerbirliği',
+  Genclerbirligi: 'Gençlerbirliği',
   'Gençlerbirliği': 'Gençlerbirliği',
   Kayserispor: 'Kayserispor',
   'Gaziantep FK': 'Gaziantep FK',
@@ -124,6 +148,15 @@ const eventTypeMap: Record<string, string> = {
   Penalty: 'Penaltı',
 };
 
+const leaderLabelMap: Record<string, string> = {
+  goals: 'Gol Liderleri',
+  assists: 'Asist Liderleri',
+  shotsOnTarget: 'İsabetli Şut Liderleri',
+  saves: 'Kurtarış Liderleri',
+  yellowCards: 'Kart Liderleri',
+  rating: 'Reyting Liderleri',
+};
+
 function trText(value?: string): string {
   if (!value) return '';
   const trimmed = value.replace(/\s+/g, ' ').trim();
@@ -138,6 +171,11 @@ function trStatus(value?: string): string {
 function trEventType(value?: string): string {
   if (!value) return 'Maç Olayı';
   return eventTypeMap[value] || value;
+}
+
+function trLeaderLabel(value?: string): string {
+  if (!value) return 'Oyuncu Liderleri';
+  return leaderLabelMap[value] || trText(value);
 }
 
 function findCompetitor(event: any, side: 'home' | 'away') {
@@ -252,6 +290,115 @@ function mapEvents(summary: any): MatchEventItem[] {
   });
 }
 
+function mapLeaders(summary: any): PlayerLeaderItem[] {
+  const groups = Array.isArray(summary?.leaders) ? summary.leaders : [];
+
+  return groups
+    .map((group: any, index: number) => {
+      const leaders = Array.isArray(group?.leaders) ? group.leaders : [];
+      const players = leaders
+        .slice(0, 3)
+        .map((entry: any) => ({
+          name: trText(entry?.athlete?.displayName || entry?.leaders?.[0]?.athlete?.displayName),
+          team: trText(entry?.team?.displayName || group?.team?.displayName),
+          value: String(entry?.displayValue || entry?.value || '-'),
+        }))
+        .filter((entry) => entry.name);
+
+      if (players.length === 0) {
+        return null;
+      }
+
+      return {
+        key: String(group?.name || group?.displayName || index),
+        label: trLeaderLabel(group?.displayName || group?.name),
+        players,
+      };
+    })
+    .filter((item): item is PlayerLeaderItem => item !== null)
+    .slice(0, 4);
+}
+
+function findStandingsEntries(node: any): any[] {
+  if (!node) return [];
+
+  if (Array.isArray(node)) {
+    if (node.some((item) => item?.team && Array.isArray(item?.stats))) {
+      return node;
+    }
+
+    for (const item of node) {
+      const nested = findStandingsEntries(item);
+      if (nested.length > 0) {
+        return nested;
+      }
+    }
+
+    return [];
+  }
+
+  if (typeof node === 'object') {
+    for (const value of Object.values(node)) {
+      const nested = findStandingsEntries(value);
+      if (nested.length > 0) {
+        return nested;
+      }
+    }
+  }
+
+  return [];
+}
+
+function readStat(stats: any[], candidates: string[]): string | undefined {
+  const found = stats.find((item: any) =>
+    candidates.some((candidate) =>
+      [item?.name, item?.displayName, item?.shortDisplayName, item?.abbreviation, item?.description]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase() === candidate.toLowerCase()),
+    ),
+  );
+
+  return found?.displayValue || found?.value != null ? String(found?.displayValue || found?.value) : undefined;
+}
+
+function buildStandingsImpact(summary: any, currentMatch?: LiveMatchSnapshot['currentMatch']): StandingsImpact | undefined {
+  const entries = findStandingsEntries(summary?.standings);
+  if (entries.length === 0) return undefined;
+
+  const mapped = entries
+    .map((entry: any) => {
+      const stats = Array.isArray(entry?.stats) ? entry.stats : [];
+      return {
+        rank: String(entry?.stats?.find?.((item: any) => ['rank', 'standingSummary', 'rankDisplayValue'].includes(item?.name))?.displayValue || readStat(stats, ['rank']) || '-'),
+        team: trText(entry?.team?.displayName),
+        points: readStat(stats, ['points', 'pts']) || '-',
+        played: readStat(stats, ['gamesPlayed', 'gp']) || '-',
+        goalDiff: readStat(stats, ['pointDifferential', 'goalDifferential', 'gd']),
+      };
+    })
+    .filter((entry) => entry.team);
+
+  if (mapped.length === 0) return undefined;
+
+  const focusTeams = mapped.filter(
+    (entry) => entry.team === currentMatch?.homeTeam || entry.team === currentMatch?.awayTeam || entry.team === 'Fenerbahçe' || entry.team === 'Galatasaray',
+  );
+
+  const table = (focusTeams.length > 0 ? focusTeams : mapped.slice(0, 4)).slice(0, 4);
+  const fenerEntry = mapped.find((entry) => entry.team === 'Fenerbahçe');
+
+  let summaryText = 'Puan tablosu güncel veriyle yenilendi.';
+  if (fenerEntry) {
+    summaryText = `Fenerbahçe şu anda ${fenerEntry.rank}. sırada ${fenerEntry.points} puanla yer alıyor.`;
+  }
+
+  return {
+    summary: summaryText,
+    table,
+    note: 'Puan durumu verisi yayıncı akışına göre birkaç dakika gecikmeli güncellenebilir.',
+  };
+}
+
 function mapSources(summary: any, eventId: string) {
   const links = Array.isArray(summary?.header?.links) ? summary.header.links : [];
   const preferred = links.filter((item: any) => ['summary', 'stats', 'commentary', 'lineups'].some((rel) => item?.rel?.includes?.(rel)));
@@ -288,6 +435,7 @@ export async function fetchLiveFenerbahceSchedule(): Promise<LiveMatchSnapshot> 
       fixtures,
       stats: [],
       events: [],
+      leaders: [],
       sources: [],
     };
   }
@@ -305,29 +453,33 @@ export async function fetchLiveFenerbahceSchedule(): Promise<LiveMatchSnapshot> 
   const homeRoster = rosters.find((item: any) => item?.homeAway === 'home');
   const awayRoster = rosters.find((item: any) => item?.homeAway === 'away');
 
+  const currentMatch = {
+    id: String(targetEvent?.id),
+    date: headerCompetition?.date || targetEvent?.date,
+    competition: trText(summaryData?.header?.season?.name || targetEvent?.league?.name || 'Süper Lig'),
+    venue: trText(targetEvent?.competitions?.[0]?.venue?.fullName || summaryData?.gameInfo?.venue?.fullName),
+    homeTeam: trText(home?.team?.displayName),
+    awayTeam: trText(away?.team?.displayName),
+    homeLogo: home?.team?.logos?.[0]?.href,
+    awayLogo: away?.team?.logos?.[0]?.href,
+    homeScore: home?.score,
+    awayScore: away?.score,
+    statusText: trStatus(headerCompetition?.status?.type?.shortDetail || headerCompetition?.status?.type?.detail || headerCompetition?.status?.type?.description),
+    statusState: headerCompetition?.status?.type?.state || 'pre',
+    formHome: home?.team?.form,
+    formAway: away?.team?.form,
+    homeRecord: home?.record?.find((item: any) => item?.type === 'total')?.displayValue,
+    awayRecord: away?.record?.find((item: any) => item?.type === 'total')?.displayValue,
+  };
+
   return {
     updatedAt: new Date().toISOString(),
-    currentMatch: {
-      id: String(targetEvent?.id),
-      date: headerCompetition?.date || targetEvent?.date,
-      competition: trText(summaryData?.header?.season?.name || targetEvent?.league?.name || 'Süper Lig'),
-      venue: trText(targetEvent?.competitions?.[0]?.venue?.fullName || summaryData?.gameInfo?.venue?.fullName),
-      homeTeam: trText(home?.team?.displayName),
-      awayTeam: trText(away?.team?.displayName),
-      homeLogo: home?.team?.logos?.[0]?.href,
-      awayLogo: away?.team?.logos?.[0]?.href,
-      homeScore: home?.score,
-      awayScore: away?.score,
-      statusText: trStatus(headerCompetition?.status?.type?.shortDetail || headerCompetition?.status?.type?.detail || headerCompetition?.status?.type?.description),
-      statusState: headerCompetition?.status?.type?.state || 'pre',
-      formHome: home?.team?.form,
-      formAway: away?.team?.form,
-      homeRecord: home?.record?.find((item: any) => item?.type === 'total')?.displayValue,
-      awayRecord: away?.record?.find((item: any) => item?.type === 'total')?.displayValue,
-    },
+    currentMatch,
     fixtures,
     stats: mapStats(summaryData),
     events: mapEvents(summaryData),
+    leaders: mapLeaders(summaryData),
+    standingsImpact: buildStandingsImpact(summaryData, currentMatch),
     lineups: {
       home: mapLineupTeam(homeRoster),
       away: mapLineupTeam(awayRoster),
