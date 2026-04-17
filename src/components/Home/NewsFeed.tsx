@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Clock, ChevronRight, ArrowUpRight } from 'lucide-react';
@@ -54,6 +53,10 @@ const NewsFeed: React.FC = () => {
           <div>
             <div className="intelligence-label text-fb-yellow mb-2">GÜNCEL AKIŞ</div>
             <h2 className="text-4xl font-display font-black uppercase italic tracking-tighter">HABERLER & ANALİZLER</h2>
+            <p className="mt-3 text-sm text-slate-400 max-w-2xl">
+              Bu bölüm Google News ve editoryal fallback akışını birleştirir. Amaç hızlı keşif;
+              kritik haberleri resmi kulüp kaynaklarıyla teyit etmeni öneririz.
+            </p>
           </div>
           <a
             href="https://news.google.com/rss/search?q=Fenerbah%C3%A7e&hl=tr&gl=TR&ceid=TR:tr"
@@ -66,7 +69,6 @@ const NewsFeed: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Featured News */}
           <motion.a
             href={featured.url}
             target={featured.url?.startsWith('http') ? '_blank' : undefined}
@@ -76,7 +78,7 @@ const NewsFeed: React.FC = () => {
           >
             <img src={featured.image || 'https://picsum.photos/seed/fb-live/1200/700'} alt={featured.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
             <div className="absolute inset-0 bg-gradient-to-t from-fb-dark via-fb-dark/40 to-transparent" />
-            
+
             <div className="absolute bottom-0 left-0 p-8 md:p-12 w-full">
               <div className="mb-2 text-[10px] font-black tracking-[0.16em] text-slate-400">
                 {isLoading ? 'HABERLER GÜNCELLENİYOR…' : `KAYNAK: ${featured.source || 'GOOGLE NEWS'}`}
@@ -98,7 +100,6 @@ const NewsFeed: React.FC = () => {
             </div>
           </motion.a>
 
-          {/* Secondary News */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             {others.map((item) => (
               <motion.a
