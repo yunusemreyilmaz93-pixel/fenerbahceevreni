@@ -8,38 +8,38 @@ const PLATFORM_METRICS = [
   {
     id: 'm1',
     value: '24/7',
-    label: 'CANLI MAC DOSYASI',
-    detail: 'Gundem, sakatlik ve muhtemel 11 icerigi tek merkezde.',
+    label: 'CANLI MAÇ DOSYASI',
+    detail: 'Gündem, sakatlık ve muhtemel 11 içeriği tek merkezde.',
   },
   {
     id: 'm2',
     value: '300+',
-    label: 'FRAKSIYON HARITASI',
-    detail: 'Taraftar kimligi ve topluluk haritasi deneyimi.',
+    label: 'FRAKSİYON HARİTASI',
+    detail: 'Taraftar kimliği ve topluluk haritası deneyimi.',
   },
   {
     id: 'm3',
     value: '5',
-    label: 'ANA DENEYIM ALANI',
-    detail: 'Mac merkezi, haber, video, anket, evren deneyimi.',
+    label: 'ANA DENEYİM ALANI',
+    detail: 'Maç merkezi, haber, video, anket, evren deneyimi.',
   },
 ] as const;
 
 const PLATFORM_PILLARS = [
   {
     id: 'p1',
-    title: 'CANLI VE GUVENILIR VERI',
-    description: 'Son guncelleme zamani, kaynak seffafligi ve editor notlariyla dogrulanabilir mac bilgisi.',
+    title: 'CANLI VE GÜVENİLİR VERİ',
+    description: 'Son güncelleme zamanı, kaynak şeffaflığı ve editör notlarıyla doğrulanabilir maç bilgisi.',
   },
   {
     id: 'p2',
-    title: 'TOPLULUK MERKEZLI DENEYIM',
-    description: 'Anket, ruh hali ve etkilesim katmanlariyla taraftari sadece izleyen degil ureten hale getirir.',
+    title: 'TOPLULUK MERKEZLİ DENEYİM',
+    description: 'Anket, ruh hali ve etkileşim katmanlarıyla taraftarı sadece izleyen değil üreten hale getirir.',
   },
   {
     id: 'p3',
-    title: 'TEK EKRANDA FUTBOL ZEKASI',
-    description: 'Muhtemel 11, fikstur, ceza-sakatlik ve mac oncesi kritik icgoruleri tek akista sunar.',
+    title: 'TEK EKRANDA FUTBOL ZEKÂSI',
+    description: 'Muhtemel 11, fikstür, ceza-sakatlık ve maç öncesi kritik içgörüleri tek akışta sunar.',
   },
 ] as const;
 
@@ -50,11 +50,11 @@ const PlatformVision: React.FC = () => {
         <div className="mb-10 text-center">
           <p className="intelligence-label mb-3 text-fb-yellow">WORLD CLASS ROADMAP</p>
           <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white md:text-5xl">
-            DUNYANIN EN IYI TARAFTAR PLATFORMU
+            DÜNYANIN EN İYİ TARAFTAR PLATFORMU
           </h2>
           <p className="mx-auto mt-4 max-w-3xl text-slate-300">
-            Amac sadece sik bir vitrin degil; guvenilir veri, aktif topluluk ve guclu urun akisinin
-            ayni ana sayfada birlesmesi.
+            Amaç sadece şık bir vitrin değil; güvenilir veri, aktif topluluk ve güçlü ürün akışının
+            aynı ana sayfada birleşmesi.
           </p>
         </div>
 
