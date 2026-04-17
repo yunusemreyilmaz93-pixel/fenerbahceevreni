@@ -1,9 +1,47 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, ShieldCheck, Users2 } from 'lucide-react';
-import { PLATFORM_METRICS, PLATFORM_PILLARS } from '../../constants/homeData';
 
 const iconByIndex = [Sparkles, ShieldCheck, Users2];
+
+const PLATFORM_METRICS = [
+  {
+    id: 'm1',
+    value: '24/7',
+    label: 'CANLI MAC DOSYASI',
+    detail: 'Gundem, sakatlik ve muhtemel 11 icerigi tek merkezde.',
+  },
+  {
+    id: 'm2',
+    value: '300+',
+    label: 'FRAKSIYON HARITASI',
+    detail: 'Taraftar kimligi ve topluluk haritasi deneyimi.',
+  },
+  {
+    id: 'm3',
+    value: '5',
+    label: 'ANA DENEYIM ALANI',
+    detail: 'Mac merkezi, haber, video, anket, evren deneyimi.',
+  },
+] as const;
+
+const PLATFORM_PILLARS = [
+  {
+    id: 'p1',
+    title: 'CANLI VE GUVENILIR VERI',
+    description: 'Son guncelleme zamani, kaynak seffafligi ve editor notlariyla dogrulanabilir mac bilgisi.',
+  },
+  {
+    id: 'p2',
+    title: 'TOPLULUK MERKEZLI DENEYIM',
+    description: 'Anket, ruh hali ve etkilesim katmanlariyla taraftari sadece izleyen degil ureten hale getirir.',
+  },
+  {
+    id: 'p3',
+    title: 'TEK EKRANDA FUTBOL ZEKASI',
+    description: 'Muhtemel 11, fikstur, ceza-sakatlik ve mac oncesi kritik icgoruleri tek akista sunar.',
+  },
+] as const;
 
 const PlatformVision: React.FC = () => {
   return (
@@ -12,10 +50,11 @@ const PlatformVision: React.FC = () => {
         <div className="mb-10 text-center">
           <p className="intelligence-label mb-3 text-fb-yellow">WORLD CLASS ROADMAP</p>
           <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white md:text-5xl">
-            DÜNYANIN EN İYİ TARAFTAR PLATFORMU
+            DUNYANIN EN IYI TARAFTAR PLATFORMU
           </h2>
           <p className="mx-auto mt-4 max-w-3xl text-slate-300">
-            Amaç sadece şık bir vitrin değil; güvenilir veri, aktif topluluk ve güçlü ürün akışını aynı ana sayfada birleştirmek.
+            Amac sadece sik bir vitrin degil; guvenilir veri, aktif topluluk ve guclu urun akisinin
+            ayni ana sayfada birlesmesi.
           </p>
         </div>
 
