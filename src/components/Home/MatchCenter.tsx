@@ -20,6 +20,93 @@ interface TimeLeft {
   seconds: number;
 }
 
+type DuelEdge = 'FENERBAHCE' | 'RIZESPOR' | 'DENGE';
+type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+
+const editorialBriefs = [
+  {
+    id: 'b1',
+    title: 'MAÇ HİKAYESİ',
+    detail:
+      'Kadıköyde hedef ilk 20 dakikada tempo üstünlüğü. Erken gol, oyunu Fenerbahçe lehine stratejik olarak açar.',
+  },
+  {
+    id: 'b2',
+    title: 'SKOR KORİDORU',
+    detail:
+      '0-0 uzarsa Rizesporun geçiş tehdidi yükselir. İlk yarı xG üretimi maçın psikolojik eksenini belirler.',
+  },
+  {
+    id: 'b3',
+    title: 'ŞAMPİYONLUK BAĞLAMI',
+    detail:
+      '3 puan sadece sıralama değil, derbi haftasına girişte kadro yönetimi ve özgüven dengesi açısından da kritik.',
+  },
+] as const;
+
+const tacticalRadar = [
+  {
+    id: 't1',
+    label: 'ÖN ALAN BASKI ŞİDDETİ',
+    score: '8.5/10',
+    detail: 'Top kaybı sonrası 8 saniye reaksiyon penceresi belirleyici.',
+  },
+  {
+    id: 't2',
+    label: 'GEÇİŞ SAVUNMASI DİSİPLİNİ',
+    score: '7.8/10',
+    detail: 'Rizesporun ilk pası kırılırsa kontra tehdit ciddi düşer.',
+  },
+  {
+    id: 't3',
+    label: 'SET HÜCUM KALİTESİ',
+    score: '8.2/10',
+    detail: 'Half-space koşuları ve ters kanat değişimleri kilit plan.',
+  },
+] as const;
+
+const keyDuels: ReadonlyArray<{ id: string; title: string; detail: string; edge: DuelEdge }> = [
+  {
+    id: 'd1',
+    title: 'FRED + GUENDOUZI vs LACI + PAPANIKOLAOU',
+    detail: 'Merkezde ikinci topları kim alırsa maç ritmini o takım belirler.',
+    edge: 'FENERBAHCE',
+  },
+  {
+    id: 'd2',
+    title: 'KANAT GEÇİŞLERİ',
+    detail: 'Fenerbahçe beklerinin ileri çıkışı sonrası arkaya atılan toplar kritik risk üretir.',
+    edge: 'DENGE',
+  },
+  {
+    id: 'd3',
+    title: 'DURAN TOP SAVUNMASI',
+    detail: 'Rizesporun yan toplarda fizik avantajı, birebir eşleşme kalitesini zorlayabilir.',
+    edge: 'RIZESPOR',
+  },
+];
+
+const riskBoard: ReadonlyArray<{ id: string; title: string; level: RiskLevel; detail: string }> = [
+  {
+    id: 'r1',
+    title: 'KART YÖNETİMİ',
+    level: 'HIGH',
+    detail: 'Derbi haftası öncesi sınırdaki oyuncular için agresiflik dozajı dikkat gerektiriyor.',
+  },
+  {
+    id: 'r2',
+    title: 'İLK GOLÜN ZAMANLAMASI',
+    level: 'MEDIUM',
+    detail: 'Dakika 60 sonrası gelen ilk gol, maçı kaotik ve kırılgan hale getirebilir.',
+  },
+  {
+    id: 'r3',
+    title: 'KADRO DERİNLİĞİ KULLANIMI',
+    level: 'LOW',
+    detail: 'Skor avantajı alınırsa 65-75 bandındaki doğru hamleler oyunu güvene alır.',
+  },
+];
+
 const calcTimeLeft = (target: number): TimeLeft => {
   const dist = Math.max(0, target - Date.now());
   return {
@@ -40,6 +127,18 @@ const statusLabel: Record<SquadNote['status'], string> = {
   OUT: 'YOK',
   ŞÜPHELİ: 'ŞÜPHELİ',
   SINIRDA: 'SINIRDA',
+};
+
+const duelEdgeTone: Record<DuelEdge, string> = {
+  FENERBAHCE: 'border-fb-yellow/40 bg-fb-yellow/10 text-fb-yellow',
+  RIZESPOR: 'border-sky-400/40 bg-sky-400/10 text-sky-300',
+  DENGE: 'border-white/20 bg-white/5 text-slate-300',
+};
+
+const riskTone: Record<RiskLevel, string> = {
+  LOW: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300',
+  MEDIUM: 'border-amber-500/40 bg-amber-500/10 text-amber-300',
+  HIGH: 'border-rose-500/40 bg-rose-500/10 text-rose-300',
 };
 
 const TeamAvailability: React.FC<{ title: string; notes: SquadNote[] }> = ({ title, notes }) => (
@@ -106,7 +205,15 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
   }, []);
 
   const localDate = useMemo(
-    () => new Date(nextMatchDate).toLocaleString('tr-TR', { dateStyle: 'full', timeStyle: 'short' }),
+    () =>
+      new Date(nextMatchDate).toLocaleString('tr-TR', {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Europe/Istanbul',
+      }),
     [nextMatchDate],
   );
 
@@ -127,6 +234,9 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
             MAÇ MERKEZİ
           </h2>
           <p className="mt-3 max-w-4xl text-slate-300">{MATCH_CENTER_DATA.summary}</p>
+          <p className="mt-3 text-xs font-bold tracking-[0.12em] text-slate-500">
+            EDİTÖR MODU: Taktik çerçeve + risk yönetimi + kadro etkisi tek ekranda.
+          </p>
         </motion.div>
 
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -140,6 +250,9 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
               </span>
               <span className="inline-flex items-center gap-2">
                 <MapPin size={14} /> {MATCH_CENTER_DATA.venue}
+              </span>
+              <span className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[10px] font-black tracking-[0.15em] text-slate-300">
+                TSİ
               </span>
               <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[10px] font-black tracking-[0.15em] text-emerald-300">
                 {isLiveLoading ? 'CANLI API BAĞLANIYOR' : 'CANLI API AKTİF'}
@@ -181,6 +294,15 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
                 </div>
               ))}
             </div>
+
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
+              {editorialBriefs.map((item) => (
+                <article key={item.id} className="rounded-2xl border border-white/10 bg-fb-navy/45 p-4">
+                  <p className="text-[10px] font-black tracking-[0.18em] text-fb-yellow">{item.title}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{item.detail}</p>
+                </article>
+              ))}
+            </div>
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-white/5 p-7">
@@ -207,6 +329,55 @@ const MatchCenter: React.FC<{ onNavigate?: (view: 'home' | 'universe' | 'match-c
               Detaylı maç sayfasına git
               <ChevronRight size={16} />
             </button>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
+          <h4 className="mb-4 text-lg font-black text-white">TAKTİK RADAR</h4>
+          <div className="grid gap-3 md:grid-cols-3">
+            {tacticalRadar.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
+                <p className="text-[10px] font-black tracking-[0.15em] text-slate-400">{item.label}</p>
+                <p className="mt-2 text-2xl font-black text-fb-yellow">{item.score}</p>
+                <p className="mt-2 text-sm text-slate-300">{item.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <h4 className="mb-4 text-lg font-black text-white">KRİTİK EŞLEŞMELER</h4>
+            <div className="space-y-3">
+              {keyDuels.map((duel) => (
+                <div key={duel.id} className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="font-black text-white">{duel.title}</p>
+                    <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black tracking-[0.12em] ${duelEdgeTone[duel.edge]}`}>
+                      {duel.edge === 'FENERBAHCE' ? 'FB EDGE' : duel.edge === 'RIZESPOR' ? 'RİZE EDGE' : 'DENGE'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-300">{duel.detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <h4 className="mb-4 text-lg font-black text-white">RİSK PANOSU</h4>
+            <div className="space-y-3">
+              {riskBoard.map((risk) => (
+                <div key={risk.id} className="rounded-2xl border border-white/10 bg-fb-navy/60 p-4">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <p className="font-black text-white">{risk.title}</p>
+                    <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black tracking-[0.12em] ${riskTone[risk.level]}`}>
+                      {risk.level}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-300">{risk.detail}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
