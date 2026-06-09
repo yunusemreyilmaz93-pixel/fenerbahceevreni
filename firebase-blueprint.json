@@ -1,0 +1,274 @@
+{
+  "entities": {
+    "Article": {
+      "title": "Article",
+      "description": "Fenerbahce Evreni Article / Analysis schema definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array" },
+        "coverImage": { "type": "string" },
+        "author": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "published", "scheduled"] },
+        "isPremium": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "readingTime": { "type": "string" },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "scheduledAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "seoTitle": { "type": "string" },
+        "seoDescription": { "type": "string" }
+      },
+      "required": ["id", "title", "slug", "content", "status", "createdAt"]
+    },
+    "Match": {
+      "title": "Match",
+      "description": "Fenerbahce Match detail database schema",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "homeTeam": { "type": "string" },
+        "awayTeam": { "type": "string" },
+        "competition": { "type": "string" },
+        "matchDate": { "type": "string", "format": "date-time" },
+        "venue": { "type": "string" },
+        "status": { "type": "string", "enum": ["upcoming", "live", "finished"] },
+        "scoreHome": { "type": "integer" },
+        "scoreAway": { "type": "integer" },
+        "matchPreview": { "type": "string" },
+        "tacticalNotes": { "type": "array" },
+        "probableXI": { "type": "object" },
+        "keyPlayers": { "type": "array" },
+        "reportId": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "homeTeam", "awayTeam", "competition", "matchDate", "status", "createdAt"]
+    },
+    "MatchReport": {
+      "title": "MatchReport",
+      "description": "Detailed match report card analytics and rating",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "matchId": { "type": "string" },
+        "title": { "type": "string" },
+        "slug": { "type": "string" },
+        "summary": { "type": "string" },
+        "matchStory": { "type": "string" },
+        "turningPoint": { "type": "string" },
+        "tacticalPositives": { "type": "string" },
+        "tacticalNegatives": { "type": "string" },
+        "coachDecisions": { "type": "string" },
+        "playerRatings": { "type": "array" },
+        "fanMotm": { "type": "string" },
+        "nextMatchNotes": { "type": "string" },
+        "isPremium": { "type": "boolean" },
+        "pdfUrl": { "type": "string" },
+        "status": { "type": "string" },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "matchId", "title", "createdAt"]
+    },
+    "Player": {
+      "title": "Player",
+      "description": "Fenerbahce Player Profiles and Stats",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "position": { "type": "string" },
+        "age": { "type": "integer" },
+        "nationality": { "type": "string" },
+        "photo": { "type": "string" },
+        "formRating": { "type": "string" },
+        "lastMatchRating": { "type": "string" },
+        "trend": { "type": "string", "enum": ["yükselişte", "düşüşte", "stabil"] },
+        "strengths": { "type": "array" },
+        "weaknesses": { "type": "array" },
+        "analysis": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "loan", "former", "target"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "position", "status", "createdAt"]
+    },
+    "TransferReport": {
+      "title": "TransferReport",
+      "description": "Scout / Transfer fit and ratings report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "playerName": { "type": "string" },
+        "position": { "type": "string" },
+        "age": { "type": "integer" },
+        "nationality": { "type": "string" },
+        "currentClub": { "type": "string" },
+        "estimatedCost": { "type": "string" },
+        "fitScore": { "type": "integer" },
+        "strengths": { "type": "array" },
+        "concerns": { "type": "array" },
+        "tacticalFit": { "type": "string" },
+        "summary": { "type": "string" },
+        "isPremium": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "playerName", "position", "fitScore", "status", "createdAt"]
+    },
+    "Poll": {
+      "title": "Poll",
+      "description": "Community dynamic fan prediction poll",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "question": { "type": "string" },
+        "options": { "type": "array" },
+        "votes": { "type": "object" },
+        "relatedMatchId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "closed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "question", "options", "status", "createdAt"]
+    },
+    "PremiumContent": {
+      "title": "PremiumContent",
+      "description": "Exclusive analytics or downloadable guide materials",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "contentType": { "type": "string", "enum": ["article", "report", "pdf", "video"] },
+        "description": { "type": "string" },
+        "content": { "type": "string" },
+        "pdfUrl": { "type": "string" },
+        "accessLevel": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "contentType", "status", "createdAt"]
+    },
+    "NewsletterSubscriber": {
+      "title": "NewsletterSubscriber",
+      "description": "Newsletter e-mails storage definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "source": { "type": "string" },
+        "subscribedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["active", "unsubscribed"] }
+      },
+      "required": ["id", "email", "subscribedAt"]
+    },
+    "Sponsor": {
+      "title": "Sponsor",
+      "description": "Sponsor placement and campaign tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "brandName": { "type": "string" },
+        "logo": { "type": "string" },
+        "websiteUrl": { "type": "string" },
+        "placement": { "type": "string", "enum": ["homepage", "article", "match center", "newsletter", "global"] },
+        "active": { "type": "boolean" },
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "brandName", "active", "createdAt"]
+    },
+    "HomepageSettings": {
+      "title": "HomepageSettings",
+      "description": "Fenerbahce Evreni homepage main settings",
+      "type": "object",
+      "properties": {
+        "featuredArticleIds": { "type": "array" },
+        "featuredMatchId": { "type": "string" },
+        "featuredTransferReportIds": { "type": "array" },
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "heroPrimaryButtonText": { "type": "string" },
+        "heroSecondaryButtonText": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["updatedAt"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global settings for SEO and toggles",
+      "type": "object",
+      "properties": {
+        "siteTitle": { "type": "string" },
+        "siteDescription": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "socialLinks": { "type": "object" },
+        "disclaimerText": { "type": "string" },
+        "newsletterEnabled": { "type": "boolean" },
+        "premiumEnabled": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["updatedAt"]
+    }
+  },
+  "firestore": {
+    "articles": {
+      "schema": "Article",
+      "description": "Collection storing tactical articles and analysis items"
+    },
+    "matches": {
+      "schema": "Match",
+      "description": "Matches details collection for fixtures and tactical boards"
+    },
+    "matchReports": {
+      "schema": "MatchReport",
+      "description": "Post match report card detail and opta scores"
+    },
+    "players": {
+      "schema": "Player",
+      "description": "Profiles and stats for active, former or target players"
+    },
+    "transferReports": {
+      "schema": "TransferReport",
+      "description": "Scouted targets in-depth transfer radar articles"
+    },
+    "polls": {
+      "schema": "Poll",
+      "description": "Dynamic fan prediction polls available"
+    },
+    "premiumContent": {
+      "schema": "PremiumContent",
+      "description": "Collection storing premium analytical items"
+    },
+    "newsletterSubscribers": {
+      "schema": "NewsletterSubscriber",
+      "description": "Collection for newsletters subscriber e-mails"
+    },
+    "sponsors": {
+      "schema": "Sponsor",
+      "description": "Sponsor details and placements database"
+    },
+    "homepageSettings": {
+      "schema": "HomepageSettings",
+      "description": "Config for homepage cards and messaging override"
+    },
+    "siteSettings": {
+      "schema": "SiteSettings",
+      "description": "Global toggles and SEO info"
+    }
+  }
+}

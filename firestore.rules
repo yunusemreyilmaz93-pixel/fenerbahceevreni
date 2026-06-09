@@ -1,0 +1,164 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net - deny all reads and writes by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Admin email whitelist check
+    // If admin emails change later, update both VITE_ADMIN_EMAILS and firestore.rules, unless custom claims are implemented.
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email in [
+          "yunusemreyilmaz93@gmail.com"
+        ];
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // ==========================================
+    // 1. articles
+    // ==========================================
+    match /articles/{articleId} {
+      allow read: if isAdmin() || (existing().status == "published");
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 2. matches
+    // ==========================================
+    match /matches/{matchId} {
+      allow read: if isAdmin() || (existing().status in ["upcoming", "live", "finished"]);
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 3. matchReports
+    // ==========================================
+    match /matchReports/{reportId} {
+      allow read: if isAdmin() || (existing().status == "published" && existing().isPremium != true);
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 4. players
+    // ==========================================
+    match /players/{playerId} {
+      allow read: if isAdmin() || (existing().status in ["active", "loan", "target"]);
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 5. transferReports
+    // ==========================================
+    match /transferReports/{reportId} {
+      allow read: if isAdmin() || (existing().status == "published" && existing().isPremium != true);
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 6. polls
+    // ==========================================
+    match /polls/{pollId} {
+      allow read: if isAdmin() || (existing().status == "active" || existing().status == "closed");
+      allow write: if isAdmin();
+      
+      // Dynamic subcollection under active polls for voting (conforming to Section 9 voting security)
+      match /votes/{voteId} {
+        allow read: if isAdmin();
+        allow create: if get(/databases/$(database)/documents/polls/$(pollId)).data.status == "active"
+                      && incoming().optionId is string
+                      && incoming().createdAt is string;
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // ==========================================
+    // 7. newsletterSubscribers
+    // ==========================================
+    match /newsletterSubscribers/{subId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if incoming().email is string 
+                    && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
+                    && incoming().status == "active"
+                    && incoming().keys().hasAll(['email', 'status', 'subscribedAt'])
+                    && incoming().keys().size() <= 8; // allows email, name, source, interests, status, subscribedAt, createdAt, updatedAt
+    }
+
+    // ==========================================
+    // 8. premiumWaitlist
+    // ==========================================
+    match /premiumWaitlist/{waitId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if incoming().email is string 
+                    && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
+                    && incoming().keys().hasAll(['email', 'name', 'planInterest', 'status', 'createdAt'])
+                    && incoming().keys().size() <= 8; // allowed fields: email, name, planInterest, source, status, createdAt, updatedAt
+    }
+
+    // ==========================================
+    // 9. contactMessages
+    // ==========================================
+    match /contactMessages/{msgId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if incoming().email is string 
+                    && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
+                    && incoming().status == "new"
+                    && incoming().keys().hasAll(['name', 'email', 'subject', 'message', 'status', 'createdAt'])
+                    && incoming().keys().size() <= 12; // allowed: name, email, subject, messageType, message, companyName, websiteUrl, budgetRange, status, createdAt, updatedAt
+    }
+
+    // ==========================================
+    // 10. sponsors
+    // ==========================================
+    match /sponsors/{sponsorId} {
+      allow read: if isAdmin() || (existing().active == true);
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 11. homepageSettings
+    // ==========================================
+    match /homepageSettings/{settingsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 12. siteSettings
+    // ==========================================
+    match /siteSettings/{settingsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 13. premiumContent
+    // ==========================================
+    match /premiumContent/{contentId} {
+      allow read: if isAdmin() || (existing().status == "published" && existing().accessLevel == "free-preview");
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 14. newsletterIssues
+    // ==========================================
+    match /newsletterIssues/{issueId} {
+      allow read: if isAdmin() || (existing().status == "sent" && existing().public == true);
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,21 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Admin email whitelist check
+    // If admin emails change later, update both VITE_ADMIN_EMAILS and storage.rules, unless custom claims are implemented.
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email in [
+          "yunusemreyilmaz93@gmail.com"
+        ];
+    }
+
+    // Public static assets, news covers, scout report diagrams, and player photos are publicly readable.
+    // Uploads and mutations are restricted strictly to whitelisted admins.
+    match /{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

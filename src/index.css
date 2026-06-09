@@ -6,17 +6,20 @@
   --font-display: "Outfit", sans-serif;
   --font-serif: "Playfair Display", serif;
   
-  --color-fb-navy: #002D72;
-  --color-fb-yellow: #FEDD00;
+  --color-fb-navy: #001B44;
+  --color-fb-yellow: #FFD21F;
   --color-fb-gold: #D4AF37;
-  --color-fb-dark: #020408;
-  --color-fb-card: #0A0D14;
-  --color-fb-accent: #1A2333;
+  --color-fb-dark: #050814;
+  --color-fb-card: #101624;
+  --color-fb-accent: #3DDC97;
+  --color-fb-warning: #FFB020;
+  --color-fb-muted: #AAB2C0;
+  --color-fb-text: #F5F7FA;
 }
 
 @layer base {
   body {
-    @apply bg-fb-dark text-slate-200 font-sans antialiased overflow-x-hidden selection:bg-fb-yellow selection:text-fb-navy;
+    @apply bg-fb-dark text-slate-200 font-sans antialiased overflow-y-auto overflow-x-hidden selection:bg-fb-yellow selection:text-fb-navy;
   }
 }
 

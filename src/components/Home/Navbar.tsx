@@ -1,17 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, Zap } from 'lucide-react';
+import { Menu, X, ArrowRight, ShieldCheck, Mail, Lock, ChevronDown } from 'lucide-react';
+import { toTurkishUppercase } from '../../lib/stringUtils';
 
 interface NavbarProps {
-  onNavigate: (view: 'home' | 'universe' | 'match-center' | 'news' | 'predictor') => void;
-  onStartQuiz: () => void;
-  currentView: 'home' | 'universe' | 'match-center' | 'news' | 'predictor';
+  onNavigate: (view: any) => void;
+  currentView: string;
+  onScrollToSection?: (sectionId: string) => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onNavigate, onStartQuiz, currentView }) => {
+const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSection }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,129 +22,197 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, onStartQuiz, currentView })
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { label: 'ANA SAYFA', view: 'home' as const },
-    { label: 'EVREN HARİTASI', view: 'universe' as const },
-    { label: 'MAÇ MERKEZİ', view: 'match-center' as const },
-    { label: 'ŞAMPİYONLUK YOLU', view: 'predictor' as const },
-    { label: 'HABERLER', view: 'news' as const },
+  // Primary top-level links for a cleaner look
+  const primaryLinks = [
+    { label: 'ANA SAYFA', view: 'home' },
+    { label: 'MAÇ MERKEZİ', view: 'match-center' },
+    { label: 'ANALİZLER', view: 'analysis' },
+    { label: 'TRANSFER RADAR', view: 'transfer-radar' },
+    { label: 'OYUNCULAR', view: 'players' },
+    { label: 'TARAFTAR ODASI', view: 'fan-room' },
   ];
 
-  const scrollToSection = (sectionId: string) => {
-    if (currentView !== 'home') {
-      onNavigate('home');
-      setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 0);
-      return;
-    }
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Secondary overflowing items grouped under "DİĞER" dropdown
+  const secondaryLinks = [
+    { label: 'PREMIUM', view: 'premium', desc: 'Ayrıcalıklı Scout Raporları' },
+    { label: 'BÜLTEN', view: 'bulten', desc: 'E-Posta Analiz Gazetesi' },
+    { label: 'HAKKINDA', view: 'about', desc: 'Evrenin Hikayesi ve Ekip' },
+    { label: 'İLETİŞİM', view: 'contact', desc: 'Analiz İstek ve Ortaklık' },
+  ];
+
+  const handleLinkClick = (view: string) => {
+    onNavigate(view);
+    if (onScrollToSection) onScrollToSection(view);
+    setIsMobileMenuOpen(false);
+    setIsDropdownOpen(false);
   };
+
+  const isSecondaryActive = secondaryLinks.some(link => currentView === link.view);
 
   return (
     <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
-      isScrolled ? 'bg-fb-dark/80 backdrop-blur-xl py-4 border-b border-white/5' : 'bg-transparent py-8'
+      isScrolled ? 'bg-fb-dark/95 backdrop-blur-md py-3.5 border-b border-white/[0.08]' : 'bg-transparent py-5'
     }`}>
-      <div className="container mx-auto px-6 flex items-center justify-between">
-        {/* Logo */}
+      <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
+        {/* Logo and Brand */}
         <button 
-          onClick={() => onNavigate('home')}
-          className="flex items-center gap-3 group"
+          onClick={() => handleLinkClick('home')}
+          className="flex items-center gap-2 sm:gap-3 group text-left cursor-pointer"
+          id="nav-logo"
         >
-          <div className="w-10 h-10 rounded-xl bg-fb-yellow flex items-center justify-center shadow-[0_0_20px_rgba(254,221,0,0.3)] group-hover:scale-110 transition-transform">
-            <img src="https://upload.wikimedia.org/wikipedia/tr/f/ff/Fenerbah%C3%A7e_SK.png" alt="FB" className="w-6 h-6 object-contain" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-fb-yellow flex items-center justify-center shadow-[0_0_20px_rgba(255,210,31,0.25)] group-hover:scale-105 transition-transform shrink-0">
+            <span className="text-fb-navy font-black text-lg sm:text-xl italic font-display">FE</span>
           </div>
-          <span className="galaxy-title text-xl fb-gradient-text hidden md:block">FENERBAHÇE EVRENİ</span>
+          <div className="flex flex-col">
+            <span className="font-display font-black tracking-tight text-base sm:text-lg text-white leading-none">FENERBAHÇE EVRENİ</span>
+            <span className="text-[8px] sm:text-[9px] text-fb-yellow font-bold tracking-wider leading-none mt-1">BAĞIMSIZ ANALİZ PORTALİ</span>
+          </div>
         </button>
 
-        {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-10">
-          {navLinks.map((link) => (
+        {/* Desktop & Tablet-Landscape Nav */}
+        <div className="hidden lg:flex items-center lg:gap-4 xl:gap-6">
+          {primaryLinks.map((link) => (
             <button
               key={link.label}
-              onClick={() => link.view && onNavigate(link.view)}
-              className={`text-[11px] font-black tracking-[0.2em] transition-all hover:text-fb-yellow ${
-                currentView === link.view ? 'text-fb-yellow' : 'text-slate-400'
+              id={`nav-link-${link.view}`}
+              onClick={() => handleLinkClick(link.view)}
+              className={`text-[10px] xl:text-[11px] font-black tracking-[0.12em] xl:tracking-[0.15em] transition-all relative py-2 uppercase hover:text-fb-yellow cursor-pointer ${
+                currentView === link.view ? 'text-fb-yellow font-black' : 'text-slate-400'
               }`}
             >
               {link.label}
+              {currentView === link.view && (
+                <motion.div 
+                   layoutId="activeIndicator"
+                  className="absolute bottom-0 left-1 right-1 h-0.5 bg-fb-yellow rounded-full" 
+                />
+              )}
             </button>
           ))}
+
+          {/* DİĞER Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setIsDropdownOpen(true)}
+            onMouseLeave={() => setIsDropdownOpen(false)}
+          >
+            <button
+              className={`text-[10px] xl:text-[11px] font-black tracking-[0.12em] xl:tracking-[0.15em] transition-all py-2 uppercase hover:text-fb-yellow flex items-center gap-1 cursor-pointer ${
+                isSecondaryActive ? 'text-fb-yellow' : 'text-slate-400'
+              }`}
+            >
+              DİĞER
+              <ChevronDown size={12} className={`transition-transform duration-250 ${isDropdownOpen ? 'rotate-180 text-fb-yellow' : 'text-slate-500'}`} />
+            </button>
+
+            <AnimatePresence>
+              {isDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute right-0 mt-1 w-56 bg-fb-dark/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl p-2.5 overflow-hidden"
+                >
+                  <div className="space-y-1">
+                    {secondaryLinks.map((link) => (
+                      <button
+                        key={link.label}
+                        onClick={() => handleLinkClick(link.view)}
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex flex-col cursor-pointer ${
+                          currentView === link.view ? 'bg-fb-yellow/10 text-fb-yellow' : 'hover:bg-white/5 text-slate-300'
+                        }`}
+                      >
+                        <span className="text-[10px] font-black uppercase tracking-wider">{link.label}</span>
+                        <span className="text-[9px] text-slate-500 font-semibold mt-0.5">{link.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-4">
+        {/* Action Controls */}
+        <div className="hidden lg:flex items-center lg:gap-2 xl:gap-3">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onStartQuiz}
-            className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-fb-yellow text-fb-navy text-[11px] font-black rounded-full shadow-[0_0_20px_rgba(254,221,0,0.2)]"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleLinkClick('admin-login')}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-fb-yellow text-[10px] xl:text-[11px] font-black rounded-lg border border-white/10 transition-all uppercase cursor-pointer"
           >
-            <Zap className="w-4 h-4 fill-current" />
-            FRAKSİYONUNU BUL
+            <Lock className="w-3.5 h-3.5" />
+            PANEL
           </motion.button>
 
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white"
-            aria-label={isMobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleLinkClick('bulten')}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white text-[10px] xl:text-[11px] font-black rounded-lg border border-white/10 transition-all uppercase cursor-pointer"
           >
-            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+            <Mail className="w-3.5 h-3.5 text-fb-yellow" />
+            BÜLTEN
+          </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => handleLinkClick('premium')}
+            className="flex items-center gap-1.5 px-4.5 py-2.5 bg-fb-yellow text-fb-navy text-[10px] xl:text-[11px] font-black rounded-lg shadow-[0_4px_20px_rgba(255,210,31,0.25)] hover:bg-white transition-all uppercase cursor-pointer"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            PREMIUM
+          </motion.button>
         </div>
+
+        {/* Mobile & Tablet-Portrait Navigation Toggle */}
+        <button 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="lg:hidden w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white border border-white/5 cursor-pointer hover:bg-white/10 transition-colors"
+        >
+          {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+        </button>
       </div>
 
-      <div className="hidden border-t border-white/5 bg-fb-dark/50 py-2 md:block">
-        <div className="container mx-auto flex items-center justify-center gap-6 px-6">
-          {[
-            { label: 'VİZYON', id: 'platform-vizyonu' },
-            { label: 'MAÇ MERKEZİ', id: 'mac-merkezi' },
-            { label: 'HABERLER', id: 'haberler' },
-            { label: 'VİDEOLAR', id: 'videolar' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => scrollToSection(item.id)}
-              className="text-[10px] font-black tracking-[0.2em] text-slate-400 transition hover:text-fb-yellow"
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
+      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-fb-dark border-b border-white/5 overflow-hidden"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="lg:hidden bg-fb-dark/98 backdrop-blur-2xl border-b border-white/[0.08] overflow-hidden"
           >
-            <div className="container mx-auto px-6 py-8 flex flex-col gap-6">
-              {navLinks.map((link) => (
+            <div className="container mx-auto px-6 py-6 flex flex-col gap-3">
+              {/* Combine both sets of links for an exhaustive list */}
+              {[...primaryLinks, ...secondaryLinks].map((link) => (
                 <button
                   key={link.label}
-                  onClick={() => {
-                    link.view && onNavigate(link.view);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`text-left text-lg font-black tracking-widest ${
+                  onClick={() => handleLinkClick(link.view)}
+                  className={`text-left text-xs font-black tracking-widest py-2.5 border-b border-white/5 cursor-pointer transition-colors ${
                     currentView === link.view ? 'text-fb-yellow' : 'text-slate-400'
                   }`}
                 >
                   {link.label}
                 </button>
               ))}
-              <button
-                onClick={() => {
-                  onStartQuiz();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full py-4 bg-fb-yellow text-fb-navy font-black rounded-2xl flex items-center justify-center gap-2"
-              >
-                <Zap className="w-5 h-5 fill-current" />
-                FRAKSİYONUNU BUL
-              </button>
+              <div className="flex flex-col gap-2.5 mt-4">
+                <button
+                  onClick={() => handleLinkClick('admin-login')}
+                  className="w-full py-3 bg-white/5 hover:bg-white/10 text-fb-yellow font-black rounded-xl flex items-center justify-center gap-2 text-xs border border-white/10 cursor-pointer"
+                >
+                  <Lock className="w-4 h-4 text-fb-yellow" />
+                  YÖNETİCİ GİRİŞİ
+                </button>
+                <button
+                  onClick={() => handleLinkClick('premium')}
+                  className="w-full py-3.5 bg-fb-yellow text-fb-navy font-black rounded-xl flex items-center justify-center gap-2 text-xs cursor-pointer shadow-[0_4px_15px_rgba(255,210,31,0.2)]"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  PREMİUM’A GEÇ
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
