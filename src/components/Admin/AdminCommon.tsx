@@ -386,7 +386,7 @@ export const ContentPreviewModal: React.FC<ContentPreviewModalProps> = ({
 };
 
 // 7. FIREBASE IMAGE UPLOADER COMPONENT WITH LOADING, PROGRESS & PREVIEW
-import { storage, auth } from '../../lib/firebase';
+import { storage, auth, getCurrentAdminUser } from '../../lib/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { Upload, Loader2, Sparkles as SparklesIcon, Trash2 as TrashIcon, Check } from 'lucide-react';
 
@@ -439,7 +439,7 @@ export const FirebaseImageUploader: React.FC<FirebaseImageUploaderProps> = ({
       return;
     }
 
-    const adminUser = auth?.currentUser;
+    const adminUser = auth?.currentUser || getCurrentAdminUser();
     // Check if authenticated admin
     if (!adminUser && storage) {
       setError('Görsel yüklemek için sisteme yönetici girişi yapmanız gerekmektedir.');
@@ -626,6 +626,16 @@ export const FirebaseImageUploader: React.FC<FirebaseImageUploaderProps> = ({
           </button>
         </div>
       )}
+
+      <div className="pt-1">
+        <input
+          type="text"
+          placeholder="Alternatif / Manuel Görsel URL'si (Örn: https://...)"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full px-3 py-2 bg-fb-dark border border-white/10 rounded-xl text-xs text-white placeholder-slate-600 focus:border-fb-yellow focus:outline-none"
+        />
+      </div>
     </div>
   );
 };
