@@ -19,11 +19,10 @@ async function fetchFromApiSports(
         success: false,
         message: "API anahtarı bulunamadı. Lütfen APISPORTS_KEY secret ayarını kontrol edin.",
         debug: {
-          action,
           backendRoute,
           externalEndpoint: externalUrl,
-          statusCode: 400,
-          contentType: "none"
+          status: 400,
+          contentType: "application/json"
         }
       }
     };
@@ -54,13 +53,12 @@ async function fetchFromApiSports(
         statusCode: 502,
         json: {
           success: false,
-          message: "API yanıtı JSON formatında değil.",
+          message: "API-Football yanıtı JSON formatında değil.",
           details: `API-Sports tarafından JSON dışı bir yanıt döndürüldü. Lütfen bağlantınızı ve API anahtarınızı kontrol edin.`,
           debug: {
-            action,
             backendRoute,
             externalEndpoint: externalUrl,
-            statusCode,
+            status: statusCode,
             contentType,
             errorPreview: rawText.substring(0, 300)
           }
@@ -82,7 +80,7 @@ async function fetchFromApiSports(
       
       success = false;
       if (firstErrorKey === "token" || errorVal?.includes("token") || errorVal?.includes("key") || errorVal?.toLowerCase().includes("api key") || errorVal?.toLowerCase().includes("invalid")) {
-        turkishError = "API anahtarı geçersiz veya bulunamadı. Lütfen APISPORTS_KEY secret ayarını kontrol edin.";
+        turkishError = "API anahtarı bulunamadı. APISPORTS_KEY secret ayarını kontrol edin.";
       } else if (errorVal?.includes("limit") || errorVal?.includes("request count") || errorVal?.toLowerCase().includes("exceeded")) {
         turkishError = "Günlük request limiti dolmuş olabilir.";
       } else {
@@ -99,10 +97,9 @@ async function fetchFromApiSports(
           message: turkishError,
           data: rawData,
           debug: {
-            action,
             backendRoute,
             externalEndpoint: externalUrl,
-            statusCode,
+            status: statusCode,
             contentType
           },
           headers: rateLimits
@@ -114,13 +111,13 @@ async function fetchFromApiSports(
       statusCode: 200,
       json: {
         success: true,
+        message: "API bağlantısı başarılı.",
         data: rawData,
         debug: {
-          action,
           backendRoute,
           externalEndpoint: externalUrl,
-          statusCode,
-          contentType
+          status: statusCode,
+          contentType: "application/json"
         },
         headers: rateLimits
       }
@@ -132,13 +129,12 @@ async function fetchFromApiSports(
       statusCode: 500,
       json: {
         success: false,
-        message: "API-Football verisi alınamadı. Lütfen sistem ağ bağlantısını kontrol edin.",
+        message: "API bağlantısı başarısız.",
         details: error?.message || "Bilinmeyen sunucu hatası",
         debug: {
-          action,
           backendRoute,
           externalEndpoint: externalUrl,
-          statusCode: 500,
+          status: 500,
           contentType: "exception",
           errorPreview: error?.stack || error?.message
         }
@@ -152,6 +148,14 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+
+  // Health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({
+      success: true,
+      message: "Backend çalışıyor."
+    });
+  });
 
   // API Proxy - Test Connection
   app.get("/api/sports/test-connection", async (req, res) => {
@@ -252,7 +256,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*all", (req, res) => {
+    app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }

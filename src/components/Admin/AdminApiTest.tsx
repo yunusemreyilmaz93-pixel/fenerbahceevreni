@@ -95,9 +95,9 @@ export const AdminApiTest: React.FC = () => {
         };
         setDebugInfo(dbg);
 
-        let trMsg = "API yanıtı JSON formatında değil.";
+        let trMsg = "API-Football yanıtı JSON formatında değil.";
         if (response.status === 404) {
-          trMsg = "Endpoint bulunamadı veya backend route çalışmıyor.";
+          trMsg = "Backend route bulunamadı veya deploy edilmedi.";
         }
         throw new Error(trMsg);
       }
@@ -137,7 +137,7 @@ export const AdminApiTest: React.FC = () => {
         } else if (msg.toLowerCase().includes("limit") || msg.toLowerCase().includes("exceeded")) {
           msg = "Günlük request limiti dolmuş olabilir.";
         } else if (msg.toLowerCase().includes("not found") || msg.toLowerCase().includes("endpoint")) {
-          msg = "Endpoint bulunamadı veya backend route çalışmıyor.";
+          msg = "Backend route bulunamadı veya deploy edilmedi.";
         }
         throw new Error(msg);
       }
