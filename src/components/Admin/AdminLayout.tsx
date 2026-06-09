@@ -22,7 +22,12 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
-  MessagesSquare
+  MessagesSquare,
+  HeartPulse,
+  Megaphone,
+  Layers,
+  HardDrive,
+  Activity
 } from 'lucide-react';
 import { logoutAdmin } from '../../lib/firebase';
 
@@ -42,6 +47,14 @@ import { AdminHomepage } from './AdminHomepage';
 import { AdminSettings } from './AdminSettings';
 import { AdminMessages } from './AdminMessages';
 import { AdminTeams } from './AdminTeams';
+import { AdminMedia } from './AdminMedia';
+import { AdminMenus } from './AdminMenus';
+import { AdminCategories } from './AdminCategories';
+import { AdminAnnouncementBar } from './AdminAnnouncementBar';
+import { AdminSources } from './AdminSources';
+import { AdminContentHealth } from './AdminContentHealth';
+import { AdminImportExport } from './AdminImportExport';
+import { AdminApiTest } from './AdminApiTest';
 
 interface AdminLayoutProps {
   adminUser: any;
@@ -90,10 +103,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
     { id: 'premium', label: 'Premium İçerikler', icon: Sparkles },
     { id: 'newsletter', label: 'Bülten Aboneleri', icon: Mail },
     { id: 'newsletter_issues', label: 'Bülten Sayıları', icon: Send },
+    { id: 'media', label: 'Medya Kütüphanesi', icon: Image },
     { id: 'sponsors', label: 'Sponsorlar / Reklamlar', icon: Image },
     { id: 'messages', label: 'Mesajlar', icon: MessagesSquare },
+    { id: 'menus', label: 'Menü Yönetimi', icon: Menu },
+    { id: 'categories', label: 'Kategoriler', icon: Layers },
+    { id: 'announcement_bar', label: 'Duyuru Barı', icon: Megaphone },
+    { id: 'sources', label: 'Haber Kaynakları', icon: ShieldCheck },
+    { id: 'content_health', label: 'İçerik Sağlığı', icon: HeartPulse },
+    { id: 'import_export', label: 'İçe / Dışa Aktar', icon: HardDrive },
     { id: 'homepage', label: 'Ana Sayfa Yönetimi', icon: Home },
     { id: 'settings', label: 'Site Ayarları', icon: Settings },
+    { id: 'api_test', label: 'API Test Merkezi', icon: Activity },
   ];
 
   const handleLogoutClick = async () => {
@@ -130,6 +151,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
         return <AdminPlayers />;
       case 'teams':
         return <AdminTeams />;
+      case 'media':
+        return <AdminMedia />;
       case 'transfer':
         return <AdminTransfer showToast={showToast} initiateCreate={!!isTransferInit} />;
       case 'polls':
@@ -144,10 +167,24 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
         return <AdminSponsors showToast={showToast} initiateCreate={!!isSponsorsInit} />;
       case 'messages':
         return <AdminMessages showToast={showToast} />;
+      case 'menus':
+        return <AdminMenus showToast={showToast} />;
+      case 'categories':
+        return <AdminCategories showToast={showToast} />;
+      case 'announcement_bar':
+        return <AdminAnnouncementBar showToast={showToast} />;
+      case 'sources':
+        return <AdminSources showToast={showToast} />;
+      case 'content_health':
+        return <AdminContentHealth />;
+      case 'import_export':
+        return <AdminImportExport showToast={showToast} />;
       case 'homepage':
         return <AdminHomepage showToast={showToast} />;
       case 'settings':
         return <AdminSettings showToast={showToast} />;
+      case 'api_test':
+        return <AdminApiTest />;
       default:
         return (
           <AdminDashboard 

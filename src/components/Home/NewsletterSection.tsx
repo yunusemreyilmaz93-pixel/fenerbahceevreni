@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, CheckCircle2 } from 'lucide-react';
+import { Mail, CheckCircle2, FileText, Compass, Kanban } from 'lucide-react';
 import { subscribeToNewsletter } from '../../lib/newsletterService';
 
 const NewsletterSection: React.FC = () => {
@@ -26,49 +26,70 @@ const NewsletterSection: React.FC = () => {
   };
 
   return (
-    <section id="newsletter-section" className="py-20 bg-fb-dark/40 border-t border-white/[0.04] relative">
-      <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto rounded-2xl bg-fb-card border border-white/[0.06] p-8 md:p-12 text-center flex flex-col md:flex-row md:items-center justify-between gap-8 relative overflow-hidden">
+    <section id="bulten" className="py-24 bg-[#090D16] border-t border-white/[0.03] relative overflow-hidden">
+      <div className="container mx-auto px-6 max-w-7xl relative z-10 w-full">
+        
+        {/* Main Box Wrapper */}
+        <div className="max-w-5xl mx-auto rounded-3xl bg-[#111625] border border-white/[0.08] p-8 md:p-14 text-center md:text-left flex flex-col lg:flex-row lg:items-center justify-between gap-12 relative overflow-hidden shadow-2xl">
           
-          <div className="absolute top-0 right-0 w-64 h-64 bg-fb-yellow/5 rounded-full blur-[70px] pointer-events-none" />
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#FFD21F]/[0.02] rounded-full blur-[80px] pointer-events-none" />
 
-          {/* Texts (Left) */}
-          <div className="text-left space-y-3 relative z-10 max-w-xl">
-            <div className="flex items-center gap-2 text-fb-yellow">
-              <Mail className="w-5 h-5" />
-              <span className="text-[10px] font-black uppercase tracking-widest">E-Posta Analiz Gazetesi</span>
+          {/* Texts & Trust Indicators (Left) */}
+          <div className="space-y-6 max-w-xl text-left relative z-10">
+            <div className="flex items-center gap-2 text-[#FFD21F]">
+              <Mail className="w-5 h-5 shrink-0" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] font-mono">E-POSTA RAPOR DEPARTMANI</span>
             </div>
-            <h3 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight italic">
+            
+            <h3 className="text-2xl md:text-4xl font-display font-black text-white uppercase tracking-tight italic">
               Haftalık Fenerbahçe Evreni Bülteni
             </h3>
-            <p className="text-xs text-fb-muted leading-relaxed font-semibold">
-              Her hafta kilit maç notları, transfer değerlendirmeleri, Opta taktik veri setleri ve öne çıkan taraftar analizlerini doğrudan gelen kutuna gönderelim.
+            
+            <p className="text-xs text-slate-300 leading-relaxed font-semibold">
+              Her Perşembe sabahı kilit taktik raporları, oyuncu performans setlerini ve transfer radar özetlerini doğrudan gelen kutunuzda arşivleyin.
             </p>
+
+            {/* Horizontal Trust Indicators list */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              {[
+                { txt: 'Haftalık Raporlar', ico: FileText },
+                { txt: 'Transfer Özetleri', ico: Compass },
+                { txt: 'Maç Analizleri', ico: Kanban }
+              ].map((ind, idx) => (
+                <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-[#0B0F19]/65 border border-white/[0.03]">
+                  <ind.ico className="w-4 h-4 text-[#FFD21F] shrink-0" />
+                  <span className="text-[10px] font-black text-white uppercase font-mono">{ind.txt}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Form (Right) */}
-          <div className="relative z-10 shrink-0 w-full md:w-80">
+          {/* Form & Actions (Right) */}
+          <div className="relative z-10 shrink-0 w-full lg:w-80">
             <AnimatePresence mode="wait">
               {!subscribed ? (
                 <motion.form 
                   key="form"
                   onSubmit={handleSubscribe}
-                  className="space-y-3 w-full"
+                  className="space-y-3.5 w-full text-left"
                 >
-                  <input 
-                    type="email" 
-                    required
-                    placeholder="E-posta adresin"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-lg bg-fb-dark border border-white/10 text-white placeholder:text-fb-muted focus:outline-none focus:border-fb-yellow text-xs font-semibold"
-                  />
-                  {errorText && (
-                    <p className="text-[10px] font-black text-rose-400 text-left pl-1">{errorText}</p>
-                  )}
+                  <div>
+                    <input 
+                      type="email" 
+                      required
+                      placeholder="E-posta adresin"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-4 py-4 rounded-xl bg-[#0B0F19] border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FFD21F] text-xs font-semibold focus:ring-1 focus:ring-[#FFD21F]"
+                    />
+                    {errorText && (
+                      <p className="text-[10px] font-black text-rose-400 mt-1.5 pl-1 font-mono uppercase">{errorText}</p>
+                    )}
+                  </div>
+
                   <button
                     type="submit"
-                    className="w-full py-3.5 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-wider rounded-lg transition-all shadow-[0_4px_20px_rgba(255,210,31,0.2)]"
+                    className="w-full py-4 bg-[#FFD21F] hover:bg-white text-[#0B0F19] font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-lg hover:scale-[1.01]"
                   >
                     Bültene Katıl
                   </button>
@@ -76,14 +97,14 @@ const NewsletterSection: React.FC = () => {
               ) : (
                 <motion.div 
                   key="success"
-                  initial={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 rounded-xl bg-[#3DDC97]/10 border border-[#3DDC97]/30 text-[#3DDC97] text-xs font-bold space-y-2 text-center flex flex-col items-center"
+                  className="p-6 rounded-2xl bg-[#3DDC97]/10 border border-[#3DDC97]/20 text-[#3DDC97] text-xs font-bold space-y-3 text-center flex flex-col items-center"
                 >
-                  <CheckCircle2 className="w-8 h-8 text-[#3DDC97] mb-1" />
-                  <div className="text-sm font-black">Bültene Kaydoldun! 🎉</div>
-                  <p className="text-fb-muted text-[11px] font-semibold">
-                    Analiz listemize sırayla eklendin. Her Perşembe gelen kutunu mutlaka kontrol et!
+                  <CheckCircle2 className="w-9 h-9 text-[#3DDC97] mb-1" />
+                  <div className="text-sm font-black uppercase tracking-wider font-mono">Kaydoldun! 🎉</div>
+                  <p className="text-slate-300 text-[11px] font-semibold leading-relaxed">
+                    Analiz listemize başarıyla eklendin. Her Perşembe gelen kutunu mutlaka kontrol et!
                   </p>
                 </motion.div>
               )}

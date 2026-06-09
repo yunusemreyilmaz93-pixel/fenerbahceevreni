@@ -369,7 +369,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
       <div className="min-h-screen flex items-center justify-center bg-fb-dark">
         <div className="space-y-4 text-center">
           <div className="w-12 h-12 border-4 border-fb-yellow border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs font-black uppercase text-fb-yellow tracking-[0.2em] animate-pulse">TAKTIK VERILERI GÜNCELLENIYOR...</p>
+          <p className="text-xs font-black uppercase text-fb-yellow tracking-[0.2em] animate-pulse">TAKTİK VERİLERİ GÜNCELLENİYOR...</p>
         </div>
       </div>
     );

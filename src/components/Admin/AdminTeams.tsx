@@ -9,7 +9,9 @@ import {
   Save, 
   X, 
   Palette,
-  ShieldAlert
+  ShieldAlert,
+  MapPin,
+  UserCheck
 } from 'lucide-react';
 import { dbGetCollection, dbUpsertDocument, dbAddDocument, dbDeleteDocument } from '../../lib/dbService';
 import { FirebaseImageUploader, EmptyState } from './AdminCommon';
@@ -29,7 +31,12 @@ export const AdminTeams: React.FC = () => {
     logoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
     logo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
     primaryColor: '#F5C400',
-    secondaryColor: '#002F6C'
+    secondaryColor: '#002F6C',
+    league: 'Trendyol Süper Lig',
+    country: 'Türkiye',
+    stadium: 'Ülker Stadyumu Şükrü Saracoğlu Spor Kompleksi',
+    coach: 'Jose Mourinho',
+    status: 'active' // active, passive
   });
 
   const loadData = async () => {
@@ -92,7 +99,12 @@ export const AdminTeams: React.FC = () => {
       logoUrl: t.logoUrl || t.logo || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
       logo: t.logo || t.logoUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
       primaryColor: t.primaryColor || '#F5C400',
-      secondaryColor: t.secondaryColor || '#002F6C'
+      secondaryColor: t.secondaryColor || '#002F6C',
+      league: t.league || 'Trendyol Süper Lig',
+      country: t.country || 'Türkiye',
+      stadium: t.stadium || 'Ülker Stadyumu Şükrü Saracoğlu Spor Kompleksi',
+      coach: t.coach || 'Jose Mourinho',
+      status: t.status || 'active'
     });
     setFormOpen(true);
   };
@@ -106,7 +118,12 @@ export const AdminTeams: React.FC = () => {
       logoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
       logo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
       primaryColor: '#F5C400',
-      secondaryColor: '#002F6C'
+      secondaryColor: '#002F6C',
+      league: 'Trendyol Süper Lig',
+      country: 'Türkiye',
+      stadium: '',
+      coach: '',
+      status: 'active'
     });
     setFormOpen(true);
   };
@@ -125,7 +142,7 @@ export const AdminTeams: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
         <div>
           <h2 className="text-xl font-display font-black text-white uppercase italic tracking-wide">Takımlar & Kulüp Bilgileri</h2>
-          <p className="text-xs text-fb-muted">Maç fikstürü kurmak ve istatistik analizi yapmak için takımları ve renk kodlarını yönetin.</p>
+          <p className="text-xs text-fb-muted">Maç fikstürü kurmak ve analizleri güncellemek için rakipleri, stadyum, hoca ve lig bilgilerini yönetin.</p>
         </div>
         {!formOpen && (
           <button
@@ -175,9 +192,65 @@ export const AdminTeams: React.FC = () => {
               <input
                 type="text"
                 required
-                placeholder="Örn: GS, BJK"
+                placeholder="Örn: GS, BJK, FB"
                 value={form.shortName}
                 onChange={(e) => setForm(p => ({ ...p, shortName: e.target.value }))}
+                className="px-4 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white uppercase font-bold"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-black uppercase text-slate-400">Durumu (Status)</label>
+              <select
+                value={form.status}
+                onChange={(e) => setForm(p => ({ ...p, status: e.target.value }))}
+                className="px-3 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white cursor-pointer"
+              >
+                <option value="active">Aktif Lig / Fikstür Rakibi</option>
+                <option value="passive">Pasif / Arşiv Takımı</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-black uppercase text-slate-400">Bulunduğu Lig</label>
+              <input
+                type="text"
+                placeholder="Örn: Trendyol Süper Lig"
+                value={form.league}
+                onChange={(e) => setForm(p => ({ ...p, league: e.target.value }))}
+                className="px-4 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-black uppercase text-slate-400">Ülke</label>
+              <input
+                type="text"
+                placeholder="Örn: Türkiye, İspanya, İtalya"
+                value={form.country}
+                onChange={(e) => setForm(p => ({ ...p, country: e.target.value }))}
+                className="px-4 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1 col-span-2">
+              <label className="text-[10px] font-black uppercase text-slate-400">Stadyum</label>
+              <input
+                type="text"
+                placeholder="Örn: Rams Park, Vodafone Park"
+                value={form.stadium}
+                onChange={(e) => setForm(p => ({ ...p, stadium: e.target.value }))}
+                className="px-4 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-black uppercase text-slate-400">Teknik Direktör (Coach)</label>
+              <input
+                type="text"
+                placeholder="Örn: Jose Mourinho, Okan Buruk"
+                value={form.coach}
+                onChange={(e) => setForm(p => ({ ...p, coach: e.target.value }))}
                 className="px-4 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white"
               />
             </div>
@@ -201,7 +274,7 @@ export const AdminTeams: React.FC = () => {
                   type="color"
                   value={form.primaryColor}
                   onChange={(e) => setForm(p => ({ ...p, primaryColor: e.target.value }))}
-                  className="w-10 h-10 bg-transparent border border-white/10 rounded cursor-pointer"
+                  className="w-10 h-10 bg-transparent border border-white/10 rounded cursor-pointer shrink-0"
                 />
                 <input
                   type="text"
@@ -221,7 +294,7 @@ export const AdminTeams: React.FC = () => {
                   type="color"
                   value={form.secondaryColor}
                   onChange={(e) => setForm(p => ({ ...p, secondaryColor: e.target.value }))}
-                  className="w-10 h-10 bg-transparent border border-white/10 rounded cursor-pointer"
+                  className="w-10 h-10 bg-transparent border border-white/10 rounded cursor-pointer shrink-0"
                 />
                 <input
                   type="text"
@@ -246,13 +319,13 @@ export const AdminTeams: React.FC = () => {
             <button
               type="button"
               onClick={() => setFormOpen(false)}
-              className="px-4 py-2 bg-white/5 text-slate-300 rounded-xl text-xs font-black uppercase"
+              className="px-4 py-2 bg-white/5 text-slate-300 rounded-xl text-xs font-black uppercase cursor-pointer"
             >
               İptal
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-fb-yellow hover:bg-white text-fb-navy rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 bg-fb-yellow hover:bg-white text-fb-navy rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer transition-all"
             >
               <Save size={14} /> KAYDET VE YAYINLA
             </button>
@@ -264,7 +337,7 @@ export const AdminTeams: React.FC = () => {
             <Search className="text-fb-muted" size={14} fill="none" />
             <input
               type="text"
-              placeholder="Kulüp adı veya kodu ile filtrele..."
+              placeholder="Kulüp adı, şehri, hocası veya koduyla filtrele..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent border-0 text-white placeholder-fb-muted text-xs focus:outline-none w-full"
@@ -281,35 +354,61 @@ export const AdminTeams: React.FC = () => {
               onButtonClick={openNew}
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {filtered.map(t => (
-                <div key={t.id} className="p-4 rounded-xl bg-fb-card border border-white/[0.05] flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div 
-                      className="w-10 h-10 rounded-lg p-1.5 bg-[#0a0f1d] border flex items-center justify-center shrink-0"
-                      style={{ borderColor: `${t.primaryColor || '#ffffff'}30` }}
-                    >
-                      <img src={t.logoUrl || t.logo} alt="" className="w-full h-full object-contain" />
+                <div key={t.id} className="p-5 rounded-2xl bg-fb-card border border-white/[0.05] hover:border-fb-yellow/20 transition-all flex flex-col justify-between gap-4 text-left">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-4">
+                      <div 
+                        className="w-12 h-12 rounded-lg p-2 bg-[#0a0f1d] border flex items-center justify-center shrink-0"
+                        style={{ borderColor: `${t.primaryColor || '#ffffff'}30` }}
+                      >
+                        <img src={t.logoUrl || t.logo} alt="" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="text-left">
+                        <h4 className="text-sm font-black text-white uppercase">{t.name}</h4>
+                        <span className="text-[10px] text-fb-muted font-bold font-mono">Short: {t.shortName}</span>
+                      </div>
                     </div>
-                    <div className="text-left">
-                      <h4 className="text-xs font-black text-white">{t.name}</h4>
-                      <span className="text-[10px] text-fb-muted font-bold font-mono">Kod: {t.shortName}</span>
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded ${t.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-white/5 text-slate-400 border border-white/5'}`}>
+                      {t.status === 'active' ? 'AKTİF' : 'ARŞİV'}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-fb-dark/80 border border-white/5 space-y-1.5 text-[10px] text-slate-300 font-semibold">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin size={11} className="text-fb-yellow shrink-0" />
+                      <span className="truncate">{t.stadium || 'Stadyum girilmemiş'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <UserCheck size={11} className="text-fb-yellow shrink-0" />
+                      <span className="truncate">Hoca: {t.coach || 'Bilinmiyor'}</span>
+                    </div>
+                    <div className="text-[9px] text-fb-muted text-right mt-1 font-bold italic">
+                      {t.league} • {t.country}
                     </div>
                   </div>
 
-                  <div className="flex gap-1.5">
-                    <button
-                      onClick={() => startEdit(t)}
-                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition-colors border border-white/10"
-                    >
-                      <Edit size={12} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(t.id)}
-                      className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors border border-red-500/10"
-                    >
-                      <Trash2 size={12} />
-                    </button>
+                  <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                    <div className="flex gap-1">
+                      <div className="w-4 h-4 rounded-full border border-white/10" style={{ backgroundColor: t.primaryColor }} title="Primary Color" />
+                      <div className="w-4 h-4 rounded-full border border-white/10" style={{ backgroundColor: t.secondaryColor }} title="Secondary Color" />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startEdit(t)}
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 transition-colors border border-white/10 cursor-pointer"
+                      >
+                        <Edit size={12} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(t.id)}
+                        className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 transition-colors border border-red-500/10 cursor-pointer"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

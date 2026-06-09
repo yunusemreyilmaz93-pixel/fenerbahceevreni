@@ -14,8 +14,13 @@ import {
   Clock,
   Briefcase,
   Sliders,
-  Sparkle,
-  Star
+  Sparkles,
+  Star,
+  Tv,
+  Users2,
+  Tv2,
+  Activity,
+  Award
 } from 'lucide-react';
 import { dbGetCollection, dbUpsertDocument, dbAddDocument, dbDeleteDocument } from '../../lib/dbService';
 import { DeleteConfirmModal, EmptyState, StatusBadge } from './AdminCommon';
@@ -28,6 +33,7 @@ interface AdminMatchesProps {
 
 export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateCreate }) => {
   const [matches, setMatches] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
@@ -40,24 +46,51 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
   // Modal actions
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // Simulation State
+  const [simulationActive, setSimulationActive] = useState(false);
+  const [simInterval, setSimInterval] = useState<any>(null);
+
   const [form, setForm] = useState({
     homeTeam: 'Fenerbahçe',
     awayTeam: '',
     competition: 'Trendyol Süper Lig • 36. Hafta',
     matchDate: '2026-05-30T20:00:00',
     venue: 'Ülker Stadyumu Şükrü Saracoğlu Spor Kompleksi / Kadıköy',
-    status: 'upcoming',
+    status: 'upcoming', // upcoming, live, completed
     scoreHome: 0,
     scoreAway: 0,
     matchPreview: '',
     featured: false,
+    
+    // Spec fields
+    referee: 'Halil Umut Meler',
+    broadcasterTarget: 'beIN Sports 1',
+    scorerDetailsHome: 'Edin Džeko 12\', Dušan Tadić 55\'(P)',
+    scorerDetailsAway: 'Mauro Icardi 33\'',
+    cardsDetails: 'Djiku 44\'(Y), Fred 89\'(Y) • Muslera 80\'(Y)',
+    substitutionDetails: 'Edin Džeko ➔ Youssef En-Nesyri (75\'), İrfan Can Kahveci ➔ Cengiz Ünder (82\')',
+    
+    // Analytics inputs
+    possessionHome: 55,
+    possessionAway: 45,
+    shotsHome: 14,
+    shotsAway: 8,
+    shotsOnTargetHome: 6,
+    shotsOnTargetAway: 3,
+    passAccuracyHome: 84,
+    passAccuracyAway: 78,
+    cornersHome: 5,
+    cornersAway: 2,
+    foulsHome: 12,
+    foulsAway: 15,
+
     // Lineups
     formation: '4-2-3-1',
     GK: 'Dominik Livaković',
     RB: 'Bright Osayi-Samuel',
     CB1: 'Alexander Djiku',
     CB2: 'Çağlar Söyüncü',
-    LB: 'Ferdi Kadıoğlu',
+    LB: 'Jayden Oosterwolde',
     DM1: 'İsmail Yüksek',
     DM2: 'Fred',
     RW: 'İrfan Can Kahveci',
@@ -69,12 +102,17 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
   const loadData = async () => {
     setLoading(true);
     const list = await dbGetCollection('matches');
+    const teamsList = await dbGetCollection('teams');
     setMatches(list);
+    setTeams(teamsList);
     setLoading(false);
   };
 
   useEffect(() => {
     loadData();
+    return () => {
+      if (simInterval) clearInterval(simInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -85,7 +123,7 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
 
   const handleCloseFormAttempt = () => {
     if (isDirty) {
-      const leave = window.confirm("Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istediğine emin misiniz?");
+      const leave = window.confirm("Kaydedilmemiş değişiklikler var. Sayfadan ayrılmak istediğinize emin misiniz?");
       if (!leave) return;
     }
     setFormOpen(false);
@@ -101,6 +139,68 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
     }));
   };
 
+  const startSimulation = (matchId: string) => {
+    if (simulationActive) {
+      clearInterval(simInterval);
+      setSimulationActive(false);
+      if (showToast) showToast("Canlı maç simülasyonu durduruldu.", "info");
+      return;
+    }
+
+    setSimulationActive(true);
+    if (showToast) showToast("Canlı simülasyon modu devrede: Skorlar ve istatistikler rastgele güncellenecek!", "success");
+
+    const timer = setInterval(async () => {
+      // Fetch latest matches state
+      const freshList = await dbGetCollection('matches');
+      const targetMatch = freshList.find((m: any) => m.id === matchId);
+      if (!targetMatch || targetMatch.status !== 'live') {
+        clearInterval(timer);
+        setSimulationActive(false);
+        return;
+      }
+
+      // Roll chance for goal
+      const roll = Math.random();
+      let newScoreHome = targetMatch.scoreHome || 0;
+      let newScoreAway = targetMatch.scoreAway || 0;
+      let freshScorers = targetMatch.scorerDetailsHome || '';
+      let randomMin = Math.floor(Math.random() * 45) + 45;
+
+      if (roll > 0.8) {
+        newScoreHome += 1;
+        freshScorers = freshScorers ? `${freshScorers}, Oyuncu ${randomMin}'` : `Oyuncu ${randomMin}'`;
+        if (showToast) showToast(`GOL SİMÜLASYONU! Fenerbahçe golü buldu: ${newScoreHome} - ${newScoreAway}`, "success");
+      } else if (roll > 0.95) {
+        newScoreAway += 1;
+        if (showToast) showToast(`GOL SİMÜLASYONU! Rakip gol attı: ${newScoreHome} - ${newScoreAway}`, "info");
+      }
+
+      // Slightly mutate stats
+      const dynamicHomeShots = (targetMatch.shotsHome || 10) + Math.floor(Math.random() * 2);
+      const dynamicAwayShots = (targetMatch.shotsAway || 6) + Math.floor(Math.random() * 2);
+      const dynamicHomePoss = Math.min(70, Math.max(30, (targetMatch.possessionHome || 50) + (Math.random() > 0.5 ? 2 : -2)));
+      const dynamicAwayPoss = 100 - dynamicHomePoss;
+
+      const dynamicUpdate = {
+        ...targetMatch,
+        scoreHome: newScoreHome,
+        scoreAway: newScoreAway,
+        shotsHome: dynamicHomeShots,
+        shotsAway: dynamicAwayShots,
+        possessionHome: dynamicHomePoss,
+        possessionAway: dynamicAwayPoss,
+        scorerDetailsHome: freshScorers,
+        updatedAt: new Date().toISOString()
+      };
+
+      await dbUpsertDocument('matches', matchId, dynamicUpdate);
+      loadData();
+    }, 5000);
+
+    setSimInterval(timer);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.awayTeam) {
@@ -109,15 +209,21 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
     }
 
     const compiledData = {
-      homeTeam: form.homeTeam,
-      awayTeam: form.awayTeam,
-      competition: form.competition,
-      matchDate: form.matchDate,
-      venue: form.venue,
-      status: form.status,
+      ...form,
       scoreHome: Number(form.scoreHome),
       scoreAway: Number(form.scoreAway),
-      matchPreview: form.matchPreview,
+      possessionHome: Number(form.possessionHome),
+      possessionAway: Number(form.possessionAway),
+      shotsHome: Number(form.shotsHome),
+      shotsAway: Number(form.shotsAway),
+      shotsOnTargetHome: Number(form.shotsOnTargetHome),
+      shotsOnTargetAway: Number(form.shotsOnTargetAway),
+      passAccuracyHome: Number(form.passAccuracyHome),
+      passAccuracyAway: Number(form.passAccuracyAway),
+      cornersHome: Number(form.cornersHome),
+      cornersAway: Number(form.cornersAway),
+      foulsHome: Number(form.foulsHome),
+      foulsAway: Number(form.foulsAway),
       featured: !!form.featured,
       probableXI: {
         formation: form.formation,
@@ -139,7 +245,7 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
     try {
       if (editingId) {
         await dbUpsertDocument('matches', editingId, compiledData);
-        if (showToast) showToast("Maç detayları ve taktik kadro kaydedildi.", "success");
+        if (showToast) showToast("Maç detayları, kartlar, istatistikler ve taktik kadro kaydedildi.", "success");
       } else {
         await dbAddDocument('matches', {
           ...compiledData,
@@ -173,12 +279,33 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
       scoreAway: m.scoreAway || 0,
       matchPreview: m.matchPreview || '',
       featured: !!m.featured,
+      
+      referee: m.referee || 'Halil Umut Meler',
+      broadcasterTarget: m.broadcasterTarget || 'beIN Sports 1',
+      scorerDetailsHome: m.scorerDetailsHome || '',
+      scorerDetailsAway: m.scorerDetailsAway || '',
+      cardsDetails: m.cardsDetails || '',
+      substitutionDetails: m.substitutionDetails || '',
+      
+      possessionHome: m.possessionHome || 50,
+      possessionAway: m.possessionAway || 50,
+      shotsHome: m.shotsHome || 10,
+      shotsAway: m.shotsAway || 6,
+      shotsOnTargetHome: m.shotsOnTargetHome || 4,
+      shotsOnTargetAway: m.shotsOnTargetAway || 2,
+      passAccuracyHome: m.passAccuracyHome || 80,
+      passAccuracyAway: m.passAccuracyAway || 75,
+      cornersHome: m.cornersHome || 4,
+      cornersAway: m.cornersAway || 2,
+      foulsHome: m.foulsHome || 10,
+      foulsAway: m.foulsAway || 11,
+
       formation: xi.formation || '4-2-3-1',
       GK: xi.GK || 'Dominik Livaković',
       RB: xi.RB || 'Bright Osayi-Samuel',
       CB1: xi.CB1 || 'Alexander Djiku',
       CB2: xi.CB2 || 'Çağlar Söyüncü',
-      LB: xi.LB || 'Ferdi Kadıoğlu',
+      LB: xi.LB || 'Jayden Oosterwolde',
       DM1: xi.DM1 || 'İsmail Yüksek',
       DM2: xi.DM2 || 'Fred',
       RW: xi.RW || 'İrfan Can Kahveci',
@@ -195,7 +322,7 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
     setForm({
       homeTeam: 'Fenerbahçe',
       awayTeam: '',
-      competition: 'Trendyol Süper Lig • 36. Hafta',
+      competition: 'Trendyol Süper Lig • Hafta Seçin',
       matchDate: '2026-05-30T20:00:00',
       venue: 'Ülker Stadyumu Şükrü Saracoğlu Spor Kompleksi / Kadıköy',
       status: 'upcoming',
@@ -203,12 +330,30 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
       scoreAway: 0,
       matchPreview: '',
       featured: false,
+      referee: 'Halil Umut Meler',
+      broadcasterTarget: 'beIN Sports 1',
+      scorerDetailsHome: '',
+      scorerDetailsAway: '',
+      cardsDetails: '',
+      substitutionDetails: '',
+      possessionHome: 50,
+      possessionAway: 50,
+      shotsHome: 10,
+      shotsAway: 6,
+      shotsOnTargetHome: 4,
+      shotsOnTargetAway: 2,
+      passAccuracyHome: 80,
+      passAccuracyAway: 75,
+      cornersHome: 4,
+      cornersAway: 2,
+      foulsHome: 10,
+      foulsAway: 11,
       formation: '4-2-3-1',
       GK: 'Dominik Livaković',
       RB: 'Bright Osayi-Samuel',
       CB1: 'Alexander Djiku',
       CB2: 'Çağlar Söyüncü',
-      LB: 'Ferdi Kadıoğlu',
+      LB: 'Jayden Oosterwolde',
       DM1: 'İsmail Yüksek',
       DM2: 'Fred',
       RW: 'İrfan Can Kahveci',
@@ -258,9 +403,9 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
         <div>
           <h2 className="text-xl font-display font-black text-white uppercase italic tracking-wide flex items-center gap-2">
-            <Calendar className="text-fb-yellow" size={20} /> Maç Merkezi Karşılaşma Yönetimi
+            <Calendar className="text-fb-yellow" size={20} /> Maç Merkezi & Fikstür CMS
           </h2>
-          <p className="text-xs text-[#8e9bb8]">Fikstürleri, güncel skorları ve muhtemel taktik 11'leri yönetin.</p>
+          <p className="text-xs text-[#8e9bb8]">Fikstürleri, hakemleri, yayın kanallarını, kart panolarını, canlı simülasyonları ve maç içi d3 analitiğini yönetin.</p>
         </div>
         {!formOpen && (
           <button
@@ -281,7 +426,7 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
         >
           <div className="flex items-center justify-between pb-4 border-b border-white/5">
             <h3 className="text-xs font-black uppercase tracking-widest text-fb-yellow">
-              {editingId ? 'MÜSABAKA VE KADRO GÜNCELLEME' : 'YENİ KARŞILAŞMA VE ANALİZ EKLE'}
+              {editingId ? 'MÜSABAKA VE SEVK DETAYI GÜNCELLE' : 'YENİ KARŞILAŞMA VE ANALİZ EKLE'}
             </h3>
             <button
               type="button"
@@ -292,33 +437,38 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* LHS: Match details */}
-            <div className="space-y-4">
-              <span className="text-[10px] font-black text-fb-yellow tracking-widest uppercase block pb-1 border-b border-white/5">1. KARŞILAŞMA VE SAHA BİLGİLERİ</span>
+            <div className="space-y-5">
+              <span className="text-[10px] font-black text-fb-yellow tracking-widest uppercase block pb-1 border-b border-white/5">1. KARŞILAŞMA VE KANAL / HAKEM BİLGİLERİ</span>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] text-slate-400 font-bold uppercase">Ev Sahibi Takım *</label>
-                  <input
-                    type="text"
-                    required
+                  <select
                     value={form.homeTeam}
                     onChange={(e) => handleFormChange('homeTeam', e.target.value)}
-                    className="px-4 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white"
-                  />
+                    className="px-3 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white"
+                  >
+                    <option value="Fenerbahçe">Fenerbahçe</option>
+                    {teams.map(t => (
+                      <option key={t.id} value={t.name}>{t.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] text-slate-400 font-bold uppercase">Deplasman Takım *</label>
-                  <input
-                    type="text"
-                    required
+                  <select
                     value={form.awayTeam}
                     onChange={(e) => handleFormChange('awayTeam', e.target.value)}
-                    placeholder="Rakip Kulüp Adı"
-                    className="px-4 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white font-bold"
-                  />
+                    className="px-3 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white font-bold"
+                  >
+                    <option value="">-- Rakip Seçin --</option>
+                    {teams.map(t => (
+                      <option key={t.id} value={t.name}>{t.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -329,6 +479,7 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                     type="text"
                     value={form.competition}
                     onChange={(e) => handleFormChange('competition', e.target.value)}
+                    placeholder="Örn: Trendyol Süper Lig • 36. Hafta"
                     className="px-4 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white"
                   />
                 </div>
@@ -338,6 +489,31 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                     type="datetime-local"
                     value={form.matchDate}
                     onChange={(e) => handleFormChange('matchDate', e.target.value)}
+                    className="px-4 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
+                    <Tv size={11} className="text-fb-yellow" /> Yayınlayacak Kanal
+                  </label>
+                  <input
+                    type="text"
+                    value={form.broadcasterTarget}
+                    onChange={(e) => handleFormChange('broadcasterTarget', e.target.value)}
+                    placeholder="beIN Sports 1, Exxen, TRT Spor"
+                    className="px-4 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Hakem</label>
+                  <input
+                    type="text"
+                    value={form.referee}
+                    onChange={(e) => handleFormChange('referee', e.target.value)}
+                    placeholder="Örn: Halil Umut Meler"
                     className="px-4 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white"
                   />
                 </div>
@@ -360,11 +536,11 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                     <select
                       value={form.status}
                       onChange={(e) => handleFormChange('status', e.target.value)}
-                      className="px-2 py-2.5 bg-fb-dark border border-white/15 rounded-lg text-xs text-white [&>option]:bg-fb-card"
+                      className="px-2 py-2.5 bg-fb-dark border border-white/15 rounded-lg text-xs text-white [&>option]:bg-fb-card cursor-pointer"
                     >
-                      <option value="upcoming">Gelecek Maç (Upcoming)</option>
+                      <option value="upcoming">Gelecek Maç (Yet to play)</option>
                       <option value="live">Canlı Oynanıyor (Live)</option>
-                      <option value="completed">Bitti (Completed)</option>
+                      <option value="completed">Eski Maç / Bitti (Ended)</option>
                     </select>
                   </div>
 
@@ -374,8 +550,8 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                       type="number"
                       min="0"
                       value={form.scoreHome}
-                      onChange={(e) => handleFormChange('scoreHome', e.target.value)}
-                      className="px-2 py-2 bg-fb-dark border border-white/15 rounded-lg text-xs text-white font-bold"
+                      onChange={(e) => handleFormChange('scoreHome', Number(e.target.value))}
+                      className="px-2 py-2 bg-fb-dark border border-white/15 rounded-lg text-xs text-white font-bold font-mono text-center"
                     />
                   </div>
 
@@ -385,8 +561,8 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                       type="number"
                       min="0"
                       value={form.scoreAway}
-                      onChange={(e) => handleFormChange('scoreAway', e.target.value)}
-                      className="px-2 py-2 bg-fb-dark border border-white/15 rounded-lg text-xs text-white font-bold"
+                      onChange={(e) => handleFormChange('scoreAway', Number(e.target.value))}
+                      className="px-2 py-2 bg-fb-dark border border-white/15 rounded-lg text-xs text-white font-bold font-mono text-center"
                     />
                   </div>
                 </div>
@@ -407,24 +583,143 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                 </label>
               </div>
 
+              <div className="space-y-3 p-4 rounded-xl bg-fb-dark/50 border border-white/5">
+                <span className="text-[9px] font-black text-fb-yellow uppercase tracking-widest block">GOL / OYUN AYRINTILARI PLAKALARI</span>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-slate-400 font-bold uppercase">Golü Atanlar (Ev Sahibi)</label>
+                    <input
+                      type="text"
+                      value={form.scorerDetailsHome}
+                      onChange={(e) => handleFormChange('scorerDetailsHome', e.target.value)}
+                      placeholder="Örn: Edin Džeko 12', Fred 80'"
+                      className="px-4 py-2 bg-fb-dark border border-white/10 rounded-lg text-xs text-slate-200"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-slate-400 font-bold uppercase">Golü Atanlar (Deplasman)</label>
+                    <input
+                      type="text"
+                      value={form.scorerDetailsAway}
+                      onChange={(e) => handleFormChange('scorerDetailsAway', e.target.value)}
+                      placeholder="Örn: İcardi 45'"
+                      className="px-4 py-2 bg-fb-dark border border-white/10 rounded-lg text-xs text-slate-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Kart Görenler (Y/K)</label>
+                  <input
+                    type="text"
+                    value={form.cardsDetails}
+                    onChange={(e) => handleFormChange('cardsDetails', e.target.value)}
+                    placeholder="Djiku 45'(Y), Muslera 92'(K) gibi..."
+                    className="px-4 py-2 bg-fb-dark border border-white/10 rounded-lg text-xs text-slate-200"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Oyuncu Değişiklikleri Panosu (Substitution Board)</label>
+                  <input
+                    type="text"
+                    value={form.substitutionDetails}
+                    onChange={(e) => handleFormChange('substitutionDetails', e.target.value)}
+                    placeholder="Dzeko ➔ En-Nesyri 75' gibi..."
+                    className="px-4 py-2 bg-fb-dark border border-white/10 rounded-lg text-xs text-slate-200"
+                  />
+                </div>
+              </div>
+
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase">Maç Önü Analiz Notları (Previews / Key info)</label>
+                <label className="text-[10px] text-slate-400 font-bold uppercase">Maç Önü Analiz ve Taktik Köşesi</label>
                 <textarea
                   value={form.matchPreview}
                   onChange={(e) => handleFormChange('matchPreview', e.target.value)}
                   rows={4}
                   placeholder="Kritik taktiksel planlar, rakibin zayıf yönleri ve eksik oyuncu listeleri..."
-                  className="px-4 py-3 bg-fb-dark border border-white/15 rounded-xl text-xs text-slate-300 leading-relaxed focus:outline-none focus:border-fb yellow"
+                  className="px-4 py-3 bg-fb-dark border border-white/15 rounded-xl text-xs text-slate-300 leading-relaxed focus:outline-none"
                 />
               </div>
             </div>
 
-            {/* RHS: Kadrolar (Lineups) */}
-            <div className="space-y-4">
-              <span className="text-[10px] font-black text-fb-yellow tracking-widest uppercase block pb-1 border-b border-white/5">2. TARAFTAR MUHTEMEL 11 & TAKTİK DİZİLİŞ</span>
+            {/* RHS: Kadrolar (Lineups) & Analitik Grafikleri */}
+            <div className="space-y-5">
+              <span className="text-[10px] font-black text-fb-yellow tracking-widest uppercase block pb-1 border-b border-white/5">2. TAKTİK DİZİLİŞ & İSTATİSTİK ANALİTİKLERİ</span>
+
+              {/* Analitik Grafikler Giriş Alanı */}
+              <div className="p-4 rounded-xl bg-[#0a0f1d] border border-fb-yellow/10 space-y-3">
+                <span className="text-[9px] font-black text-emerald-400 tracking-wider uppercase block">D3 VE RECHARTS MAÇ ANALİTİĞİ APARATI</span>
+                
+                <div className="grid grid-cols-2 gap-3 text-slate-300">
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-[9px] text-fb-muted">Topa Sahip Olma (Ev Sahibi %)</label>
+                    <input 
+                      type="number" 
+                      min="0" 
+                      max="100"
+                      value={form.possessionHome} 
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        handleFormChange('possessionHome', val);
+                        handleFormChange('possessionAway', 100 - val);
+                      }} 
+                      className="bg-fb-card text-xs text-white p-2 rounded border border-white/10 font-bold text-center" 
+                    />
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-[9px] text-fb-muted">Topa Sahip Olma (Deplasman %)</label>
+                    <input 
+                      type="number" 
+                      min="0" 
+                      max="100"
+                      value={form.possessionAway} 
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        handleFormChange('possessionAway', val);
+                        handleFormChange('possessionHome', 100 - val);
+                      }} 
+                      className="bg-fb-card text-xs text-slate-400 p-2 rounded border border-white/5 text-center" 
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-[9px] text-fb-muted">Şut (Ev / Deplasman)</label>
+                    <div className="flex gap-1">
+                      <input type="number" placeholder="Ev" value={form.shotsHome} onChange={(e) => handleFormChange('shotsHome', Number(e.target.value))} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 text-center w-full" />
+                      <input type="number" placeholder="Dep" value={form.shotsAway} onChange={(e) => handleFormChange('shotsAway', Number(e.target.value))} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 text-center w-full" />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-[9px] text-fb-muted">Kaleyi Bulan Şut (Ev / Dep)</label>
+                    <div className="flex gap-1">
+                      <input type="number" placeholder="Ev" value={form.shotsOnTargetHome} onChange={(e) => handleFormChange('shotsOnTargetHome', Number(e.target.value))} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 text-center w-full" />
+                      <input type="number" placeholder="Dep" value={form.shotsOnTargetAway} onChange={(e) => handleFormChange('shotsOnTargetAway', Number(e.target.value))} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 text-center w-full" />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-[9px] text-fb-muted">Pas Başarı Oranı (Ev / Dep %)</label>
+                    <div className="flex gap-1">
+                      <input type="number" placeholder="Ev%" value={form.passAccuracyHome} onChange={(e) => handleFormChange('passAccuracyHome', Number(e.target.value))} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 text-center w-full" />
+                      <input type="number" placeholder="Dep%" value={form.passAccuracyAway} onChange={(e) => handleFormChange('passAccuracyAway', Number(e.target.value))} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 text-center w-full" />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-0.5">
+                    <label className="text-[9px] text-fb-muted">Köşe Vuruşu / Korner (Ev / Dep)</label>
+                    <div className="flex gap-1">
+                      <input type="number" placeholder="Ev" value={form.cornersHome} onChange={(e) => handleFormChange('cornersHome', Number(e.target.value))} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 text-center w-full" />
+                      <input type="number" placeholder="Dep" value={form.cornersAway} onChange={(e) => handleFormChange('cornersAway', Number(e.target.value))} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 text-center w-full" />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase">Saha Formasyonu (Diziliş)</label>
+                <label className="text-[10px] text-slate-400 font-bold uppercase font-mono">Saha Formasyonu (Taktik Şablonu)</label>
                 <select
                   value={form.formation}
                   onChange={(e) => handleFormChange('formation', e.target.value)}
@@ -493,9 +788,7 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                   <label className="text-[9px] text-[#8e9bb8]">CF (Merkez Santrafor/Forvet)</label>
                   <input type="text" value={form.CF} onChange={(e) => handleFormChange('CF', e.target.value)} className="bg-fb-card text-xs text-white p-1.5 rounded border border-white/10 w-full" />
                 </div>
-
               </div>
-
             </div>
 
           </div>
@@ -504,15 +797,15 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
             <button
               type="button"
               onClick={handleCloseFormAttempt}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer"
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer"
             >
               İptal Geri Dön
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-fb-yellow hover:bg-white text-fb-navy rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer shadow-md"
+              className="px-5 py-2.5 bg-fb-yellow hover:bg-white text-fb-navy rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer shadow-md transition-all"
             >
-              <Save size={14} /> FİKSTÜRÜ KAYDET VE SENKRONİZE ET
+              <Save size={14} /> FİKSTÜRÜ VE İSTATİSTİKLERİ KAYDET
             </button>
           </div>
         </motion.form>
@@ -535,18 +828,18 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-fb-dark border border-white/10 text-xs px-2.5 py-2 rounded-xl text-slate-300 w-full focus:outline-none"
+              className="bg-fb-dark border border-white/10 text-xs px-2.5 py-2 rounded-xl text-slate-300 w-full lg:col-span-1 focus:outline-none cursor-pointer font-semibold"
             >
-              <option value="All">Tüm Maçlar</option>
-              <option value="upcoming">Gelecek Fikstürler</option>
-              <option value="live">Canlı Mücadeleler</option>
-              <option value="completed">Oynanıp Bitenler</option>
+              <option value="All">Tüm Durumlar (Tümü)</option>
+              <option value="upcoming">Gelecek Fikstürler (Upcoming)</option>
+              <option value="live">Canlı Mücadeleler (Live)</option>
+              <option value="completed">Oynanıp Bitenler (Completed)</option>
             </select>
           </div>
 
           {/* DYNAMIC LIST */}
           {loading ? (
-            <div className="text-center py-20 text-fb-yellow text-xs font-black">OYUN FİKSTÜRLERİ YÜKLENİYOR...</div>
+            <div className="text-center py-20 text-fb-yellow text-xs font-black uppercase">OYUN FİKSTÜRLERİ YÜKLENİYOR...</div>
           ) : filtered.length === 0 ? (
             <EmptyState
               title="Karşılaşma bulunamadı."
@@ -560,42 +853,49 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left min-w-[750px]">
                   <thead>
-                    <tr className="border-b border-white/[0.06] bg-[#0c1223]/60 text-[10px] font-black uppercase text-fb-muted tracking-widest">
-                      <th className="p-4 pl-6">Müsabaka Eşleşmesi</th>
-                      <th className="p-4">Turnuva Seviyesi</th>
+                    <tr className="border-b border-white/[0.06] bg-[#0c1223]/60 text-[10px] font-black uppercase text-fb-muted tracking-widest_2">
+                      <th className="p-4 pl-6">Müsabaka Eşleşmesi & Hakem</th>
+                      <th className="p-4">Turnuva & Yayın</th>
                       <th className="p-4">Tarih</th>
-                      <th className="p-4">Maç Durumu</th>
+                      <th className="p-4">Maç Skoru / Durumu</th>
                       <th className="p-4 text-center">Öne Çıkar</th>
+                      <th className="p-4 text-center">Rapor / Simülasyon</th>
                       <th className="p-4 pr-6 text-right">Eylemler</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.04]">
                     {filtered.map((m) => (
-                      <tr key={m.id} className="hover:bg-white/[0.01] transition-colors">
+                      <tr key={m.id} className="hover:bg-white/[0.01] transition-colors text-slate-200">
                         <td className="p-4 pl-6">
                           <div className="space-y-0.5">
                             <h4 className="text-xs font-black text-white">{m.homeTeam} vs {m.awayTeam}</h4>
-                            <p className="text-[10px] text-fb-muted">📍 {m.venue || 'Şükrü Saracoğlu Spor Kompleksi'}</p>
+                            <p className="text-[10px] text-slate-400">🏁 Hakem: <b>{m.referee || 'Atanmadı'}</b></p>
+                            <p className="text-[9px] text-fb-muted">📍 {m.venue || 'Şükrü Saracoğlu Spor Kompleksi'}</p>
                           </div>
                         </td>
                         <td className="p-4">
-                          <span className="text-[10px] font-black uppercase text-slate-300">{m.competition}</span>
+                          <div className="space-y-0.5">
+                            <span className="text-[10px] font-black uppercase text-slate-300 block">{m.competition}</span>
+                            <span className="text-[9px] text-fb-yellow font-bold flex items-center gap-1">
+                              <Tv2 size={10} /> {m.broadcasterTarget || 'Yayın bilinmiyor'}
+                            </span>
+                          </div>
                         </td>
                         <td className="p-4">
                           <span className="text-xs text-slate-300 font-mono font-semibold">{formatDate(m.matchDate)}</span>
                         </td>
                         <td className="p-4">
                           {m.status === 'live' ? (
-                            <span className="px-2 py-1 rounded bg-red-500/10 border border-red-500/20 text-[9px] font-black text-red-400 uppercase tracking-widest animate-pulse">
-                              ● Canlı {m.scoreHome} - {m.scoreAway}
+                            <span className="px-2 py-1 rounded bg-red-500/10 border border-red-500/20 text-[9px] font-black text-red-400 uppercase tracking-widest animate-pulse whitespace-nowrap">
+                              ● CANLI: {m.scoreHome} - {m.scoreAway}
                             </span>
                           ) : m.status === 'completed' ? (
                             <span className="px-2 py-1 rounded bg-[#10b981]/15 border border-[#10b981]/25 text-[9px] font-black text-emerald-400 uppercase tracking-widest whitespace-nowrap">
-                              Skor: {m.scoreHome} - {m.scoreAway} (Bitti)
+                              SKOR: {m.scoreHome} - {m.scoreAway} (Bitti)
                             </span>
                           ) : (
                             <span className="px-2 py-1 rounded bg-blue-500/10 border border-blue-500/20 text-[9px] font-black text-blue-400 uppercase tracking-widest whitespace-nowrap">
-                              Gelecek Maç
+                              YET TO PLAY
                             </span>
                           )}
                         </td>
@@ -613,6 +913,25 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                             <Star size={14} className={m.featured ? 'fill-fb-yellow' : ''} />
                           </button>
                         </td>
+                        <td className="p-4 text-center">
+                          {m.status === 'live' ? (
+                            <button
+                              type="button"
+                              onClick={() => startSimulation(m.id)}
+                              className={`px-2.5 py-1 text-[8px] font-black uppercase rounded-lg border cursor-pointer flex items-center gap-1 mx-auto transition-all ${
+                                simulationActive
+                                  ? 'bg-red-500 hover:bg-white text-white hover:text-fb-navy border-transparent animate-pulse'
+                                  : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                              }`}
+                              title="Canlı Skor / İstatistik Simülasyonunu Aç/Kapat"
+                            >
+                              <Activity size={10} />
+                              {simulationActive ? 'DURDUR' : 'SIMULATE'}
+                            </button>
+                          ) : (
+                            <span className="text-[9px] text-fb-muted italic">Sadece Canlıda</span>
+                          )}
+                        </td>
                         <td className="p-4 pr-6 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
@@ -624,7 +943,7 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                             </button>
                             <button
                               onClick={() => setDeleteId(m.id)}
-                              className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 cursor-pointer"
+                              className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10 cursor-pointer"
                               title="Maçı Fikstürden Kaldır"
                             >
                               <Trash2 size={14} />

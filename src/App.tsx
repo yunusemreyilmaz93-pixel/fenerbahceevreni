@@ -371,6 +371,7 @@ export default function App() {
   const [pollValue, setPollValue] = useState<any>(null);
   const [homeSettings, setHomeSettings] = useState<any>(null);
   const [adminUser, setAdminUser] = useState<any>(null);
+  const [announcement, setAnnouncement] = useState<any>(null);
 
   const treeData = useMemo(() => {
     const basicTree = parseMarkdownToTree(GALAXY_DATA);
@@ -399,6 +400,22 @@ export default function App() {
         const homes = await dbGetCollection('homeSettings');
         const mainHome = homes.find(h => h.id === 'main');
         if (mainHome) setHomeSettings(mainHome);
+
+        const anns = await dbGetCollection('announcements');
+        const activeAnn = anns.find((a: any) => {
+          if (a.status !== 'active') return false;
+          const now = new Date();
+          if (a.startDate) {
+            const start = new Date(a.startDate);
+            if (now < start) return false;
+          }
+          if (a.endDate) {
+            const end = new Date(a.endDate);
+            if (now > end) return false;
+          }
+          return true;
+        });
+        setAnnouncement(activeAnn || null);
       } catch (err) {
         console.error("Public CMS retrieval failed:", err);
         setArticles(latestArticles);
@@ -503,6 +520,22 @@ export default function App() {
 
   return (
     <div className="bg-fb-dark min-h-screen text-slate-100 font-sans">
+      {/* Site-Wide Announcement Bar */}
+      {announcement && view !== 'admin' && view !== 'admin-login' && (
+        <div className="bg-fb-yellow text-fb-navy py-2 px-6 text-center text-xs font-black uppercase tracking-wider flex items-center justify-center gap-3 relative z-50 shadow-md animate-fade-in">
+          <span>{announcement.title}: {announcement.shortText}</span>
+          {announcement.link && (
+            <a 
+              href={announcement.link} 
+              target="_blank" 
+              rel="noreferrer" 
+              className="underline hover:text-black transition-colors ml-2 font-black italic"
+            >
+              İncele →
+            </a>
+          )}
+        </div>
+      )}
       {/* Sticky Top Navigation */}
       {view !== 'universe' && view !== 'admin' && view !== 'admin-login' && (
         <Navbar 

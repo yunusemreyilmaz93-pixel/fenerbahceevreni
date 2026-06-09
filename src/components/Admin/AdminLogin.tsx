@@ -226,10 +226,10 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBackTo
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.53 5.53 0 0 1 8.5 13a5.53 5.53 0 0 1 5.49-5.514c2.25 0 4.135 1.132 5.163 3.018l3.764-2.181C21.037 4.708 17.75 3 13.99 3A9.99 9.99 0 0 0 4 13a9.99 9.99 0 0 0 9.99 10c6.043 0 9.914-4.108 9.914-10.05 0-.663-.075-1.285-.19-1.883H12.24Z"/>
                 </svg>
-                {loading ? "GIRIŞ YAPILIYOR..." : "GOOGLE ILE GIRIŞ YAP"}
+                {loading ? "GİRİŞ YAPILIYOR..." : "GOOGLE İLE GİRİŞ YAP"}
               </button>
               <p className="text-[10px] text-center text-fb-muted font-bold leading-relaxed px-2">
-                Yönetici Google hesabınız yani <strong className="text-fb-yellow">yunusemreyilmaz93@gmail.com</strong> ile tek tıklamayla secure erişim sağlayın.
+                Yetkili yönetici Google hesabınız ile tek tıklamayla güvenli erişim sağlayın.
               </p>
             </div>
           )}
