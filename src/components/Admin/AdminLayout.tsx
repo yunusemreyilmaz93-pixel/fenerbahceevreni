@@ -41,6 +41,7 @@ import { AdminSponsors } from './AdminSponsors';
 import { AdminHomepage } from './AdminHomepage';
 import { AdminSettings } from './AdminSettings';
 import { AdminMessages } from './AdminMessages';
+import { AdminTeams } from './AdminTeams';
 
 interface AdminLayoutProps {
   adminUser: any;
@@ -83,6 +84,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
     { id: 'matches', label: 'Maç Merkezi', icon: Calendar },
     { id: 'reports', label: 'Maç Raporları', icon: Award },
     { id: 'players', label: 'Oyuncular', icon: Users },
+    { id: 'teams', label: 'Takımlar', icon: ShieldCheck },
     { id: 'transfer', label: 'Transfer Radar', icon: Search },
     { id: 'polls', label: 'Anketler', icon: BarChart3 },
     { id: 'premium', label: 'Premium İçerikler', icon: Sparkles },
@@ -126,6 +128,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
         return <AdminReports showToast={showToast} initiateCreate={!!isReportsInit} />;
       case 'players':
         return <AdminPlayers />;
+      case 'teams':
+        return <AdminTeams />;
       case 'transfer':
         return <AdminTransfer showToast={showToast} initiateCreate={!!isTransferInit} />;
       case 'polls':

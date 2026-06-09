@@ -15,6 +15,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBackTo
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   // Custom Email/Password Credentials States (per Section 5 spec)
+  const [loginMethod, setLoginMethod] = useState<'google' | 'email'>('google');
   const [emailInput, setEmailInput] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -135,73 +136,103 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBackTo
             </motion.div>
           )}
 
-          {/* Traditonal Email & Password Form */}
-          <form onSubmit={handleCredentialsLogin} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-fb-muted block">E-Posta Adresi</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-fb-muted">
-                  <Mail size={14} />
-                </span>
-                <input
-                  type="email"
-                  required
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="Yönetici e-posta adresinizi yazın..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-fb-dark/80 border border-white/10 text-xs text-white placeholder-fb-muted focus:outline-none focus:border-fb-yellow transition-all font-semibold"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-fb-muted block">Şifre</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-fb-muted">
-                  <Lock size={14} />
-                </span>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Şifrenizi yazın..."
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-fb-dark/80 border border-white/10 text-xs text-white placeholder-fb-muted focus:outline-none focus:border-fb-yellow transition-all font-semibold"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-fb-muted hover:text-white transition-colors"
-                >
-                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
-            </div>
-
+          {/* Giriş Yöntemi Seçimi */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 bg-fb-dark/80 rounded-2xl border border-white/5">
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_25px_rgba(255,210,31,0.15)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+              type="button"
+              onClick={() => setLoginMethod('google')}
+              className={`py-2 text-[10.5px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                loginMethod === 'google'
+                  ? 'bg-fb-yellow text-fb-navy shadow-[0_4px_15px_rgba(255,210,31,0.15)]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
             >
-              <ShieldCheck className="w-4 h-4" />
-              {loading ? "GİRİŞ YAPILIYOR..." : "Giriş Yap"}
+              Google Girişi
             </button>
-          </form>
-
-          <div className="flex items-center gap-3 my-4">
-            <div className="h-[1px] bg-white/10 flex-grow" />
-            <span className="text-[10px] font-black text-[#5C6F84] uppercase tracking-widest">VEYA</span>
-            <div className="h-[1px] bg-white/10 flex-grow" />
+            <button
+              type="button"
+              onClick={() => setLoginMethod('email')}
+              className={`py-2 text-[10.5px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                loginMethod === 'email'
+                  ? 'bg-fb-yellow text-fb-navy shadow-[0_4px_15px_rgba(255,210,31,0.15)]'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              E-Posta Girişi
+            </button>
           </div>
 
-          {/* Google Auth Row */}
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="w-full py-3 bg-white/5 hover:bg-white/10 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-white/5 cursor-pointer disabled:opacity-40 flex items-center justify-center gap-2"
-          >
-            GOOGLE ILE GIRIŞ YAP (YÖNETICI)
-          </button>
+          {loginMethod === 'email' ? (
+            /* Traditonal Email & Password Form */
+            <form onSubmit={handleCredentialsLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-wider text-fb-muted block">E-Posta Adresi</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-fb-muted">
+                    <Mail size={14} />
+                  </span>
+                  <input
+                    type="email"
+                    required
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="Yönetici e-posta adresinizi yazın..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-fb-dark/80 border border-white/10 text-xs text-white placeholder-fb-muted focus:outline-none focus:border-fb-yellow transition-all font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-wider text-fb-muted block">Şifre</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-fb-muted">
+                    <Lock size={14} />
+                  </span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Şifrenizi yazın..."
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-fb-dark/80 border border-white/10 text-xs text-white placeholder-fb-muted focus:outline-none focus:border-fb-yellow transition-all font-semibold"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-fb-muted hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_25px_rgba(255,210,31,0.15)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                {loading ? "GİRİŞ YAPILIYOR..." : "Giriş Yap"}
+              </button>
+            </form>
+          ) : (
+            /* Google Auth Row Only */
+            <div className="space-y-4">
+              <button
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full py-3.5 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_25px_rgba(255,210,31,0.15)] cursor-pointer disabled:opacity-40 flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.53 5.53 0 0 1 8.5 13a5.53 5.53 0 0 1 5.49-5.514c2.25 0 4.135 1.132 5.163 3.018l3.764-2.181C21.037 4.708 17.75 3 13.99 3A9.99 9.99 0 0 0 4 13a9.99 9.99 0 0 0 9.99 10c6.043 0 9.914-4.108 9.914-10.05 0-.663-.075-1.285-.19-1.883H12.24Z"/>
+                </svg>
+                {loading ? "GIRIŞ YAPILIYOR..." : "GOOGLE ILE GIRIŞ YAP"}
+              </button>
+              <p className="text-[10px] text-center text-fb-muted font-bold leading-relaxed px-2">
+                Yönetici Google hesabınız yani <strong className="text-fb-yellow">yunusemreyilmaz93@gmail.com</strong> ile tek tıklamayla secure erişim sağlayın.
+              </p>
+            </div>
+          )}
 
           <button
             onClick={handleBack}

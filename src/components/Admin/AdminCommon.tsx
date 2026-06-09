@@ -384,3 +384,249 @@ export const ContentPreviewModal: React.FC<ContentPreviewModalProps> = ({
     </AnimatePresence>
   );
 };
+
+// 7. FIREBASE IMAGE UPLOADER COMPONENT WITH LOADING, PROGRESS & PREVIEW
+import { storage, auth } from '../../lib/firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { Upload, Loader2, Sparkles as SparklesIcon, Trash2 as TrashIcon, Check } from 'lucide-react';
+
+interface FirebaseImageUploaderProps {
+  folderPath: 'article-covers' | 'team-logos' | 'player-images' | 'sponsor-logos';
+  idOrSlug: string;
+  value: string;
+  onChange: (url: string) => void;
+  label?: string;
+}
+
+export const FirebaseImageUploader: React.FC<FirebaseImageUploaderProps> = ({
+  folderPath,
+  idOrSlug,
+  value,
+  onChange,
+  label = "GÖRSEL YÜKLEME VE SEÇİMİ"
+}) => {
+  const [uploading, setUploading] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const [error, setError] = React.useState<string | null>(null);
+  const [dragOver, setDragOver] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Determine file name by folder type (per user request)
+  const getTargetFileName = () => {
+    switch (folderPath) {
+      case 'article-covers':
+        return 'cover.webp';
+      case 'team-logos':
+        return 'logo.webp';
+      case 'player-images':
+        return 'profile.webp';
+      case 'sponsor-logos':
+        return 'logo.webp';
+      default:
+        return 'image.webp';
+    }
+  };
+
+  const handleUpload = async (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Sadece görsel dosyaları yüklenebilir.');
+      return;
+    }
+
+    if (!idOrSlug) {
+      setError('Lütfen görseli yüklemeden önce başlık veya slug tanımlayın.');
+      return;
+    }
+
+    const adminUser = auth?.currentUser;
+    // Check if authenticated admin
+    if (!adminUser && storage) {
+      setError('Görsel yüklemek için sisteme yönetici girişi yapmanız gerekmektedir.');
+      return;
+    }
+
+    setUploading(true);
+    setProgress(0);
+    setError(null);
+
+    const targetFileName = getTargetFileName();
+    const fullPath = `${folderPath}/${idOrSlug}/${targetFileName}`;
+
+    if (storage) {
+      try {
+        const storageRef = ref(storage, fullPath);
+        const uploadTask = uploadBytesResumable(storageRef, file, {
+          contentType: 'image/webp' // Standardizing content-type per user request WebP
+        });
+
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const p = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            setProgress(p);
+          },
+          (err) => {
+            console.error("Storage Upload Error:", err);
+            setError(`Yükleme başarısız oldu: ${err.message}`);
+            setUploading(false);
+          },
+          async () => {
+            try {
+              const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              onChange(downloadUrl);
+              setUploading(false);
+            } catch (err: any) {
+              setError(`Bağlantı alınamadı: ${err.message}`);
+              setUploading(false);
+            }
+          }
+        );
+      } catch (err: any) {
+        console.error("Storage preparation failed:", err);
+        setError(`Yetkilendirme veya hazırlık hatası: ${err.message}`);
+        setUploading(false);
+      }
+    } else {
+      // Mock upload simulation if Firebase is fallback mode
+      console.warn("Firebase Storage is currently not initialized/configured. Simulating mock upload...");
+      let mockProgress = 0;
+      const interval = setInterval(() => {
+        mockProgress += 10;
+        setProgress(mockProgress);
+        if (mockProgress >= 100) {
+          clearInterval(interval);
+          // Standard unsplash or generic photo matching fallback path
+          const mockUrlsByFolder = {
+            'article-covers': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop',
+            'team-logos': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop',
+            'player-images': 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop',
+            'sponsor-logos': 'https://upload.wikimedia.org/wikipedia/commons/d/df/Ac%C4%B1badem_Logo.png'
+          };
+          onChange(mockUrlsByFolder[folderPath] || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop');
+          setUploading(false);
+        }
+      }, 150);
+    }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const onDragLeave = () => {
+    setDragOver(false);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const onFileSelectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleUpload(e.target.files[0]);
+    }
+  };
+
+  return (
+    <div className="space-y-2 text-left">
+      <div className="flex justify-between items-center">
+        <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">{label}</label>
+        {storage && (
+          <span className="text-[8px] font-bold text-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded uppercase">
+            LIVE STORAGE ACTIVE
+          </span>
+        )}
+      </div>
+      
+      <div
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        className={`relative w-full p-4 rounded-xl border border-dashed transition-all cursor-pointer flex flex-col items-center justify-center min-h-[140px] ${
+          dragOver 
+            ? 'border-fb-yellow bg-fb-yellow/5' 
+            : uploading 
+              ? 'border-slate-700 bg-fb-dark/30' 
+              : 'border-white/15 bg-fb-dark/60 hover:border-white/30'
+        }`}
+        onClick={() => !uploading && fileInputRef.current?.click()}
+      >
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={onFileSelectChange}
+          accept="image/*"
+          className="hidden"
+          disabled={uploading}
+        />
+
+        {uploading ? (
+          <div className="text-center space-y-3">
+            <Loader2 className="w-8 h-8 text-fb-yellow animate-spin mx-auto" />
+            <div className="space-y-1">
+              <span className="text-xs font-black text-white block">YÜKLENİYOR... %{progress}</span>
+              <div className="w-48 h-1.5 bg-white/5 rounded-full overflow-hidden mx-auto">
+                <div 
+                  className="h-full bg-fb-yellow transition-all duration-150" 
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center space-y-2">
+            <Upload className={`w-8 h-8 mx-auto transition-colors ${dragOver ? 'text-fb-yellow' : 'text-slate-400'}`} />
+            <div>
+              <span className="text-xs font-black text-white block">Görsel Seçmek İçin Tıkla</span>
+              <span className="text-[10px] text-fb-muted font-bold block mt-1">Sürükleyip bırakabilirsin</span>
+              <span className="text-[8px] text-[#FFB020]/80 font-mono block mt-1">Hedef klasör: /{folderPath}/{idOrSlug || '{id}'}/{getTargetFileName()}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <span className="text-[10px] text-red-400 font-bold tracking-tight block mt-1">❌ {error}</span>
+      )}
+
+      {value && value.startsWith('http') && (
+        <div className="p-3 bg-fb-dark/40 border border-white/5 rounded-xl flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <img 
+              referrerPolicy="no-referrer" 
+              src={value} 
+              alt="Uploaded Preview" 
+              className="w-10 h-10 object-cover rounded-lg border border-white/10 shrink-0" 
+            />
+            <div className="min-w-0">
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest block flex items-center gap-1">
+                <Check size={10} /> Aktif Bağlantı Tanımlı
+              </span>
+              <span className="text-[9px] text-fb-muted truncate font-mono block">
+                {value}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange('');
+            }}
+            className="p-1.5 rounded bg-white/5 hover:bg-white/10 text-slate-400 hover:text-red-400 cursor-pointer"
+            title="Bağlantıyı Temizle"
+          >
+            <TrashIcon size={12} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+

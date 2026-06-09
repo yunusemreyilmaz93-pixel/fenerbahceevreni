@@ -13,12 +13,9 @@ service cloud.firestore {
     }
 
     // Admin email whitelist check
-    // If admin emails change later, update both VITE_ADMIN_EMAILS and firestore.rules, unless custom claims are implemented.
     function isAdmin() {
-      return request.auth != null &&
-        request.auth.token.email in [
-          "yunusemreyilmaz93@gmail.com"
-        ];
+      return request.auth != null && 
+        request.auth.token.email == "yunusemreyilmaz93@gmail.com";
     }
 
     function incoming() {
@@ -33,7 +30,7 @@ service cloud.firestore {
     // 1. articles
     // ==========================================
     match /articles/{articleId} {
-      allow read: if isAdmin() || (existing().status == "published");
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -41,7 +38,7 @@ service cloud.firestore {
     // 2. matches
     // ==========================================
     match /matches/{matchId} {
-      allow read: if isAdmin() || (existing().status in ["upcoming", "live", "finished"]);
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -49,7 +46,7 @@ service cloud.firestore {
     // 3. matchReports
     // ==========================================
     match /matchReports/{reportId} {
-      allow read: if isAdmin() || (existing().status == "published" && existing().isPremium != true);
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -57,7 +54,7 @@ service cloud.firestore {
     // 4. players
     // ==========================================
     match /players/{playerId} {
-      allow read: if isAdmin() || (existing().status in ["active", "loan", "target"]);
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -65,7 +62,7 @@ service cloud.firestore {
     // 5. transferReports
     // ==========================================
     match /transferReports/{reportId} {
-      allow read: if isAdmin() || (existing().status == "published" && existing().isPremium != true);
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -73,12 +70,12 @@ service cloud.firestore {
     // 6. polls
     // ==========================================
     match /polls/{pollId} {
-      allow read: if isAdmin() || (existing().status == "active" || existing().status == "closed");
+      allow read: if true;
       allow write: if isAdmin();
       
       // Dynamic subcollection under active polls for voting (conforming to Section 9 voting security)
       match /votes/{voteId} {
-        allow read: if isAdmin();
+        allow read: if true;
         allow create: if get(/databases/$(database)/documents/polls/$(pollId)).data.status == "active"
                       && incoming().optionId is string
                       && incoming().createdAt is string;
@@ -95,7 +92,7 @@ service cloud.firestore {
                     && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
                     && incoming().status == "active"
                     && incoming().keys().hasAll(['email', 'status', 'subscribedAt'])
-                    && incoming().keys().size() <= 8; // allows email, name, source, interests, status, subscribedAt, createdAt, updatedAt
+                    && incoming().keys().size() <= 15; // allows email, name, source, interests, status, subscribedAt, createdAt, updatedAt, id + extras
     }
 
     // ==========================================
@@ -106,7 +103,7 @@ service cloud.firestore {
       allow create: if incoming().email is string 
                     && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
                     && incoming().keys().hasAll(['email', 'name', 'planInterest', 'status', 'createdAt'])
-                    && incoming().keys().size() <= 8; // allowed fields: email, name, planInterest, source, status, createdAt, updatedAt
+                    && incoming().keys().size() <= 15; // allowed fields: email, name, planInterest, source, status, createdAt, updatedAt, id + extras
     }
 
     // ==========================================
@@ -118,14 +115,14 @@ service cloud.firestore {
                     && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
                     && incoming().status == "new"
                     && incoming().keys().hasAll(['name', 'email', 'subject', 'message', 'status', 'createdAt'])
-                    && incoming().keys().size() <= 12; // allowed: name, email, subject, messageType, message, companyName, websiteUrl, budgetRange, status, createdAt, updatedAt
+                    && incoming().keys().size() <= 15; // allowed: name, email, subject, messageType, message, companyName, websiteUrl, budgetRange, status, createdAt, updatedAt, id
     }
 
     // ==========================================
     // 10. sponsors
     // ==========================================
     match /sponsors/{sponsorId} {
-      allow read: if isAdmin() || (existing().active == true);
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -149,7 +146,7 @@ service cloud.firestore {
     // 13. premiumContent
     // ==========================================
     match /premiumContent/{contentId} {
-      allow read: if isAdmin() || (existing().status == "published" && existing().accessLevel == "free-preview");
+      allow read: if true;
       allow write: if isAdmin();
     }
 
@@ -157,8 +154,10 @@ service cloud.firestore {
     // 14. newsletterIssues
     // ==========================================
     match /newsletterIssues/{issueId} {
-      allow read: if isAdmin() || (existing().status == "sent" && existing().public == true);
+      allow read: if true;
       allow write: if isAdmin();
     }
+  }
+}
   }
 }

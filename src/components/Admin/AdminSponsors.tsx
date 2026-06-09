@@ -12,6 +12,7 @@ import {
   ToggleRight
 } from 'lucide-react';
 import { dbGetCollection, dbUpsertDocument, dbAddDocument, dbDeleteDocument } from '../../lib/dbService';
+import { FirebaseImageUploader } from './AdminCommon';
 
 export const AdminSponsors: React.FC = () => {
   const [sponsors, setSponsors] = useState<any[]>([]);
@@ -48,6 +49,7 @@ export const AdminSponsors: React.FC = () => {
 
     const compiledData = {
       ...form,
+      logoUrl: form.logo,
       updatedAt: new Date().toISOString()
     };
 
@@ -190,16 +192,13 @@ export const AdminSponsors: React.FC = () => {
               />
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-black uppercase text-slate-400">Sponsor Görsel/Logo URL adresi</label>
-              <input
-                type="text"
-                placeholder="https://fenerbahceevreni.com/sponsor-logo.png"
-                value={form.logo}
-                onChange={(e) => setForm(p => ({ ...p, logo: e.target.value }))}
-                className="px-4 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white font-mono"
-              />
-            </div>
+            <FirebaseImageUploader
+              folderPath="sponsor-logos"
+              idOrSlug={editingId || `spn-${Math.random().toString(36).substr(2, 5)}`}
+              value={form.logo}
+              onChange={(url) => setForm(p => ({ ...p, logo: url }))}
+              label="Sponsor Logo / Banner Görseli"
+            />
           </div>
 
           <div className="pt-6 border-t border-white/5 flex justify-end gap-3">

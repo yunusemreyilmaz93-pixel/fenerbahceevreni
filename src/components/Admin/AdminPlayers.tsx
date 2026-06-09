@@ -14,6 +14,7 @@ import {
   Star
 } from 'lucide-react';
 import { dbGetCollection, dbUpsertDocument, dbAddDocument, dbDeleteDocument } from '../../lib/dbService';
+import { FirebaseImageUploader } from './AdminCommon';
 
 export const AdminPlayers: React.FC = () => {
   const [players, setPlayers] = useState<any[]>([]);
@@ -57,11 +58,14 @@ export const AdminPlayers: React.FC = () => {
       return;
     }
 
+    const playerSlug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const compiledData = {
       ...form,
+      slug: playerSlug,
+      photoUrl: form.photo,
       age: Number(form.age),
-      strengths: form.strengths.split(',').map(s => s.trim()).filter(Boolean),
-      weaknesses: form.weaknesses.split(',').map(w => w.trim()).filter(Boolean),
+      strengths: typeof form.strengths === 'string' ? form.strengths.split(',').map(s => s.trim()).filter(Boolean) : form.strengths,
+      weaknesses: typeof form.weaknesses === 'string' ? form.weaknesses.split(',').map(w => w.trim()).filter(Boolean) : form.weaknesses,
       updatedAt: new Date().toISOString()
     };
 
@@ -262,15 +266,13 @@ export const AdminPlayers: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-black uppercase text-slate-400">Oyuncu Profil Fotoğrafı (Görsel URL)</label>
-                <input
-                  type="text"
-                  value={form.photo}
-                  onChange={(e) => setForm(p => ({ ...p, photo: e.target.value }))}
-                  className="px-4 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white font-mono"
-                />
-              </div>
+              <FirebaseImageUploader
+                folderPath="player-images"
+                idOrSlug={form.name ? form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : 'temp-player'}
+                value={form.photo}
+                onChange={(url) => setForm(p => ({ ...p, photo: url }))}
+                label="Oyuncu Profil Fotoğrafı"
+              />
             </div>
 
             <div className="space-y-4 flex flex-col justify-between">

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { dbGetCollection, dbUpsertDocument, dbAddDocument, dbDeleteDocument } from '../../lib/dbService';
 import { generateSlug, calculateReadingTime, formatDate } from '../../lib/adminHelpers';
-import { DeleteConfirmModal, EmptyState, ImagePreview, StatusBadge, ContentPreviewModal } from './AdminCommon';
+import { DeleteConfirmModal, EmptyState, ImagePreview, StatusBadge, ContentPreviewModal, FirebaseImageUploader } from './AdminCommon';
 
 const CATEGORIES = ["Taktik Analiz", "Maç Raporu", "Orta Saha Analiz", "Rotasyon Analizi", "Transfer Scout", "Köşe Yazısı"];
 
@@ -148,6 +148,7 @@ export const AdminArticles: React.FC<AdminArticlesProps> = ({ showToast, initiat
 
     const finalData = {
       ...form,
+      coverImageUrl: form.coverImage,
       tags: tagsArray,
       updatedAt: new Date().toISOString()
     };
@@ -388,18 +389,13 @@ export const AdminArticles: React.FC<AdminArticlesProps> = ({ showToast, initiat
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Kapak Görseli Linki</label>
-                <input
-                  type="text"
-                  value={form.coverImage}
-                  onChange={(e) => handleFormValueChange('coverImage', e.target.value)}
-                  className="px-4 py-3 bg-fb-dark border border-white/15 rounded-xl text-xs text-white font-mono focus:outline-none"
-                />
-              </div>
-
-              {/* Dynamic visual preview block */}
-              <ImagePreview url={form.coverImage} label="KAPAK GÖRSELİ ÖNİZLEME" />
+              <FirebaseImageUploader
+                folderPath="article-covers"
+                idOrSlug={form.slug || 'temp-article'}
+                value={form.coverImage}
+                onChange={(url) => handleFormValueChange('coverImage', url)}
+                label="Kapak Görseli"
+              />
 
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Etiketler (Virgülle Ayırın)</label>
