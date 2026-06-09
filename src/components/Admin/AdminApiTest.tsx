@@ -14,6 +14,21 @@ import {
   Star,
   RefreshCw
 } from 'lucide-react';
+import { dbUpsertDocument } from '../../lib/dbService';
+
+export interface DebugInfo {
+  action: string;
+  backendRoute: string;
+  externalEndpoint: string;
+  statusCode: number | string;
+  contentType: string;
+  rawResponsePreview?: string;
+  rateLimits?: {
+    remaining: string;
+    limit: string;
+    requests: string;
+  };
+}
 
 export const AdminApiTest: React.FC = () => {
   // Config States
@@ -25,8 +40,12 @@ export const AdminApiTest: React.FC = () => {
 
   // Execution & Loading States
   const [loading, setLoading] = useState<string | null>(null);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Debug State
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
 
   // Result States
   const [testResult, setTestResult] = useState<any | null>(null);
@@ -44,7 +63,7 @@ export const AdminApiTest: React.FC = () => {
 
   const [activeResultTab, setActiveResultTab] = useState<'status' | 'leagues' | 'teams' | 'players' | 'fixtures' | 'standings'>('status');
 
-  // Generic request handler
+  // Generic request handler with content-type protection and debug capturing
   const handleApiRequest = async (
     actionKey: string, 
     endpoint: string, 
@@ -53,25 +72,233 @@ export const AdminApiTest: React.FC = () => {
     setLoading(actionKey);
     setErrorMsg(null);
     setSuccessMsg(null);
+    setDebugInfo(null);
 
     try {
       const response = await fetch(endpoint);
-      const resData = await response.json();
+      const contentType = response.headers.get("content-type") || "";
+      let resData: any = null;
 
-      if (!response.ok || !resData.success) {
-        if (response.status === 400 || (resData && resData.message && resData.message.includes("bulunamadı"))) {
-          throw new Error("API anahtarı bulunamadı. Lütfen APISPORTS_KEY secret ayarını kontrol edin.");
+      if (contentType.includes("application/json")) {
+        resData = await response.json();
+      } else {
+        const rawText = await response.text();
+        console.error("Backend response is not JSON:", rawText.slice(0, 200));
+        
+        const dbg: DebugInfo = {
+          action: actionKey,
+          backendRoute: endpoint,
+          externalEndpoint: "Bilinmiyor (Sunucu proxy hatası)",
+          statusCode: response.status,
+          contentType: contentType,
+          rawResponsePreview: rawText.slice(0, 300)
+        };
+        setDebugInfo(dbg);
+
+        let trMsg = "API yanıtı JSON formatında değil.";
+        if (response.status === 404) {
+          trMsg = "Endpoint bulunamadı veya backend route çalışmıyor.";
         }
-        throw new Error("API-Football verisi alınamadı. Lütfen API anahtarını, günlük limiti ve endpoint ayarlarını kontrol edin.");
+        throw new Error(trMsg);
+      }
+
+      // Populate debug information from JSON payload
+      if (resData) {
+        const dbg: DebugInfo = {
+          action: actionKey,
+          backendRoute: endpoint,
+          externalEndpoint: resData.debug?.externalEndpoint || "Bilinmiyor",
+          statusCode: resData.debug?.statusCode || response.status,
+          contentType: resData.debug?.contentType || contentType,
+          rawResponsePreview: resData.debug?.errorPreview || (resData.success ? undefined : JSON.stringify(resData, null, 2).slice(0, 300)),
+          rateLimits: resData.headers ? {
+            remaining: resData.headers.remaining,
+            limit: resData.headers.limit,
+            requests: resData.headers.requests
+          } : undefined
+        };
+        setDebugInfo(dbg);
+
+        if (resData.headers) {
+          setRateLimitInfo({
+            remaining: resData.headers.remaining,
+            limit: resData.headers.limit,
+            requests: resData.headers.requests
+          });
+        }
+      }
+
+      if (!resData.success) {
+        let msg = resData.message || "API-Football verisi alınamadı.";
+        
+        // Match spec Turkish translations
+        if (msg.toLowerCase().includes("key") || msg.toLowerCase().includes("token") || msg.toLowerCase().includes("anahtar") || resData.isApiError) {
+          msg = "API anahtarı bulunamadı. APISPORTS_KEY secret ayarını kontrol edin.";
+        } else if (msg.toLowerCase().includes("limit") || msg.toLowerCase().includes("exceeded")) {
+          msg = "Günlük request limiti dolmuş olabilir.";
+        } else if (msg.toLowerCase().includes("not found") || msg.toLowerCase().includes("endpoint")) {
+          msg = "Endpoint bulunamadı veya backend route çalışmıyor.";
+        }
+        throw new Error(msg);
       }
 
       onSuccess(resData);
-      setSuccessMsg("Bağlantı başarılı.");
+      setSuccessMsg("API bağlantısı başarılı.");
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || "API-Football verisi alınamadı. Lütfen API anahtarını, günlük limiti ve endpoint ayarlarını kontrol edin.");
+      setErrorMsg(err.message || "API-Football verisi alınamadı.");
     } finally {
       setLoading(null);
+    }
+  };
+
+  // Database synchronizers matching Lightweight sync strategy & Database write rule (using API IDs)
+  const saveSquadToDb = async () => {
+    if (!players || players.length === 0) return;
+    setSavingKey('players');
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      let count = 0;
+      for (const plyr of players) {
+        const docId = `plyr-api-${plyr.id}`;
+        let posTr = 'Ortasaha';
+        const positionLong = plyr.position || '';
+        if (positionLong === 'Goalkeeper') posTr = 'Kaleci';
+        else if (positionLong === 'Defender') posTr = 'Defans';
+        else if (positionLong === 'Midfielder') posTr = 'Ortasaha';
+        else if (positionLong === 'Attacker') posTr = 'Forvet';
+
+        const dataToSave = {
+          id: docId,
+          apiSportsId: Number(plyr.id),
+          name: plyr.name,
+          position: posTr,
+          age: plyr.age || 26,
+          nationality: plyr.nationality || 'Turkey',
+          photo: plyr.photo || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
+          number: plyr.number ? String(plyr.number) : '',
+          formRating: "7.0",
+          lastMatchRating: "7.0",
+          trend: "stable",
+          status: "active",
+        };
+        await dbUpsertDocument('players', docId, dataToSave);
+        count++;
+      }
+      setSuccessMsg(`${count} oyuncu verisi 'players' koleksiyonuna başarıyla kaydedildi/güncellendi.`);
+    } catch (e: any) {
+      console.error(e);
+      setErrorMsg("Kadro veritabanına kaydedilirken hata oluştu: " + e.message);
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const saveFixturesToDb = async () => {
+    if (!fixtures || fixtures.length === 0) return;
+    setSavingKey('fixtures');
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      let count = 0;
+      for (const fxt of fixtures) {
+        const docId = `match-api-${fxt.fixture?.id}`;
+        const venueName = fxt.fixture?.venue?.name || '';
+        const venueCity = fxt.fixture?.venue?.city || '';
+        const dataToSave = {
+          id: docId,
+          apiSportsId: Number(fxt.fixture?.id),
+          homeTeam: fxt.teams?.home?.name || 'Bilinmiyor',
+          awayTeam: fxt.teams?.away?.name || 'Bilinmiyor',
+          homeLogo: fxt.teams?.home?.logo || '',
+          awayLogo: fxt.teams?.away?.logo || '',
+          competition: fxt.league?.name ? `${fxt.league.name} • ${fxt.league.round || 'Hafta'}` : 'Süper Lig',
+          matchDate: fxt.fixture?.date || new Date().toISOString(),
+          venue: venueCity ? `${venueName} / ${venueCity}` : venueName,
+          status: fxt.fixture?.status?.short === 'FT' ? 'finished' : fxt.fixture?.status?.short === 'LIVE' || fxt.fixture?.status?.short === '1H' || fxt.fixture?.status?.short === '2H' ? 'live' : 'upcoming',
+          scoreHome: fxt.goals?.home !== null ? Number(fxt.goals.home) : 0,
+          scoreAway: fxt.goals?.away !== null ? Number(fxt.goals.away) : 0,
+          matchPreview: "API-Football üzerinden indirilen taktik maçı.",
+        };
+        await dbUpsertDocument('matches', docId, dataToSave);
+        count++;
+      }
+      setSuccessMsg(`${count} maç fikstürü 'matches' koleksiyonuna başarıyla kaydedildi/güncellendi.`);
+    } catch (e: any) {
+      console.error(e);
+      setErrorMsg("Fikstür veritabanına kaydedilirken hata oluştu: " + e.message);
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const saveStandingsToDb = async () => {
+    if (!standings || standings.length === 0) return;
+    setSavingKey('standings');
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      const docId = `standings-api-${leagueId}-${season}`;
+      const dataToSave = {
+        id: docId,
+        leagueId: Number(leagueId),
+        season: Number(season),
+        standingsList: standings.map(row => ({
+          rank: row.rank,
+          teamName: row.team?.name,
+          teamId: row.team?.id,
+          logo: row.team?.logo,
+          played: row.all?.played,
+          win: row.all?.win,
+          draw: row.all?.draw,
+          lose: row.all?.lose,
+          goalsFor: row.all?.goals?.for,
+          goalsAgainst: row.all?.goals?.against,
+          goalsDiff: row.goalsDiff,
+          points: row.points
+        }))
+      };
+      await dbUpsertDocument('standings', docId, dataToSave);
+      setSuccessMsg(`Puan durumu '${docId}' anahtarıyla 'standings' koleksiyonuna başarıyla kaydedildi.`);
+    } catch (e: any) {
+      console.error(e);
+      setErrorMsg("Puan durumu veritabanına kaydedilirken hata oluştu: " + e.message);
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const saveTeamsToDb = async () => {
+    if (!teams || teams.length === 0) return;
+    setSavingKey('teams');
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    try {
+      let count = 0;
+      for (const item of teams) {
+        const teamIdStr = `team-api-${item.team?.id}`;
+        const dataToSave = {
+          id: teamIdStr,
+          apiSportsId: Number(item.team?.id),
+          name: item.team?.name,
+          shortName: item.team?.code || item.team?.name?.slice(0,3).toUpperCase(),
+          logoUrl: item.team?.logo || '',
+          logo: item.team?.logo || '',
+          country: item.team?.country || 'Turkey',
+          founded: item.team?.founded || null,
+          venueName: item.venue?.name || '',
+          venueCity: item.venue?.city || ''
+        };
+        await dbUpsertDocument('teams', teamIdStr, dataToSave);
+        count++;
+      }
+      setSuccessMsg(`${count} takım detayı 'teams' koleksiyonuna ve logo haritalarına başarıyla kaydedildi/güncellendi.`);
+    } catch (e: any) {
+      console.error(e);
+      setErrorMsg("Takımlar veritabanına kaydedilirken hata oluştu: " + e.message);
+    } finally {
+      setSavingKey(null);
     }
   };
 
@@ -522,38 +749,54 @@ export const AdminApiTest: React.FC = () => {
                       Arama sonucuyla eşleşen takım bulunamadı.
                     </div>
                   ) : (
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="border-b border-white/[0.06] text-slate-400 font-extrabold uppercase font-mono text-[10px] tracking-wider">
-                          <th className="py-2.5">Logo</th>
-                          <th className="py-2.5">Takım Adı</th>
-                          <th className="py-2.5">Takım ID</th>
-                          <th className="py-2.5">Ülke</th>
-                          <th className="py-2.5">Kuruluş</th>
-                          <th className="py-2.5">Stadyum (Venue)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {teams.map((item, index) => (
-                          <tr key={index} className="border-b border-white/[0.03] hover:bg-white/[0.01]">
-                            <td className="py-3">
-                              {item.team?.logo ? (
-                                <img src={item.team.logo} alt="" referrerPolicy="no-referrer" className="w-6 h-6 object-contain" />
-                              ) : (
-                                <span className="text-slate-600">-</span>
-                              )}
-                            </td>
-                            <td className="py-3 font-semibold text-white">{item.team?.name || 'Belirsiz'}</td>
-                            <td className="py-3 font-mono text-fb-yellow font-black">{item.team?.id}</td>
-                            <td className="py-3 text-slate-300">{item.team?.country}</td>
-                            <td className="py-3 font-mono">{item.team?.founded || 'Bilinmiyor'}</td>
-                            <td className="py-3 text-slate-400 text-xxs leading-snug">
-                              {item.venue?.name} ({item.venue?.city || 'Bilinmiyor'})
-                            </td>
+                    <div>
+                      <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-xl">
+                        <div className="text-xxs text-slate-355 font-semibold uppercase tracking-wider font-mono">
+                          Alınan <span className="font-bold text-emerald-400 font-mono">{teams.length}</span> takımı veritabanına kaydedebilir ve logo haritalarını senkronize edebilirsiniz.
+                        </div>
+                        <button
+                          onClick={saveTeamsToDb}
+                          disabled={savingKey !== null}
+                          className="px-4 py-1.5 rounded-lg bg-emerald-500 font-black text-[10px] text-black uppercase tracking-wider hover:bg-emerald-400 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer transition-all self-end sm:self-auto shrink-0"
+                        >
+                          {savingKey === 'teams' ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Veritabanına Kaydet
+                        </button>
+                      </div>
+
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-white/[0.06] text-slate-400 font-extrabold uppercase font-mono text-[10px] tracking-wider">
+                            <th className="py-2.5">Logo</th>
+                            <th className="py-2.5">Takım Adı</th>
+                            <th className="py-2.5">Takım ID</th>
+                            <th className="py-2.5">Ülke</th>
+                            <th className="py-2.5">Kuruluş</th>
+                            <th className="py-2.5">Stadyum (Venue)</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {teams.map((item, index) => (
+                            <tr key={index} className="border-b border-white/[0.03] hover:bg-white/[0.01]">
+                              <td className="py-3">
+                                {item.team?.logo ? (
+                                  <img src={item.team.logo} alt="" referrerPolicy="no-referrer" className="w-6 h-6 object-contain" />
+                                ) : (
+                                  <span className="text-slate-600">-</span>
+                                )}
+                              </td>
+                              <td className="py-3 font-semibold text-white">{item.team?.name || 'Belirsiz'}</td>
+                              <td className="py-3 font-mono text-fb-yellow font-black">{item.team?.id}</td>
+                              <td className="py-3 text-slate-300">{item.team?.country}</td>
+                              <td className="py-3 font-mono">{item.team?.founded || 'Bilinmiyor'}</td>
+                              <td className="py-3 text-slate-400 text-xxs leading-snug">
+                                {item.venue?.name} ({item.venue?.city || 'Bilinmiyor'})
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               )}
@@ -570,36 +813,52 @@ export const AdminApiTest: React.FC = () => {
                       Kadro verisi bulunmuyor veya takım ID'sini güncelleyin.
                     </div>
                   ) : (
-                    <table className="w-full text-left border-collapse text-xs font-medium">
-                      <thead>
-                        <tr className="border-b border-white/[0.06] text-slate-400 font-extrabold uppercase font-mono text-[10px] tracking-wider">
-                          <th className="py-2.5">Fotoğraf</th>
-                          <th className="py-2.5">Futbolcu</th>
-                          <th className="py-2.5">Oyuncu ID</th>
-                          <th className="py-2.5">Numara</th>
-                          <th className="py-2.5">Pozisyon</th>
-                          <th className="py-2.5">Yaş</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {players.map((plyr, index) => (
-                          <tr key={index} className="border-b border-white/[0.03] hover:bg-white/[0.01]">
-                            <td className="py-2">
-                              {plyr.photo ? (
-                                <img src={plyr.photo} alt="" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full bg-white/[0.02] border border-white/5 object-cover" />
-                              ) : (
-                                <span className="text-slate-600">-</span>
-                              )}
-                            </td>
-                            <td className="py-2 font-semibold text-white">{plyr.name || 'Bilinmiyor'}</td>
-                            <td className="py-2 font-mono text-slate-400">{plyr.id}</td>
-                            <td className="py-2 font-mono text-fb-yellow font-black">{plyr.number || '-'}</td>
-                            <td className="py-2 uppercase font-mono text-xxs">{plyr.position || '-'}</td>
-                            <td className="py-2 font-mono">{plyr.age || '-'}</td>
+                    <div>
+                      <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-fb-yellow/10 border border-fb-yellow/20 p-3.5 rounded-xl">
+                        <div className="text-xxs text-slate-350 font-semibold uppercase tracking-wider font-mono">
+                          Alınan <span className="font-bold text-fb-yellow font-mono">{players.length}</span> oyuncuyu players koleksiyonuna senkronize ederek saklayın.
+                        </div>
+                        <button
+                          onClick={saveSquadToDb}
+                          disabled={savingKey !== null}
+                          className="px-4 py-1.5 rounded-lg bg-[#FFD21F] font-black text-[10px] text-black uppercase tracking-wider hover:bg-[#ffe366] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer transition-all self-end sm:self-auto shrink-0"
+                        >
+                          {savingKey === 'players' ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Kadro Veritabanına Yaz
+                        </button>
+                      </div>
+
+                      <table className="w-full text-left border-collapse text-xs font-medium">
+                        <thead>
+                          <tr className="border-b border-white/[0.06] text-slate-400 font-extrabold uppercase font-mono text-[10px] tracking-wider">
+                            <th className="py-2.5">Fotoğraf</th>
+                            <th className="py-2.5">Futbolcu</th>
+                            <th className="py-2.5">Oyuncu ID</th>
+                            <th className="py-2.5">Numara</th>
+                            <th className="py-2.5">Pozisyon</th>
+                            <th className="py-2.5">Yaş</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {players.map((plyr, index) => (
+                            <tr key={index} className="border-b border-white/[0.03] hover:bg-white/[0.01]">
+                              <td className="py-2">
+                                {plyr.photo ? (
+                                  <img src={plyr.photo} alt="" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full bg-white/[0.02] border border-white/5 object-cover" />
+                                ) : (
+                                  <span className="text-slate-600">-</span>
+                                )}
+                              </td>
+                              <td className="py-2 font-semibold text-white">{plyr.name || 'Bilinmiyor'}</td>
+                              <td className="py-2 font-mono text-slate-400">{plyr.id}</td>
+                              <td className="py-2 font-mono text-fb-yellow font-black">{plyr.number || '-'}</td>
+                              <td className="py-2 uppercase font-mono text-xxs">{plyr.position || '-'}</td>
+                              <td className="py-2 font-mono">{plyr.age || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               )}
@@ -616,66 +875,82 @@ export const AdminApiTest: React.FC = () => {
                       Belirtilen parametreler ve sezon için fikstür bulunamadı.
                     </div>
                   ) : (
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="border-b border-white/[0.06] text-slate-400 font-extrabold uppercase font-mono text-[10px] tracking-wider">
-                          <th className="py-2.5">Künye</th>
-                          <th className="py-2.5">Rakip / Eşleşme</th>
-                          <th className="py-2.5">Skor</th>
-                          <th className="py-2.5">Durum (Status)</th>
-                          <th className="py-2.5">Stadyum</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {fixtures.slice(0, 30).map((fxt, index) => {
-                          const date = fxt.fixture?.date ? new Date(fxt.fixture.date).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Bilinmiyor';
-                          const leagueName = fxt.league?.name || 'Lig';
-                          const venueName = fxt.fixture?.venue?.name || 'Bilinmiyor';
-                          
-                          const homeTeam = fxt.teams?.home?.name;
-                          const awayTeam = fxt.teams?.away?.name;
+                    <div>
+                      <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-xl">
+                        <div className="text-xxs text-slate-350 font-semibold uppercase tracking-wider font-mono">
+                          Alınan <span className="font-bold text-emerald-400 font-mono">{fixtures.length}</span> maçı matches koleksiyonuna yükleyerek fikstür analizi için hazırlayabilirsiniz.
+                        </div>
+                        <button
+                          onClick={saveFixturesToDb}
+                          disabled={savingKey !== null}
+                          className="px-4 py-1.5 rounded-lg bg-emerald-500 font-black text-[10px] text-black uppercase tracking-wider hover:bg-emerald-400 disabled:opacity-50 flex items-center gap-1.5 cursor-pointer transition-all self-end sm:self-auto shrink-0"
+                        >
+                          {savingKey === 'fixtures' ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Fikstürü Kaydet
+                        </button>
+                      </div>
 
-                          const homeLogo = fxt.teams?.home?.logo;
-                          const awayLogo = fxt.teams?.away?.logo;
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-white/[0.06] text-slate-400 font-extrabold uppercase font-mono text-[10px] tracking-wider">
+                            <th className="py-2.5">Künye</th>
+                            <th className="py-2.5">Rakip / Eşleşme</th>
+                            <th className="py-2.5">Skor</th>
+                            <th className="py-2.5">Durum (Status)</th>
+                            <th className="py-2.5">Stadyum</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {fixtures.slice(0, 30).map((fxt, index) => {
+                            const date = fxt.fixture?.date ? new Date(fxt.fixture.date).toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Bilinmiyor';
+                            const leagueName = fxt.league?.name || 'Lig';
+                            const venueName = fxt.fixture?.venue?.name || 'Bilinmiyor';
+                            
+                            const homeTeam = fxt.teams?.home?.name;
+                            const awayTeam = fxt.teams?.away?.name;
 
-                          const homeGoals = fxt.goals?.home;
-                          const awayGoals = fxt.goals?.away;
-                          
-                          const isFinished = fxt.fixture?.status?.short === 'FT';
+                            const homeLogo = fxt.teams?.home?.logo;
+                            const awayLogo = fxt.teams?.away?.logo;
 
-                          return (
-                            <tr key={index} className="border-b border-white/[0.03] hover:bg-white/[0.01]">
-                              <td className="py-3 text-[10px] font-mono leading-relaxed space-y-0.5">
-                                <p className="text-[#FFD21F] font-bold">{leagueName}</p>
-                                <p className="text-slate-500">{date}</p>
-                              </td>
-                              <td className="py-3">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-semibold text-white flex items-center gap-1">
-                                    {homeLogo && <img src={homeLogo} alt="" className="w-4 h-4 object-contain inline" referrerPolicy="no-referrer" />} {homeTeam}
+                            const homeGoals = fxt.goals?.home;
+                            const awayGoals = fxt.goals?.away;
+                            
+                            const isFinished = fxt.fixture?.status?.short === 'FT';
+
+                            return (
+                              <tr key={index} className="border-b border-white/[0.03] hover:bg-white/[0.01]">
+                                <td className="py-3 text-[10px] font-mono leading-relaxed space-y-0.5">
+                                  <p className="text-[#FFD21F] font-bold">{leagueName}</p>
+                                  <p className="text-slate-500">{date}</p>
+                                </td>
+                                <td className="py-3">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-white flex items-center gap-1">
+                                      {homeLogo && <img src={homeLogo} alt="" className="w-4 h-4 object-contain inline" referrerPolicy="no-referrer" />} {homeTeam}
+                                    </span>
+                                    <span className="text-slate-600 text-xxs font-bold">vs</span>
+                                    <span className="font-semibold text-white flex items-center gap-1">
+                                      {awayLogo && <img src={awayLogo} alt="" className="w-4 h-4 object-contain inline" referrerPolicy="no-referrer" />} {awayTeam}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="py-3 font-mono font-black text-fb-yellow">
+                                  {homeGoals !== null && awayGoals !== null ? `${homeGoals} - ${awayGoals}` : 'Oynanmadı'}
+                                </td>
+                                <td className="py-3">
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase font-mono ${
+                                    isFinished ? 'bg-slate-500/10 text-slate-300' : 'bg-green-500/10 text-green-400'
+                                  }`}>
+                                    {fxt.fixture?.status?.long || 'Bilinmiyor'}
                                   </span>
-                                  <span className="text-slate-600 text-xxs font-bold">vs</span>
-                                  <span className="font-semibold text-white flex items-center gap-1">
-                                    {awayLogo && <img src={awayLogo} alt="" className="w-4 h-4 object-contain inline" referrerPolicy="no-referrer" />} {awayTeam}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="py-3 font-mono font-black text-fb-yellow">
-                                {homeGoals !== null && awayGoals !== null ? `${homeGoals} - ${awayGoals}` : 'Oynanmadı'}
-                              </td>
-                              <td className="py-3">
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase font-mono ${
-                                  isFinished ? 'bg-slate-500/10 text-slate-300' : 'bg-green-500/10 text-green-400'
-                                }`}>
-                                  {fxt.fixture?.status?.long || 'Bilinmiyor'}
-                                </span>
-                              </td>
-                              <td className="py-3 text-slate-400 text-xxs select-all max-w-[140px] truncate">{venueName}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                                </td>
+                                <td className="py-3 text-slate-400 text-xxs select-all max-w-[140px] truncate">{venueName}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               )}
@@ -692,47 +967,63 @@ export const AdminApiTest: React.FC = () => {
                       Gönderilen parametre ve sezona uygun puan durumu tablosu verisi alınamadı.
                     </div>
                   ) : (
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="border-b border-white/[0.06] text-slate-400 font-extrabold uppercase font-mono text-[10px] tracking-wider">
-                          <th className="py-2.5">Sıra</th>
-                          <th className="py-2.5">Takım</th>
-                          <th className="py-2.5">O</th>
-                          <th className="py-2.5">G</th>
-                          <th className="py-2.5">B</th>
-                          <th className="py-2.5">M</th>
-                          <th className="py-2.5">A</th>
-                          <th className="py-2.5">Y</th>
-                          <th className="py-2.5 font-black text-fb-yellow font-mono">Puan</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {standings.map((teamRow, index) => {
-                          const tName = teamRow.team?.name;
-                          const tLogo = teamRow.team?.logo;
-                          const isFB = tName?.toLowerCase().includes('fenerbahce') || teamRow.team?.id === 611;
+                    <div>
+                      <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[#FFD21F]/10 border border-[#FFD21F]/20 p-3.5 rounded-xl">
+                        <div className="text-xxs text-slate-350 font-semibold uppercase tracking-wider font-mono">
+                          Alınan lig puan cetvelini site anasayfası ve puan durumu tablosu için 'standings' koleksiyonuna sabitleyin.
+                        </div>
+                        <button
+                          onClick={saveStandingsToDb}
+                          disabled={savingKey !== null}
+                          className="px-4 py-1.5 rounded-lg bg-[#FFD21F] font-black text-[10px] text-black uppercase tracking-wider hover:bg-[#ffe366] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer transition-all self-end sm:self-auto shrink-0"
+                        >
+                          {savingKey === 'standings' ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Cetveli Veritabanına Yaz
+                        </button>
+                      </div>
 
-                          return (
-                            <tr key={index} className={`border-b border-white/[0.03] hover:bg-white/[0.01] ${isFB ? 'bg-fb-yellow/5 border-l-2 border-l-fb-yellow' : ''}`}>
-                              <td className="py-2.5 font-mono font-black pl-1">{teamRow.rank}</td>
-                              <td className="py-2.5">
-                                <div className="flex items-center gap-2">
-                                  {tLogo && <img src={tLogo} alt="" className="w-4 h-4 object-contain" referrerPolicy="no-referrer" />}
-                                  <span className={`font-semibold ${isFB ? 'text-fb-yellow font-black' : 'text-white'}`}>{tName}</span>
-                                </div>
-                              </td>
-                              <td className="py-2.5 font-mono">{teamRow.all?.played}</td>
-                              <td className="py-2.5 font-mono text-green-400">{teamRow.all?.win}</td>
-                              <td className="py-2.5 font-mono text-slate-400">{teamRow.all?.draw}</td>
-                              <td className="py-2.5 font-mono text-rose-400">{teamRow.all?.lose}</td>
-                              <td className="py-2.5 font-mono text-slate-400">{teamRow.all?.goals?.for}</td>
-                              <td className="py-2.5 font-mono text-slate-400">{teamRow.all?.goals?.against}</td>
-                              <td className="py-2.5 font-mono font-black text-fb-yellow text-sm">{teamRow.points}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="border-b border-white/[0.06] text-slate-400 font-extrabold uppercase font-mono text-[10px] tracking-wider">
+                            <th className="py-2.5">Sıra</th>
+                            <th className="py-2.5">Takım</th>
+                            <th className="py-2.5">O</th>
+                            <th className="py-2.5">G</th>
+                            <th className="py-2.5">B</th>
+                            <th className="py-2.5">M</th>
+                            <th className="py-2.5">A</th>
+                            <th className="py-2.5">Y</th>
+                            <th className="py-2.5 font-black text-fb-yellow font-mono">Puan</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {standings.map((teamRow, index) => {
+                            const tName = teamRow.team?.name;
+                            const tLogo = teamRow.team?.logo;
+                            const isFB = tName?.toLowerCase().includes('fenerbahce') || teamRow.team?.id === 611;
+
+                            return (
+                              <tr key={index} className={`border-b border-white/[0.03] hover:bg-white/[0.01] ${isFB ? 'bg-fb-yellow/5 border-l-2 border-l-fb-yellow' : ''}`}>
+                                <td className="py-2.5 font-mono font-black pl-1">{teamRow.rank}</td>
+                                <td className="py-2.5">
+                                  <div className="flex items-center gap-2">
+                                    {tLogo && <img src={tLogo} alt="" className="w-4 h-4 object-contain" referrerPolicy="no-referrer" />}
+                                    <span className={`font-semibold ${isFB ? 'text-fb-yellow font-black' : 'text-white'}`}>{tName}</span>
+                                  </div>
+                                </td>
+                                <td className="py-2.5 font-mono">{teamRow.all?.played}</td>
+                                <td className="py-2.5 font-mono text-green-400">{teamRow.all?.win}</td>
+                                <td className="py-2.5 font-mono text-slate-400">{teamRow.all?.draw}</td>
+                                <td className="py-2.5 font-mono text-rose-400">{teamRow.all?.lose}</td>
+                                <td className="py-2.5 font-mono text-slate-400">{teamRow.all?.goals?.for}</td>
+                                <td className="py-2.5 font-mono text-slate-400">{teamRow.all?.goals?.against}</td>
+                                <td className="py-2.5 font-mono font-black text-fb-yellow text-sm">{teamRow.points}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               )}
@@ -740,6 +1031,43 @@ export const AdminApiTest: React.FC = () => {
             </div>
 
           </div>
+
+          {/* Core Debug and Telemetry Console */}
+          {debugInfo && (
+            <div className="rounded-2xl bg-[#060a12] border border-white/[0.06] p-6 space-y-4 font-mono text-xs shadow-xl">
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-3 text-xxs tracking-wider uppercase font-black text-rose-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse font-sans"></span>
+                  TERMİNAL HATA AYIKLAMA (DEBUG TERMINAL)
+                </span>
+                <span className="text-slate-500">ADMIN SECURE INFO</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xxs leading-relaxed">
+                <div className="space-y-2">
+                  <p><strong className="text-slate-500 uppercase font-bold">Tetiklenen Aksiyon:</strong> <span className="text-white font-black">{debugInfo.action}</span></p>
+                  <p><strong className="text-slate-500 uppercase font-bold">Yapılan Backend Route:</strong> <span className="text-sky-400">{debugInfo.backendRoute}</span></p>
+                  <p><strong className="text-slate-500 uppercase font-bold">Gerçekleşen Dış API:</strong> <span className="text-indigo-400 select-all">{debugInfo.externalEndpoint}</span></p>
+                </div>
+                <div className="space-y-2">
+                  <p><strong className="text-slate-500 uppercase font-bold">HTTP Status Code:</strong> <span className={`font-black ${String(debugInfo.statusCode).startsWith('2') ? 'text-green-400' : 'text-rose-400'}`}>{debugInfo.statusCode}</span></p>
+                  <p><strong className="text-slate-500 uppercase font-bold">Giriş/İçerik Tipi:</strong> <span className="text-slate-350 font-semibold">{debugInfo.contentType}</span></p>
+                  {debugInfo.rateLimits && (
+                    <p><strong className="text-slate-500 uppercase font-bold">Sunucu API Limitleri:</strong> <span className="text-emerald-400 font-black">{debugInfo.rateLimits.remaining} Kalan / {debugInfo.rateLimits.requests} Yapılan ({debugInfo.rateLimits.limit} Limit)</span></p>
+                  )}
+                </div>
+              </div>
+
+              {debugInfo.rawResponsePreview && (
+                <div className="mt-3.5 space-y-1.5 leading-relaxed">
+                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Ham Yanıt Ön İzleme (HTTP Payload / Error Body Preview):</p>
+                  <pre className="p-3.5 bg-[#0c1220] rounded-xl border border-white/5 text-slate-300 text-[10px] select-all max-h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                    {debugInfo.rawResponsePreview}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
 
