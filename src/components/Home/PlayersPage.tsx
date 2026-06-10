@@ -43,6 +43,14 @@ interface Player {
   weaknesses: string[];
   analysis: string;
   status: 'active' | 'loan' | 'target';
+  shirtNumber?: number;
+  secondaryPosition?: string;
+  height?: number;
+  preferredFoot?: string;
+  contractEndDate?: string;
+  marketValue?: string;
+  season?: string;
+  firstXI?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -247,14 +255,22 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
             position: p.position || 'Orta Saha',
             age: parseInt(p.age) || 25,
             nationality: p.nationality || 'Türkiye',
-            photo: p.photo || '',
+            photo: p.photoUrl || p.photo || '',
             formRating: parseFloat(p.formRating) || 7.0,
             lastMatchRating: parseFloat(p.lastMatchRating) || 7.0,
             trend: (p.trend === 'yükselişte' || p.trend === 'düşüşte' || p.trend === 'stabil') ? p.trend : 'stabil',
             strengths: Array.isArray(p.strengths) ? p.strengths : (typeof p.strengths === 'string' ? p.strengths.split(',').map((s: string) => s.trim()) : ["Kazanma Hırsı"]),
             weaknesses: Array.isArray(p.weaknesses) ? p.weaknesses : (typeof p.weaknesses === 'string' ? p.weaknesses.split(',').map((w: string) => w.trim()) : ["Kondisyon"]),
             analysis: p.analysis || p.shortAnalysis || 'Detaylı scout raporu yakında eklenecek.',
-            status: p.status
+            status: p.status,
+            shirtNumber: p.shirtNumber ? parseInt(p.shirtNumber) : undefined,
+            secondaryPosition: p.secondaryPosition || '',
+            height: p.height ? parseInt(p.height) : undefined,
+            preferredFoot: p.preferredFoot || '',
+            contractEndDate: p.contractEndDate || '',
+            marketValue: p.marketValue || '',
+            season: p.season || '',
+            firstXI: !!p.firstXI
           }));
           setPlayers(mapped);
         } else {
@@ -540,13 +556,29 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                   {/* Left portion */}
                   <div className="lg:col-span-4 p-8 flex flex-col justify-between items-center text-center bg-fb-dark/45 border-r border-white/[0.04]">
                     <div className="space-y-4 py-4">
-                      {/* Abstract Silhouette representation */}
-                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-fb-navy to-fb-yellow/10 border-2 border-fb-yellow/40 flex items-center justify-center text-fb-yellow/90 font-display italic font-black text-2xl shadow-xl group-hover:scale-105 transition-transform mx-auto">
-                        FE
-                      </div>
+                      {/* Actual Player Photo with Fallback */}
+                      {featuredPlayer.photo ? (
+                        <div className="w-24 h-24 rounded-2xl bg-fb-dark border-2 border-fb-yellow/40 overflow-hidden shadow-xl mx-auto group-hover:scale-105 transition-transform">
+                          <img 
+                            src={featuredPlayer.photo} 
+                            alt={featuredPlayer.name} 
+                            className="w-full h-full object-cover" 
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-fb-navy to-fb-yellow/10 border-2 border-fb-yellow/40 flex items-center justify-center text-fb-yellow/90 font-display italic font-black text-2xl shadow-xl group-hover:scale-105 transition-transform mx-auto">
+                          FE
+                        </div>
+                      )}
                       <div>
-                        <h3 className="text-2xl font-black text-white group-hover:text-fb-yellow transition-colors italic uppercase tracking-tight">{featuredPlayer.name}</h3>
-                        <span className="text-xs text-fb-yellow font-black uppercase tracking-widest block mt-0.5">{featuredPlayer.position}</span>
+                        <h3 className="text-2xl font-black text-white group-hover:text-fb-yellow transition-colors italic uppercase tracking-tight">
+                          {featuredPlayer.shirtNumber && <span className="text-fb-yellow font-mono not-italic mr-1.5">#{featuredPlayer.shirtNumber}</span>}
+                          {featuredPlayer.name}
+                        </h3>
+                        <span className="text-xs text-fb-yellow font-black uppercase tracking-widest block mt-0.5">
+                          {featuredPlayer.position} {featuredPlayer.secondaryPosition ? `(${featuredPlayer.secondaryPosition})` : ''}
+                        </span>
                       </div>
                     </div>
 
@@ -693,19 +725,40 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                     >
                       <div className="text-left space-y-4">
                         
-                        {/* Title block */}
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-base font-black text-white uppercase group-hover:text-fb-yellow transition-colors italic leading-tight">
+                        {/* Title block with Photo */}
+                        <div className="flex gap-4 items-start pb-2">
+                          {player.photo ? (
+                            <div className="w-14 h-14 rounded-xl border border-white/10 overflow-hidden shrink-0 bg-fb-dark">
+                              <img 
+                                src={player.photo} 
+                                alt={player.name} 
+                                className="w-full h-full object-cover" 
+                                referrerPolicy="no-referrer"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-gradient-to-tr from-fb-navy to-[#FFD21F]/10 border border-white/10 flex items-center justify-center text-[#FFD21F] font-display font-black text-lg italic shrink-0">
+                              FE
+                            </div>
+                          )}
+                          
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-base font-black text-white uppercase group-hover:text-fb-yellow transition-colors italic leading-tight truncate">
+                              {player.shirtNumber && <span className="text-fb-yellow font-mono mr-1">#{player.shirtNumber}</span>}
                               {player.name}
                             </h3>
-                            <span className="text-[10px] font-bold text-fb-muted uppercase tracking-wider block mt-0.5">
-                              {player.position}
+                            <span className="text-[10px] font-bold text-fb-muted uppercase tracking-wider block mt-0.5 truncate">
+                              {player.position} {player.secondaryPosition ? `(${player.secondaryPosition})` : ''}
                             </span>
+                            {player.marketValue && (
+                              <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-white/5 text-[9px] text-[#FFD21F] font-black">
+                                {player.marketValue}
+                              </span>
+                            )}
                           </div>
 
                           {/* Trend badge */}
-                          <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded border flex items-center gap-1 shrink-0 ${
+                          <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded border flex items-center gap-1 shrink-0 ${
                             player.trend === 'yükselişte' 
                               ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
                               : (player.trend === 'düşüşte' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-slate-500/10 border-slate-500/20 text-slate-300')
@@ -989,13 +1042,33 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                   
                   {/* Left Specs Title block */}
                   <div className="flex flex-col md:flex-row gap-6 items-center text-center md:text-left">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#121724] to-fb-yellow/10 border border-fb-yellow/30 flex items-center justify-center font-display font-heavy text-fb-yellow text-2xl italic shadow-inner shrink-0">
-                      FE
-                    </div>
+                    {currentPlayer.photo ? (
+                      <div className="w-24 h-24 rounded-2xl border-2 border-fb-yellow/30 overflow-hidden shadow-xl shrink-0 bg-fb-dark">
+                        <img 
+                          src={currentPlayer.photo} 
+                          alt={currentPlayer.name} 
+                          className="w-full h-full object-cover" 
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#121724] to-fb-yellow/10 border border-fb-yellow/30 flex items-center justify-center font-display font-heavy text-fb-yellow text-2xl italic shadow-inner shrink-0">
+                        FE
+                      </div>
+                    )}
                     <div>
-                      <h2 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase">{currentPlayer.name}</h2>
-                      <div className="flex flex-wrap gap-2 items-center justify-center md:justify-start mt-1 text-xs text-fb-muted font-bold">
+                      <h2 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase">
+                        {currentPlayer.shirtNumber && <span className="text-fb-yellow font-mono italic mr-2">#{currentPlayer.shirtNumber}</span>}
+                        {currentPlayer.name}
+                      </h2>
+                      <div className="flex flex-wrap gap-2 items-center justify-center md:justify-start mt-1.5 text-xs text-fb-muted font-bold">
                         <span className="text-fb-yellow font-black">{currentPlayer.position}</span>
+                        {currentPlayer.secondaryPosition && (
+                          <>
+                            <span>•</span>
+                            <span className="text-slate-300">{currentPlayer.secondaryPosition}</span>
+                          </>
+                        )}
                         <span>•</span>
                         <span>{currentPlayer.age} Yaşında</span>
                         <span>•</span>
@@ -1021,34 +1094,53 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
 
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 text-xs text-slate-300">
-                  <div>
-                    <span className="text-[9px] font-black text-fb-muted tracking-wide uppercase block mb-1.5 flex items-center gap-1">
-                      <Star size={11} className="text-fb-yellow animate-spin" /> TREND DURUMU
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-black uppercase tracking-wider ${
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-6 text-xs text-slate-300 border-t border-white/[0.04]">
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
+                    <span className="text-[9px] font-black text-fb-muted block mb-1">TREND DURUMU</span>
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider ${
                       currentPlayer.trend === 'yükselişte' 
-                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                        : (currentPlayer.trend === 'düşüşte' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-slate-500/10 border-slate-500/20 text-slate-300')
+                        ? 'text-emerald-400' 
+                        : (currentPlayer.trend === 'düşüşte' ? 'text-rose-400' : 'text-slate-300')
                     }`}>
-                      {currentPlayer.trend === 'yükselişte' && <TrendingUp size={12} />}
-                      {currentPlayer.trend === 'düşüşte' && <TrendingDown size={12} />}
-                      {currentPlayer.trend === 'stabil' && <Minus size={12} />}
-                      {currentPlayer.trend.toUpperCase()} GİDİYOR
+                      {currentPlayer.trend === 'yükselişte' && <TrendingUp size={11} />}
+                      {currentPlayer.trend === 'düşüşte' && <TrendingDown size={11} />}
+                      {currentPlayer.trend === 'stabil' && <Minus size={11} />}
+                      {currentPlayer.trend}
                     </span>
                   </div>
 
-                  <div>
-                    <span className="text-[9px] font-black text-fb-muted tracking-wide uppercase block mb-1.5">OYUNCU STATÜSÜ</span>
-                    <span className="inline-flex items-center gap-1 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-white font-extrabold text-xs uppercase tracking-wider">
-                      {currentPlayer.status === 'active' ? 'AS KADRO' : (currentPlayer.status === 'loan' ? 'KİRALIK GÖNDERİLDİ' : 'TRANSFER HEDEFİ')}
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
+                    <span className="text-[9px] font-black text-fb-muted block mb-1">BOY</span>
+                    <span className="text-[11px] font-black text-white">
+                      {currentPlayer.height ? `${currentPlayer.height} cm` : '182 cm'}
                     </span>
                   </div>
 
-                  <div>
-                    <span className="text-[9px] font-black text-fb-muted tracking-wide uppercase block mb-1.5">VERİ DÜZENLEME</span>
-                    <span className="inline-flex items-center gap-1 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-white font-extrabold text-xs uppercase tracking-wider">
-                       GÜNCEL DOYARLILIK
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
+                    <span className="text-[9px] font-black text-fb-muted block mb-1">TERCİH EDİLEN AYAK</span>
+                    <span className="text-[11px] font-black text-white">
+                      {currentPlayer.preferredFoot || 'Sağ Ayak'}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
+                    <span className="text-[9px] font-black text-fb-muted block mb-1">PİYASA DEĞERİ</span>
+                    <span className="text-[11px] font-black text-fb-yellow">
+                      {currentPlayer.marketValue || '€12.5M'}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
+                    <span className="text-[9px] font-black text-fb-muted block mb-1">SÖZLEŞME BİTİŞ</span>
+                    <span className="text-[11px] font-black text-white">
+                      {currentPlayer.contractEndDate || '30.06.2027'}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
+                    <span className="text-[9px] font-black text-fb-muted block mb-1">ROLU / SEZON</span>
+                    <span className="text-[11px] font-black text-[#5C6F84]">
+                      {currentPlayer.status === 'active' ? (currentPlayer.firstXI ? 'AS (İLK XI)' : 'ROTASYON') : 'KİRALIK'} ({currentPlayer.season || '2025/26'})
                     </span>
                   </div>
                 </div>

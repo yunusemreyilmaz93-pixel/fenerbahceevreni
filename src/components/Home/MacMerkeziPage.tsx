@@ -57,10 +57,143 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
     voted: false,
     selectedOption: ""
   });
+
+  const [scoreVotes, setScoreVotes] = useState({
+    homeScore: 2,
+    awayScore: 1,
+    voted: false,
+    submits: 1450,
+    mostPredicted: "3 - 1"
+  });
+
+  // Interactive Live Match Simulator state
+  const [liveSim, setLiveSim] = useState<{
+    isRunning: boolean;
+    minute: number;
+    homeScore: number;
+    awayScore: number;
+    events: { min: number; txt: string; type: 'goal' | 'card' | 'info' | 'whistle' }[];
+    possession: number;
+    shotsHome: number;
+    shotsAway: number;
+  }>({
+    isRunning: false,
+    minute: 0,
+    homeScore: 0,
+    awayScore: 0,
+    events: [],
+    possession: 50,
+    shotsHome: 0,
+    shotsAway: 0
+  });
   
   const [countdown, setCountdown] = useState({ gün: 1, saat: 4, dakika: 22, saniye: 15 });
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterJoined, setNewsletterJoined] = useState(false);
+
+  // Simulation step implementation
+  useEffect(() => {
+    let interval: any = null;
+    if (liveSim.isRunning) {
+      interval = setInterval(() => {
+        setLiveSim(prev => {
+          if (prev.minute >= 90) {
+            clearInterval(interval);
+            return {
+              ...prev,
+              minute: 90,
+              isRunning: false,
+              events: [
+                { min: 90, txt: "Mücadele sona erdi! Muazzam bir taktik zafer. Fenerbahçe tribünleri tek ses halinde takımı kutluyor.", type: 'whistle' },
+                ...prev.events
+              ]
+            };
+          }
+
+          const nextMinute = prev.minute + 15;
+          const randomChance = Math.random();
+          let newHomeScore = prev.homeScore;
+          let newAwayScore = prev.awayScore;
+          let newEventTxt = "";
+          let eventType: 'goal' | 'card' | 'info' | 'whistle' = 'info';
+          let changePossession = Math.floor(prev.possession + (Math.random() * 10 - 5));
+          if (changePossession < 40) changePossession = 42;
+          if (changePossession > 75) changePossession = 71;
+
+          let changeShotsHome = prev.shotsHome + Math.floor(Math.random() * 3);
+          let changeShotsAway = prev.shotsAway + Math.floor(Math.random() * 2);
+
+          if (nextMinute === 15) {
+            newEventTxt = "Maç tempolu başladı. Fred orta alanda hakimiyet kurmaya çalışıyor. Fenerbahçe taraftarları coşkulu.";
+          } else if (nextMinute === 30) {
+            if (randomChance > 0.4) {
+              newHomeScore += 1;
+              newEventTxt = "GOOOLLL! Dušan Tadić sol iç koridordan enfes taşıdı, içeri kesti ve sıfırdan gelen Edin Džeko tek vuruşla kilidi açtı!";
+              eventType = 'goal';
+              changeShotsHome += 1;
+            } else {
+              newEventTxt = "Kritik an! Osayi-Samuel sağ kanattan fırtına gibi bindi, ceza sahasına kesti fakat son anda savunma araya girdi.";
+            }
+          } else if (nextMinute === 45) {
+            newEventTxt = "İlk yarı düdüğü çaldı. Oyuncular soyunma odasına Mourinho’nun taktik direktiflerini almak üzere gidiyor.";
+            eventType = 'whistle';
+          } else if (nextMinute === 60) {
+            if (randomChance > 0.6) {
+              newEventTxt = "Sarı Kart! Rakip orta saha oyuncusu Sebastian Szymański'yi hızlı atağa çıkarken faulle durdurdu.";
+              eventType = 'card';
+            } else {
+              newEventTxt = "Mourinho oyuna müdahale etti: Kulübedeki dinamik kanat opsiyonları ısınma çalışmalarını hızlandırıyor.";
+            }
+          } else if (nextMinute === 75) {
+            if (randomChance > 0.5) {
+              newHomeScore += 1;
+              newEventTxt = "GOOOLLL! İrfan Can Kahveci klasikleşmiş ters kadraja girerek uzak köşeye muhteşem bir plase gönderdi!";
+              eventType = 'goal';
+              changeShotsHome += 1;
+            } else {
+              newAwayScore += (randomChance < 0.25 ? 1 : 0);
+              newEventTxt = newAwayScore > prev.awayScore 
+                ? "GOL! Rakip takım ani gelişen duran top karambolünde şanslı bir dokunuşla farkı bire indirdi." 
+                : "Müthiş kurtarış Dominik Livaković! Köşeye giden sert şutu harika bir refleksle çelmeyi başardı.";
+              eventType = newAwayScore > prev.awayScore ? 'goal' : 'info';
+              changeShotsAway += 1;
+            }
+          } else if (nextMinute === 90) {
+            newEventTxt = "Mücadeleye +5 dakika ilave edildi. Fenerbahçe savunmasında Alexander Djiku liderliğinde geçiş seti kuruldu.";
+          }
+
+          const newEvent = newEventTxt ? [{ min: nextMinute, txt: newEventTxt, type: eventType }] : [];
+
+          return {
+            ...prev,
+            minute: nextMinute,
+            homeScore: newHomeScore,
+            awayScore: newAwayScore,
+            events: [...newEvent, ...prev.events],
+            possession: changePossession,
+            shotsHome: changeShotsHome,
+            shotsAway: changeShotsAway
+          };
+        });
+      }, 1800);
+    }
+    return () => clearInterval(interval);
+  }, [liveSim.isRunning]);
+
+  const startLiveSimulationEngine = () => {
+    setLiveSim({
+      isRunning: true,
+      minute: 0,
+      homeScore: 0,
+      awayScore: 0,
+      events: [
+        { min: 0, txt: "Hakem düdüğünü çaldı ve dev derbi heyecanı Kadıköy aslan yatağında başladı!", type: 'whistle' }
+      ],
+      possession: 55,
+      shotsHome: 0,
+      shotsAway: 0
+    });
+  };
 
   // Subscriptions & DB Fetch
   useEffect(() => {
@@ -913,16 +1046,155 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
 
           {/* TAB 2: CANLI */}
           {activeTab === "Canlı" && (
-            <div className="p-12 rounded-2xl bg-[#0b101c] border border-white/[0.08] text-center space-y-4 max-w-xl mx-auto animate-fade-in">
-              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto text-slate-400">
-                <Clock className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-black text-white uppercase">Maç şu anda canlı değil.</h3>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-                  Canlı müsabaka dakikaları başladığında, bu panelde anlık top şemaları, şans yüzdeleri ve dakika olay simülasyonları etkinleşir.
-                </p>
-              </div>
+            <div className="space-y-8 animate-fade-in">
+              {!liveSim.isRunning && liveSim.minute === 0 ? (
+                <div className="p-12 rounded-2xl bg-[#0b101c] border border-white/[0.08] text-center space-y-6 max-w-xl mx-auto">
+                  <div className="w-16 h-16 rounded-full bg-fb-yellow/10 border border-fb-yellow/20 flex items-center justify-center mx-auto text-fb-yellow animate-pulse">
+                    <Activity className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-display font-black text-white uppercase italic">Canlı Simülasyon Odası</h3>
+                    <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed font-semibold">
+                      Derbi maçı henüz gerçek zamanlı olarak başlamadı. Taraftarlarımız için hazırladığımız premium yapay zeka taktik motoru ile bu karşılaşmayı şimdiden canlı simüle edebilirsiniz!
+                    </p>
+                  </div>
+                  <button
+                    onClick={startLiveSimulationEngine}
+                    className="px-6 py-3 bg-fb-yellow hover:bg-[#ffe05c] text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-[0_4px_20px_rgba(255,210,31,0.15)] inline-flex items-center gap-2"
+                  >
+                    Mücadeleyi Simüle Et <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                  {/* Left Column: Live Score & Action Stats */}
+                  <div className="lg:col-span-5 rounded-2xl bg-[#0e1320] border border-white/[0.08] p-6 flex flex-col justify-between space-y-6 relative overflow-hidden shadow-xl">
+                    <div className="absolute top-0 inset-x-0 h-[2px] bg-red-500" />
+                    
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-500/10 border border-red-500/20 rounded text-[9px] font-black uppercase tracking-widest text-red-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" /> SİMÜLASYON CANLI
+                        </span>
+                        <div className="text-xl font-mono font-black italic text-fb-yellow flex items-center gap-1">
+                          <Clock className="w-4 h-4 text-fb-yellow animate-spin" /> {liveSim.minute}'
+                        </div>
+                      </div>
+
+                      {/* Mini Scoreboard */}
+                      <div className="bg-[#05080e] rounded-xl p-4 border border-white/5 flex items-center justify-around text-center">
+                        <div>
+                          <div className="text-xs font-black text-white uppercase">{resolvedActiveMatch.homeTeam.slice(0,3)}</div>
+                          <div className="text-3xl font-display font-black text-[#FFD21F] mt-1 font-mono">{liveSim.homeScore}</div>
+                        </div>
+                        <div className="text-slate-500 font-mono text-sm uppercase">VS</div>
+                        <div>
+                          <div className="text-xs font-black text-white uppercase">{resolvedActiveMatch.awayTeam.slice(0,3)}</div>
+                          <div className="text-3xl font-display font-black text-white mt-1 font-mono">{liveSim.awayScore}</div>
+                        </div>
+                      </div>
+
+                      {/* Live Simulated Stats */}
+                      <div className="space-y-4 pt-2">
+                        {/* Possession */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[11px] font-bold text-slate-300">
+                            <span>Simüle Topa Sahip Olma</span>
+                            <span className="font-mono text-fb-yellow font-black">{liveSim.possession}% - {100 - liveSim.possession}%</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+                            <div className="bg-[#FFD21F] rounded-l-full" style={{ width: `${liveSim.possession}%` }} />
+                            <div className="bg-slate-600 rounded-r-full" style={{ width: `${100 - liveSim.possession}%` }} />
+                          </div>
+                        </div>
+
+                        {/* Shots */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[11px] font-bold text-slate-300">
+                            <span>Simüle Şut Sayısı</span>
+                            <span className="font-mono text-white font-black">{liveSim.shotsHome} - {liveSim.shotsAway}</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
+                            <div className="bg-[#FFD21F]" style={{ width: `${(liveSim.shotsHome / (liveSim.shotsHome + liveSim.shotsAway || 1)) * 100}%` }} />
+                            <div className="bg-slate-600" style={{ width: `${(liveSim.shotsAway / (liveSim.shotsHome + liveSim.shotsAway || 1)) * 100}%` }} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mourinho's Dynamic Simulated Directives */}
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-fb-navy/50 to-fb-dark border border-fb-yellow/10 space-y-2">
+                      <span className="text-[9px] text-[#FFD21F] font-black uppercase tracking-widest font-mono flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 text-[#FFD21F]" /> Mourinho Kenar Direktifi
+                      </span>
+                      <p className="text-xxs text-slate-300 leading-relaxed font-semibold italic text-left">
+                        {liveSim.minute === 90 ? (
+                          "\"Önemli bir karakter mücadelesi verdik, kompakt blok halinde kalmak galibiyeti getirdi. Tebrikler takıma!\""
+                        ) : liveSim.homeScore > liveSim.awayScore ? (
+                          "\"Öndeyiz ancak rehavet yok. Merkez orta sahadaki geçiş savunmasını çok sıkı tutmalıyız, Fred geriye daha yakın kalmalı.\""
+                        ) : liveSim.homeScore === liveSim.awayScore ? (
+                          "\"Daha fazla ön alan presi yapmalı, rakip stoperlerin topla rahat çıkmasını engellemeliyiz. Tempo bizim silahımız!\""
+                        ) : (
+                          "\"Kaybedecek vakit yok, oyun çizgilerini olabildiğince yukarı çekip asimetrik kanat koşularıyla derinlik arayacağız.\""
+                        )}
+                      </p>
+                    </div>
+
+                    {/* Reset Button */}
+                    <button
+                      onClick={startLiveSimulationEngine}
+                      className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xxs font-black uppercase tracking-widest transition-all cursor-pointer border border-white/10"
+                    >
+                      Simülasyonu Yeniden Başlat
+                    </button>
+                  </div>
+
+                  {/* Right Column: Live Commentary Event feed */}
+                  <div className="lg:col-span-7 rounded-2xl bg-[#0b101c] border border-white/[0.08] p-6 flex flex-col justify-between text-left space-y-4">
+                    <div>
+                      <span className="text-[10px] font-black text-fb-yellow tracking-widest uppercase block border-b border-white/5 pb-2.5 font-mono">
+                        MÜCADELE AKIŞ SİMÜLASYONU
+                      </span>
+                      
+                      <div className="divide-y divide-white/5 max-h-[360px] overflow-y-auto pr-2 space-y-3.5 mt-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                        {liveSim.events.map((ev, idx) => (
+                          <div 
+                            key={idx} 
+                            className={`pt-3.5 flex items-start gap-3 transition-all ${
+                              ev.type === 'goal' 
+                                ? 'bg-fb-yellow/5 p-3 rounded-lg border border-[#FFD21F]/15 text-white' 
+                                : ev.type === 'card' 
+                                  ? 'bg-rose-500/5 p-3 rounded-lg border border-rose-500/15'
+                                  : ''
+                            }`}
+                          >
+                            <span className="text-[11px] font-mono font-black text-fb-yellow min-w-[28px] text-right shrink-0">{ev.min}'</span>
+                            <div className="space-y-1 flex-1">
+                              <p className={`text-xs leading-relaxed font-semibold ${ev.type === 'goal' ? 'text-[#FFD21F] font-black' : 'text-slate-300'}`}>
+                                {ev.txt}
+                              </p>
+                              {ev.type === 'goal' && (
+                                <span className="inline-flex items-center gap-1 text-[8px] bg-fb-yellow/20 text-[#FFD21F] font-black px-1.5 py-0.5 rounded font-mono uppercase">
+                                  ⚽ GOOOL SEVİNCİ
+                                </span>
+                              )}
+                              {ev.type === 'card' && (
+                                <span className="inline-flex items-center gap-1 text-[8px] bg-rose-500/20 text-rose-400 font-black px-1.5 py-0.5 rounded font-mono uppercase">
+                                  🟨 KART KARARI
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="text-[10px] text-slate-500 font-mono text-center border-t border-white/5 pt-3">
+                      Maç yayını yapay zeka algoritması ile 15 dakikalık dilimler halinde simüle edilmektedir.
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1123,97 +1395,194 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
 
           {/* TAB 5: TARAFTAR TAHMİNİ */}
           {activeTab === "Taraftar Tahmini" && (
-            <div className="animate-fade-in">
+            <div className="space-y-8 animate-fade-in">
               {resolvedActiveMatch ? (
-                <div className="rounded-2xl bg-[#0b101c] border border-white/[0.06] p-6 text-left max-w-2xl mx-auto space-y-6">
-                  <div className="flex items-center gap-2 text-fb-yellow">
-                    <Vote className="w-4 h-4 text-fb-yellow" />
-                    <span className="text-[10px] font-black uppercase tracking-widest font-mono">Bu Maç Nasıl Sonuçlanır?</span>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-5xl mx-auto">
+                  
+                  {/* Part 1: Winner Poll */}
+                  <div className="rounded-2xl bg-[#0b101c] border border-white/[0.06] p-6 text-left space-y-6 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-fb-yellow">
+                        <Vote className="w-4 h-4 text-fb-yellow" />
+                        <span className="text-[10px] font-black uppercase tracking-widest font-mono">1. Maç Sonucu Anketi</span>
+                      </div>
+
+                      <h3 className="text-lg font-display font-black text-white italic uppercase">{resolvedActiveMatch.homeTeam} vs {resolvedActiveMatch.awayTeam}</h3>
+                      
+                      <p className="text-xxs text-slate-400 leading-relaxed font-semibold">
+                        Fenerbahçe taraftar topluluğunun bu müsabaka hakkındaki kazanan galibiyet nabzını ölçüyoruz.
+                      </p>
+
+                      {!pollVotes.voted ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+                          <button 
+                            onClick={() => handleVote('home')}
+                            className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-fb-yellow font-black text-xxs text-center text-white transition-all hover:scale-[1.01] cursor-pointer"
+                          >
+                            {resolvedActiveMatch.homeTeam === 'Fenerbahçe' ? 'Fenerbahçe' : `${resolvedActiveMatch.homeTeam}`}
+                          </button>
+                          <button 
+                            onClick={() => handleVote('draw')}
+                            className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-fb-yellow font-black text-xxs text-center text-white transition-all hover:scale-[1.01] cursor-pointer"
+                          >
+                            Beraberlik
+                          </button>
+                          <button 
+                            onClick={() => handleVote('away')}
+                            className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:border-fb-yellow font-black text-xxs text-center text-[#ffea8c] transition-all hover:scale-[1.01] cursor-pointer"
+                          >
+                            {resolvedActiveMatch.awayTeam.toLowerCase().includes('fenerbahce') || resolvedActiveMatch.awayTeam.toLowerCase().includes('fenerbahçe') ? 'Fenerbahçe' : `${resolvedActiveMatch.awayTeam}`}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4 pt-2">
+                          <div className="text-xxs text-emerald-400 font-bold flex items-center gap-2 uppercase font-mono">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Kayıt Edildi: <span className="text-white font-black">"{pollVotes.selectedOption}"</span>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div>
+                              <div className="flex justify-between text-slate-300 text-[10px] font-bold mb-1">
+                                <span>{resolvedActiveMatch.homeTeam} Galibiyeti</span>
+                                <span>{homePct}%</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${homePct}%` }}
+                                  className="h-full bg-fb-yellow rounded-full" 
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="flex justify-between text-[#a0aec0] text-[10px] font-bold mb-1">
+                                <span>Beraberlik</span>
+                                <span>{drawPct}%</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${drawPct}%` }}
+                                  className="h-full bg-slate-400 rounded-full" 
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="flex justify-between text-slate-300 text-[10px] font-bold mb-1">
+                                <span>{resolvedActiveMatch.awayTeam} Galibiyeti</span>
+                                <span>{awayPct}%</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${awayPct}%` }}
+                                  className="h-full bg-rose-500 rounded-full" 
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="text-[9px] text-slate-500 italic pt-4 border-t border-white/5 flex justify-between font-mono mt-4">
+                      <span>Müsabaka Kazanan Anketi</span>
+                      <span>Toplam Oy: {totalVotes}</span>
+                    </div>
                   </div>
 
-                  <h3 className="text-xl md:text-2xl font-display font-black text-white italic uppercase">{resolvedActiveMatch.homeTeam} vs {resolvedActiveMatch.awayTeam}</h3>
-                  
-                  <p className="text-xs text-slate-400 leading-relaxed font-semibold">
-                    Fenerbahçe taraftar topluluğunun bu müsabaka hakkındaki nabzını ölçüyoruz. Oyunuz kaydedildiğinde diğer taraftarların anlık yüzdesel gidişat dağılımlarını görebilirsiniz.
-                  </p>
-
-                  {!pollVotes.voted ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                      <button 
-                        onClick={() => handleVote('home')}
-                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fb-yellow font-black text-xs text-center text-white transition-all hover:scale-[1.01] cursor-pointer"
-                      >
-                        {resolvedActiveMatch.homeTeam === 'Fenerbahçe' ? 'Fenerbahçe Kazanır' : `${resolvedActiveMatch.homeTeam} Kazanir`}
-                      </button>
-                      <button 
-                        onClick={() => handleVote('draw')}
-                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fb-yellow font-black text-xs text-center text-white transition-all hover:scale-[1.01] cursor-pointer"
-                      >
-                        Beraberlik
-                      </button>
-                      <button 
-                        onClick={() => handleVote('away')}
-                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-fb-yellow font-black text-xs text-center text-[#ffea8c] transition-all hover:scale-[1.01] cursor-pointer"
-                      >
-                        {resolvedActiveMatch.awayTeam.toLowerCase().includes('fenerbahce') || resolvedActiveMatch.awayTeam.toLowerCase().includes('fenerbahçe') ? 'Fenerbahçe Kazanır' : `${resolvedActiveMatch.awayTeam} Kazanır`}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 pt-2">
-                      <div className="text-xs text-emerald-400 font-bold flex items-center gap-2 uppercase font-mono">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Tahmininiz Kaydedildi: <span className="text-white font-black">"{pollVotes.selectedOption}"</span>
+                  {/* Part 2: Exact Score Forecaster */}
+                  <div className="rounded-2xl bg-[#0b101c] border border-white/[0.06] p-6 text-left space-y-6 flex flex-col justify-between relative overflow-hidden">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-fb-yellow">
+                        <Sparkles className="w-4 h-4 text-fb-yellow" />
+                        <span className="text-[10px] font-black uppercase tracking-widest font-mono">2. Skor Skala Tahmin Yarışması</span>
                       </div>
+
+                      <h3 className="text-lg font-display font-black text-white italic uppercase">Net Skorunu Belirle</h3>
                       
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex justify-between text-slate-300 text-[11px] font-bold mb-1">
-                            <span>{resolvedActiveMatch.homeTeam} Galibiyeti</span>
-                            <span>{homePct}%</span>
-                          </div>
-                          <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${homePct}%` }}
-                              className="h-full bg-fb-yellow rounded-full" 
-                            />
-                          </div>
-                        </div>
+                      <p className="text-xxs text-slate-400 leading-relaxed font-semibold">
+                        Maçın tam skorunu tahmin ederek topluluk liderlik tablolarına katılım sağlayın. En popüler tahmin şu an: <strong className="text-fb-yellow font-mono">{scoreVotes.mostPredicted}</strong>
+                      </p>
 
-                        <div>
-                          <div className="flex justify-between text-[#a0aec0] text-[11px] font-bold mb-1">
-                            <span>Beraberlik</span>
-                            <span>{drawPct}%</span>
-                          </div>
-                          <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${drawPct}%` }}
-                              className="h-full bg-slate-400 rounded-full" 
-                            />
-                          </div>
-                        </div>
+                      {!scoreVotes.voted ? (
+                        <div className="space-y-5 pt-2">
+                          <div className="flex items-center justify-center gap-6 bg-[#05080f] rounded-xl p-4 border border-white/5">
+                            {/* Home Selector */}
+                            <div className="text-center space-y-1.5">
+                              <span className="text-[9px] font-black text-slate-400 block uppercase tracking-wider">{resolvedActiveMatch.homeTeam.slice(0, 8)}</span>
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  type="button"
+                                  onClick={() => setScoreVotes(prev => ({ ...prev, homeScore: Math.max(0, prev.homeScore - 1) }))}
+                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 text-white font-black text-sm flex items-center justify-center cursor-pointer border border-white/10"
+                                >
+                                  -
+                                </button>
+                                <span className="text-2xl font-mono font-black text-white w-8 text-center">{scoreVotes.homeScore}</span>
+                                <button 
+                                  type="button"
+                                  onClick={() => setScoreVotes(prev => ({ ...prev, homeScore: prev.homeScore + 1 }))}
+                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 text-white font-black text-sm flex items-center justify-center cursor-pointer border border-white/10"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
 
-                        <div>
-                          <div className="flex justify-between text-slate-300 text-[11px] font-bold mb-1">
-                            <span>{resolvedActiveMatch.awayTeam} Galibiyeti</span>
-                            <span>{awayPct}%</span>
-                          </div>
-                          <div className="h-2.5 rounded-full bg-white/5 overflow-hidden">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${awayPct}%` }}
-                              className="h-full bg-rose-500 rounded-full" 
-                            />
-                          </div>
-                        </div>
-                      </div>
+                            <span className="text-slate-600 font-bold text-lg font-mono leading-none mt-4">-</span>
 
-                      <div className="text-[10px] text-slate-400 italic pt-2 flex justify-between font-mono">
-                        <span>Canlı topluluk oylaması bülteni</span>
-                        <span>Toplam oy: {totalVotes}</span>
-                      </div>
+                            {/* Away Selector */}
+                            <div className="text-center space-y-1.5">
+                              <span className="text-[9px] font-black text-slate-400 block uppercase tracking-wider">{resolvedActiveMatch.awayTeam.slice(0, 8)}</span>
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  type="button"
+                                  onClick={() => setScoreVotes(prev => ({ ...prev, awayScore: Math.max(0, prev.awayScore - 1) }))}
+                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 text-white font-black text-sm flex items-center justify-center cursor-pointer border border-white/10"
+                                >
+                                  -
+                                </button>
+                                <span className="text-2xl font-mono font-black text-white w-8 text-center">{scoreVotes.awayScore}</span>
+                                <button 
+                                  type="button"
+                                  onClick={() => setScoreVotes(prev => ({ ...prev, awayScore: prev.awayScore + 1 }))}
+                                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 text-white font-black text-sm flex items-center justify-center cursor-pointer border border-white/10"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => setScoreVotes(prev => ({ ...prev, voted: true, submits: prev.submits + 1 }))}
+                            className="w-full py-3 bg-fb-yellow hover:bg-[#ffe05c] text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-[0_4px_20px_rgba(255,210,31,0.15)] flex items-center justify-center gap-1.5"
+                          >
+                            Skor Tahminini Gönder
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
+                          <span className="text-[10px] text-emerald-400 font-black uppercase font-mono tracking-wider">TEBRİKLER, TAHMİNİNİZ ALINDI! 🎉</span>
+                          <div className="text-2xl font-mono font-black text-white italic">
+                            {scoreVotes.homeScore} - {scoreVotes.awayScore}
+                          </div>
+                          <p className="text-xxs text-slate-300 leading-relaxed font-semibold max-w-sm mx-auto">
+                            Tebrikler! Sarı-Lacivertli toplulukta sizinle aynı skoru (<span className="text-fb-yellow font-mono font-bold">{scoreVotes.homeScore} - {scoreVotes.awayScore}</span>) tahmin eden kullanıcıların oranı: <strong className="text-[#3DDC97]">%27.3</strong>
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    <div className="text-[9px] text-slate-500 italic pt-4 border-t border-white/5 flex justify-between font-mono mt-4">
+                      <span>Doğru Skor Ödül Bülteni</span>
+                      <span>Katılım: {scoreVotes.submits} taraftar</span>
+                    </div>
+                  </div>
+
                 </div>
               ) : (
                 <div className="p-12 rounded-2xl bg-[#0b101c] border border-white/[0.08] text-center space-y-4 max-w-xl mx-auto animate-fade-in">

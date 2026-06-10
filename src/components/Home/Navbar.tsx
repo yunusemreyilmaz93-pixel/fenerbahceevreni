@@ -60,12 +60,16 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
           className="flex items-center gap-2 sm:gap-3 group text-left cursor-pointer"
           id="nav-logo"
         >
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-fb-yellow flex items-center justify-center shadow-[0_0_20px_rgba(255,210,31,0.25)] group-hover:scale-105 transition-transform shrink-0">
-            <span className="text-fb-navy font-black text-lg sm:text-xl italic font-display">FE</span>
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,210,31,0.25)] group-hover:scale-105 transition-transform shrink-0 overflow-hidden p-0.5">
+            <img 
+              src="https://firebasestorage.googleapis.com/v0/b/fenerbahceevreni-a4280.firebasestorage.app/o/fb%20_evreni_logo.png?alt=media&token=e6aa00eb-d16b-47f6-bf10-270b23d5a10c" 
+              alt="FE Logo" 
+              className="w-full h-full object-contain"
+              referrerPolicy="no-referrer"
+            />
           </div>
           <div className="flex flex-col">
             <span className="font-display font-black tracking-tight text-base sm:text-lg text-white leading-none">FENERBAHÇE EVRENİ</span>
-            <span className="text-[8px] sm:text-[9px] text-fb-yellow font-bold tracking-wider leading-none mt-1">BAĞIMSIZ ANALİZ PORTALİ</span>
           </div>
         </button>
 

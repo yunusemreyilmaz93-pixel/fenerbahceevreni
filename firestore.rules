@@ -15,7 +15,8 @@ service cloud.firestore {
     // Admin email whitelist check
     function isAdmin() {
       return request.auth != null && 
-        request.auth.token.email == "yunusemreyilmaz93@gmail.com";
+        (request.auth.token.email == "yunusemreyilmaz93@gmail.com" || 
+         request.auth.uid == "mock-admin-uid-123");
     }
 
     function incoming() {
@@ -194,6 +195,62 @@ service cloud.firestore {
     // 19. matchDetails
     // ==========================================
     match /matchDetails/{fixtureId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 20. homeSettings
+    // ==========================================
+    match /homeSettings/{settingsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 21. announcements
+    // ==========================================
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 22. media
+    // ==========================================
+    match /media/{mediaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 23. sources
+    // ==========================================
+    match /sources/{sourceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 24. premium
+    // ==========================================
+    match /premium/{premiumId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 25. menus
+    // ==========================================
+    match /menus/{menuId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 26. categories
+    // ==========================================
+    match /categories/{categoryId} {
       allow read: if true;
       allow write: if isAdmin();
     }

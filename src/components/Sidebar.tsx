@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ data, onSelectFaction, isOpen, onTogg
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.1)] overflow-hidden p-1">
                   <img 
-                    src="https://images.seeklogo.com/logo-png/44/2/fenerbahce-spor-kulubu-5-yildizli-arma-concept-logo-png_seeklogo-440737.png" 
+                    src="https://firebasestorage.googleapis.com/v0/b/fenerbahceevreni-a4280.firebasestorage.app/o/fb%20_evreni_logo.png?alt=media&token=e6aa00eb-d16b-47f6-bf10-270b23d5a10c" 
                     alt="FB" 
                     className="w-full h-full object-contain"
                     referrerPolicy="no-referrer"
