@@ -92,7 +92,7 @@ service cloud.firestore {
                     && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
                     && incoming().status == "active"
                     && incoming().keys().hasAll(['email', 'status', 'subscribedAt'])
-                    && incoming().keys().size() <= 15; // allows email, name, source, interests, status, subscribedAt, createdAt, updatedAt, id + extras
+                    && incoming().keys().size() <= 15;
     }
 
     // ==========================================
@@ -103,7 +103,7 @@ service cloud.firestore {
       allow create: if incoming().email is string 
                     && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
                     && incoming().keys().hasAll(['email', 'name', 'planInterest', 'status', 'createdAt'])
-                    && incoming().keys().size() <= 15; // allowed fields: email, name, planInterest, source, status, createdAt, updatedAt, id + extras
+                    && incoming().keys().size() <= 15;
     }
 
     // ==========================================
@@ -115,7 +115,7 @@ service cloud.firestore {
                     && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
                     && incoming().status == "new"
                     && incoming().keys().hasAll(['name', 'email', 'subject', 'message', 'status', 'createdAt'])
-                    && incoming().keys().size() <= 15; // allowed: name, email, subject, messageType, message, companyName, websiteUrl, budgetRange, status, createdAt, updatedAt, id
+                    && incoming().keys().size() <= 15;
     }
 
     // ==========================================
@@ -157,7 +157,45 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
-  }
-}
+
+    // ==========================================
+    // 15. leagues
+    // ==========================================
+    match /leagues/{leagueId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 16. teams
+    // ==========================================
+    match /teams/{teamId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 17. fixtures
+    // ==========================================
+    match /fixtures/{fixtureId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 18. standings
+    // ==========================================
+    match /standings/{standingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 19. matchDetails
+    // ==========================================
+    match /matchDetails/{fixtureId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

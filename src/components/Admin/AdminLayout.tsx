@@ -114,7 +114,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
     { id: 'import_export', label: 'İçe / Dışa Aktar', icon: HardDrive },
     { id: 'homepage', label: 'Ana Sayfa Yönetimi', icon: Home },
     { id: 'settings', label: 'Site Ayarları', icon: Settings },
-    { id: 'api_test', label: 'API Test Merkezi', icon: Activity },
+    { id: 'api_test', label: 'FUTBOL VERİ MERKEZİ', icon: Activity },
   ];
 
   const handleLogoutClick = async () => {
