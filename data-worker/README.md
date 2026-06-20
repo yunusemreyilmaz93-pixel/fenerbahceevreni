@@ -45,6 +45,7 @@ py -m venv data-worker\.venv
 data-worker\.venv\Scripts\python.exe -m pip install --upgrade pip
 data-worker\.venv\Scripts\python.exe -m pip install -r data-worker\requirements.txt
 data-worker\.venv\Scripts\python.exe data-worker\probe_sofascore.py --season 2025-26 --team "Fenerbahçe"
+data-worker\.venv\Scripts\python.exe data-worker\probe_match_details.py --event-id 14109614
 ```
 
 ### 2. Bağımlılıkları Yükleme
@@ -75,6 +76,19 @@ Aşağıdaki komutla Fenerbahçe'nin 2025-26 sezonu fikstürünü ve lig tablosu
 ```bash
 python data-worker/probe_sofascore.py --season 2025-26 --team "Fenerbahçe"
 ```
+
+### Bireysel Maç Detayları Probu (`probe_match_details.py`)
+
+Seçilen tek bir maçın ayrıntılı istatistiklerini, kadrolarını ve şut haritasını test etmek için tasarlanmıştır:
+
+```bash
+python data-worker/probe_match_details.py --event-id 14109614
+```
+
+* **Zorunlu Parametre**: `--event-id` (SofaScore sayısal benzersiz maç kimliği).
+* **Opsiyonel Parametre**: `--output`, varsayılan: `data-worker/output/match_details_probe.json`.
+
+Bu probe, hedef SofaScore REST API endpoint'lerini (`statistics`, `lineups`, `shotmap`) Soccerdata'nın yerleşik TLS ve önbellekleme mekanizmasıyla sorgulayarak özet metrikleri ve alan yapılarını teşhis raporu halinde kaydeder.
 
 ---
 

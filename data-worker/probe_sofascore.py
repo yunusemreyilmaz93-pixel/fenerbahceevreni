@@ -368,32 +368,66 @@ def main():
 
             if home_match or away_match:
                 # Key IDs can be index levels formatted safely or extra index values
-                match_id = str(idx) if not isinstance(idx, tuple) else "-".join(map(str, idx))
+                try:
+                    if isinstance(idx, (int, float)):
+                        match_id = int(idx)
+                    elif isinstance(idx, tuple):
+                        match_id = int(idx[-1])
+                    else:
+                        match_id = int(idx)
+                except Exception:
+                    try:
+                        match_id = int(str(idx))
+                    except ValueError:
+                        match_id = str(idx)
                 
                 # Retrieve remaining values based on identified keys
                 match_date = row.get(date_key) if date_key else None
-                match_status = row.get(status_key) if status_key else None
                 
-                # Dynamic scoring check
-                match_score = None
-                if score_key:
-                    match_score = row.get(score_key)
-                else:
-                    # Alternately construct score if individual scores are available
-                    # e.g., home_score and away_score or similar
-                    home_sc_key = next((flat_to_orig[k] for k in flat_col_keys if "home_score" in k or "score_home" in k), None)
-                    away_sc_key = next((flat_to_orig[k] for k in flat_col_keys if "away_score" in k or "score_away" in k), None)
-                    if home_sc_key and away_sc_key:
-                        match_score = f"{row.get(home_sc_key)} - {row.get(away_sc_key)}"
+                import math
+                home_score_val = None
+                away_score_val = None
+                
+                # Check columns like home_score, score_home, home_team_score, etc.
+                home_sc_key = next((flat_to_orig[k] for k in flat_col_keys if "home_score" in k or "score_home" in k or "home_team_score" in k or "home_team_score" in k), None)
+                away_sc_key = next((flat_to_orig[k] for k in flat_col_keys if "away_score" in k or "score_away" in k or "away_team_score" in k or "away_team_score" in k), None)
+                
+                if home_sc_key and away_sc_key:
+                    try:
+                        h_val = row.get(home_sc_key)
+                        if h_val is not None and not (isinstance(h_val, float) and math.isnan(h_val)):
+                            home_score_val = int(h_val)
+                    except Exception:
+                        pass
+                    try:
+                        a_val = row.get(away_sc_key)
+                        if a_val is not None and not (isinstance(a_val, float) and math.isnan(a_val)):
+                            away_score_val = int(a_val)
+                    except Exception:
+                        pass
+                
+                if home_score_val is None or away_score_val is None:
+                    if score_key:
+                        score_str = str(row.get(score_key)) if row.get(score_key) is not None else ""
+                        if "-" in score_str:
+                            parts = score_str.split("-")
+                            if len(parts) == 2:
+                                try:
+                                    home_score_val = int(parts[0].strip())
+                                    away_score_val = int(parts[1].strip())
+                                except ValueError:
+                                    pass
 
                 # Serialize match
                 team_matches_serialized.append({
                     "matchId": match_id,
+                    "matchLabel": f"{home_str} - {away_str}",
                     "date": match_date,
                     "homeTeam": home_str,
                     "awayTeam": away_str,
-                    "score": match_score,
-                    "status": match_status,
+                    "homeScore": home_score_val,
+                    "awayScore": away_score_val,
+                    "status": None,
                     # Safe fallbacks mapping the full series details in a single clean dict
                     "fullDetails": {str(k): row.get(k) for k in row.index}
                 })
