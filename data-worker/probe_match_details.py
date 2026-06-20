@@ -76,45 +76,132 @@ def fetch_sofascore_url(reader, url):
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
         return requests.get(url, headers=headers)
 
-def parse_sofascore_response(res):
+def process_endpoint_url(reader, url):
     """
-    Standardizes responses from string, bytes, dict, or requests.Response
-    into python dict and calculates metrics including payload size.
+    Attempts to fetch the given URL and extract full HTTP metrics and diagnostics,
+    including requestUrl, finalUrl, httpStatus, contentType, rawResponseByteSize,
+    and responseBodyPreview (up to first 500 chars).
+    Returns a tuple of (success, dict_data, attempt_diagnostic_dict, res_object)
     """
-    data = None
-    byte_size = 0
+    attempt_diag = {
+        "requestUrl": url,
+        "finalUrl": url,
+        "httpStatus": None,
+        "contentType": None,
+        "rawResponseByteSize": 0,
+        "responseBodyPreview": "",
+        "success": False,
+        "error": None
+    }
     
+    res = None
+    try:
+        # Call fetch helper
+        res = fetch_sofascore_url(reader, url)
+    except Exception as e:
+        attempt_diag["error"] = str(e)
+        logger.warning(f"Fetch failed for {url}: {e}")
+        return False, None, attempt_diag, None
+        
     if res is None:
-        raise ValueError("Response object is None")
-
-    if hasattr(res, "json") and callable(res.json):
-        byte_size = len(getattr(res, "content", b""))
-        try:
-            data = res.json()
-        except Exception:
-            text_val = getattr(res, "text", "")
-            data = json.loads(text_val) if text_val else {}
+        attempt_diag["error"] = "Received None response object"
+        return False, None, attempt_diag, None
+        
+    # httpStatus
+    status_code = getattr(res, "status_code", None)
+    if status_code is None:
+        status_code = getattr(res, "status", None)
+    if status_code is None:
+        status_code = 200
+        
+    attempt_diag["httpStatus"] = status_code
+    
+    # finalUrl
+    final_url = getattr(res, "url", url)
+    attempt_diag["finalUrl"] = final_url
+    
+    # contentType
+    headers = getattr(res, "headers", None)
+    content_type = ""
+    if headers and hasattr(headers, "get"):
+        content_type = headers.get("content-type", "")
+    attempt_diag["contentType"] = content_type
+    
+    # rawResponseByteSize & responseBodyPreview
+    content_bytes = b""
+    text_val = ""
+    
+    if hasattr(res, "content") and getattr(res, "content") is not None:
+        content_bytes = getattr(res, "content", b"")
+        attempt_diag["rawResponseByteSize"] = len(content_bytes)
     elif isinstance(res, (str, bytes)):
         if isinstance(res, bytes):
-            byte_size = len(res)
-            res_str = res.decode("utf-8")
+            content_bytes = res
+            attempt_diag["rawResponseByteSize"] = len(res)
         else:
-            byte_size = len(res.encode("utf-8"))
-            res_str = res
-        data = json.loads(res_str)
+            text_val = res
+            attempt_diag["rawResponseByteSize"] = len(res.encode("utf-8"))
     elif isinstance(res, dict):
-        data = res
-        byte_size = len(json.dumps(res).encode("utf-8"))
-    else:
-        # Fallback string representation
         try:
-            res_str = str(res)
-            byte_size = len(res_str.encode("utf-8"))
-            data = json.loads(res_str)
+            dumped = json.dumps(res)
+            attempt_diag["rawResponseByteSize"] = len(dumped.encode("utf-8"))
+            text_val = dumped
         except Exception:
+            pass
+            
+    # Derive text_val for preview
+    if not text_val:
+        if hasattr(res, "text") and getattr(res, "text") is not None:
+            text_val = getattr(res, "text", "")
+        elif content_bytes:
+            try:
+                text_val = content_bytes.decode("utf-8", errors="replace")
+            except Exception:
+                text_val = ""
+        elif isinstance(res, dict):
+            text_val = json.dumps(res)
+            
+    attempt_diag["responseBodyPreview"] = text_val[:500] if text_val else ""
+    
+    # json parsing: only if response is successful (2xx) and body is non-empty
+    data = None
+    is_success = (status_code is not None and 200 <= status_code < 300)
+    
+    if is_success:
+        try:
+            if hasattr(res, "json") and callable(res.json):
+                if text_val.strip():
+                    data = res.json()
+                else:
+                    data = {}
+            elif isinstance(res, dict):
+                data = res
+            elif text_val.strip():
+                data = json.loads(text_val)
+            else:
+                data = {}
+        except Exception as e:
+            attempt_diag["error"] = f"Failed to parse JSON body: {e}"
+            is_success = False
+    else:
+        attempt_diag["error"] = f"HTTP Error status code: {status_code}"
+        if text_val.strip():
+            try:
+                data = json.loads(text_val)
+            except Exception:
+                data = {"raw_text": text_val[:1000]}
+        else:
             data = {}
             
-    return data, byte_size
+    # Check for SofaScore REST errors inside successfully parsed JSON
+    if is_success and isinstance(data, dict):
+        if "error" in data or (len(data) == 1 and "message" in data) or not data:
+            err_msg = data.get("error", {}).get("message", data.get("message", "Empty query or error content"))
+            attempt_diag["error"] = f"SofaScore API payload error: {err_msg}"
+            is_success = False
+            
+    attempt_diag["success"] = is_success
+    return is_success, data, attempt_diag, res
 
 def find_discovered_metrics(data):
     """
@@ -229,64 +316,82 @@ def main():
 
     for endpoint in endpoint_targets:
         logger.info(f"--- Probing Endpoint: {endpoint} ---")
-        url = f"https://api.sofascore.com/api/v1/event/{args.event_id}/{endpoint}"
         
+        # 1. Primary URL (www.sofascore.com)
+        url1 = f"https://www.sofascore.com/api/v1/event/{args.event_id}/{endpoint}"
+        attempts = []
+        
+        is_success, data, diag_dict, res = process_endpoint_url(reader, url1)
+        attempts.append(diag_dict)
+        
+        if not is_success:
+            # 2. Secondary URL diagnostic target (api.sofascore.com)
+            logger.info(f"Primary URL failed for {endpoint}. Attempting secondary api.sofascore.com target...")
+            url2 = f"https://api.sofascore.com/api/v1/event/{args.event_id}/{endpoint}"
+            is_success_2, data_2, diag_dict_2, res_2 = process_endpoint_url(reader, url2)
+            attempts.append(diag_dict_2)
+            if is_success_2:
+                is_success = True
+                data = data_2
+                diag_dict = diag_dict_2
+                res = res_2
+
+        # Build diagnostic block with requested structured response mappings
         block = {
             "endpoint": endpoint,
-            "success": False,
+            "success": is_success,
+            "requestUrl": diag_dict["requestUrl"],
+            "finalUrl": diag_dict["finalUrl"],
+            "httpStatus": diag_dict["httpStatus"],
+            "contentType": diag_dict["contentType"],
+            "rawResponseByteSize": diag_dict["rawResponseByteSize"],
+            "responseBodyPreview": diag_dict["responseBodyPreview"],
+            "attempts": attempts,
             "topLevelKeys": [],
-            "responseByteSize": 0,
             "itemCount": 0,
             "discoveredMetricNames": [],
             "warning": None,
-            "error": None
+            "error": diag_dict["error"]
         }
 
-        try:
-            res = fetch_sofascore_url(reader, url)
-            data, byte_size = parse_sofascore_response(res)
-            
-            block["responseByteSize"] = byte_size
-            
-            if isinstance(data, dict):
-                block["topLevelKeys"] = list(data.keys())
-                
-                # Check for SofaScore REST errors or missing keys
-                if "error" in data or (len(data) == 1 and "message" in data) or not data:
-                    err_msg = data.get("error", {}).get("message", data.get("message", "Empty or error response"))
-                    raise ValueError(f"SofaScore API returned error payload: {err_msg}")
+        if is_success:
+            try:
+                if isinstance(data, dict):
+                    block["topLevelKeys"] = list(data.keys())
                     
-                block["success"] = True
-                
-                # Specific endpoint diagnostic parsers
-                if endpoint == "statistics":
-                    metrics = find_discovered_metrics(data)
-                    block["discoveredMetricNames"] = metrics
-                    # count number of statsItems
-                    block["itemCount"] = len(metrics)
-                    statistics_success = True
-                    
-                elif endpoint == "lineups":
-                    players_count = count_lineup_players(data)
-                    block["itemCount"] = players_count
-                    lineups_success = True
-                    
-                elif endpoint == "shotmap":
-                    shots_count = count_shotmap_shots(data)
-                    block["itemCount"] = shots_count
-            else:
-                raise ValueError("Parsed data is not a JSON object dictionary")
+                    # Specific endpoint diagnostic parsers
+                    if endpoint == "statistics":
+                        metrics = find_discovered_metrics(data)
+                        block["discoveredMetricNames"] = metrics
+                        block["itemCount"] = len(metrics)
+                        statistics_success = True
+                        
+                    elif endpoint == "lineups":
+                        players_count = count_lineup_players(data)
+                        block["itemCount"] = players_count
+                        lineups_success = True
+                        
+                    elif endpoint == "shotmap":
+                        shots_count = count_shotmap_shots(data)
+                        block["itemCount"] = shots_count
+                else:
+                    raise ValueError("Parsed data is not a JSON object dictionary")
+            except Exception as e:
+                err_msg = str(e)
+                block["success"] = False
+                block["error"] = f"Parsing parsed data block failed: {err_msg}"
+                if endpoint == "shotmap":
+                    block["warning"] = f"Shotmap parsing failed: {err_msg}"
+                else:
+                    if endpoint == "statistics":
+                        statistics_success = False
+                    elif endpoint == "lineups":
+                        lineups_success = False
 
-        except Exception as e:
-            err_msg = str(e)
-            logger.warning(f"Endpoint '{endpoint}' failed or was not found: {err_msg}")
-            block["success"] = False
-            
+        else:
+            # Not successful
             if endpoint == "shotmap":
-                # Shotmap failure is treated as a warning rather than a fatal crash
-                block["warning"] = f"Shotmap endpoint failed: {err_msg}"
-            else:
-                block["error"] = err_msg
+                block["warning"] = f"Shotmap endpoint failed: {block['error']}"
 
         diagnostic_blocks.append(block)
 
