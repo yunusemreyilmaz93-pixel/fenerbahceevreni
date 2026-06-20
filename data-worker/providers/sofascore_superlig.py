@@ -16,6 +16,12 @@ class SuperLigSofascore(sd.Sofascore):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @classmethod
+    def _all_leagues(cls) -> dict[str, str]:
+        return {
+            "TUR-Super Lig": "Trendyol Süper Lig"
+        }
+
     def read_leagues(self) -> pd.DataFrame:
         """
         Overrides the standard discovery mechanism to return the custom DataFrame 
