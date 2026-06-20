@@ -15,8 +15,7 @@ service cloud.firestore {
     // Admin email whitelist check
     function isAdmin() {
       return request.auth != null && 
-        (request.auth.token.email == "yunusemreyilmaz93@gmail.com" || 
-         request.auth.uid == "mock-admin-uid-123");
+        (request.auth.token.email == "yunusemreyilmaz93@gmail.com");
     }
 
     function incoming() {
@@ -253,6 +252,36 @@ service cloud.firestore {
     match /categories/{categoryId} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 27. advancedPlayerStats
+    // ==========================================
+    match /advancedPlayerStats/{statId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 28. advancedMatchStats
+    // ==========================================
+    match /advancedMatchStats/{statId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ==========================================
+    // 29. externalPlayerMappings
+    // ==========================================
+    match /externalPlayerMappings/{mappingId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ==========================================
+    // 30. dataSyncRuns
+    // ==========================================
+    match /dataSyncRuns/{runId} {
+      allow read, write: if isAdmin();
     }
   }
 }

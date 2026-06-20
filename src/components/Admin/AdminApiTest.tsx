@@ -176,8 +176,42 @@ export const AdminApiTest: React.FC = () => {
     setSuccessMsg(null);
     setDebugInfo(null);
 
+    // Prepare auth headers
+    const requestHeaders: Record<string, string> = {
+      "Content-Type": "application/json"
+    };
+
+    if (isFirebaseConfigured && auth) {
+      const user = auth.currentUser;
+      if (!user) {
+        setErrorMsg("API isteği başarısız: Aktif bir oturum bulunamadı. Lütfen giriş yapın.");
+        setLoading(null);
+        return;
+      }
+      try {
+        const token = await user.getIdToken();
+        requestHeaders["Authorization"] = `Bearer ${token}`;
+      } catch (tokenErr: any) {
+        console.error("Firebase token alınamadı:", tokenErr);
+        setErrorMsg(`Yetkilendirme hatası: Token alınamadı (${tokenErr.message})`);
+        setLoading(null);
+        return;
+      }
+    } else {
+      const mockUser = getCurrentAdminUser();
+      if (!mockUser) {
+        setErrorMsg("API isteği başarısız: Yönetici oturumu bulunamadı.");
+        setLoading(null);
+        return;
+      }
+      // Pass mock value when Firebase is not configured but a mock user is logged in
+      requestHeaders["Authorization"] = `Bearer mock-admin-token-for-${mockUser.email || 'unknown'}`;
+    }
+
     try {
-      const response = await fetch(route);
+      const response = await fetch(route, {
+        headers: requestHeaders
+      });
       const contentType = response.headers.get("content-type") || "";
       let payload: any = null;
 
@@ -196,7 +230,7 @@ export const AdminApiTest: React.FC = () => {
         setDebugInfo(dbgError);
         throw new Error(response.status === 404 
           ? "Backend API router tanımlanmadı veya deploy edilmedi." 
-          : "API-Football sunucusundan geçersiz veya boş yanıt alındı."
+          : `API sunucusundan geçersiz yanıt alındı (Status: ${response.status}).`
         );
       }
 
@@ -619,7 +653,7 @@ export const AdminApiTest: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-fb-yellow/10 border border-fb-yellow/20 rounded-full text-[10px] font-black uppercase text-fb-yellow tracking-widest mb-3">
             <Cpu className="w-3 h-3" />
-            Opta Canlı Veri Platformu
+            Canlı API Veri Platformu
           </div>
           <h1 className="text-3xl font-display font-black text-white italic tracking-tight uppercase">
             FUTBOL VERİ MERKEZİ
@@ -808,7 +842,7 @@ export const AdminApiTest: React.FC = () => {
 
             {/* Quick parameter cheatsheet display */}
             <div className="p-3 rounded-xl bg-[#060a12]/80 border border-white/5 space-y-2 text-[10px] text-fb-muted leading-relaxed font-semibold">
-              <span className="block font-black text-slate-400 uppercase tracking-widest font-mono border-b border-white/5 pb-1 mb-1">Popüler Opta Referansları</span>
+              <span className="block font-black text-slate-400 uppercase tracking-widest font-mono border-b border-white/5 pb-1 mb-1">Popüler API Referansları</span>
               <p>⚽ Trendyol Süper Lig ID: <strong className="text-fb-yellow font-mono">203</strong></p>
               <p>🛡️ Fenerbahçe SK Takım ID: <strong className="text-fb-yellow font-mono">611</strong></p>
               <p>🇪🇺 UEFA Europa League: ID <strong className="text-fb-yellow font-mono">3</strong></p>
@@ -1143,7 +1177,7 @@ export const AdminApiTest: React.FC = () => {
               <div className="space-y-4">
                 {!apiPlayers ? (
                   <div className="text-slate-500 py-12 text-center text-xs font-semibold italic border border-white/[0.03] border-dashed rounded-2xl bg-[#060a12]/30">
-                    Kadro verisi yüklenmedi. "Fenerbahçe Kadrosunu Çek" butonunu kullanarak Opta kadro havuzunu indirin.
+                    Kadro verisi yüklenmedi. "Fenerbahçe Kadrosunu Çek" butonunu kullanarak canlı kadro havuzunu indirin.
                   </div>
                 ) : apiPlayers.length === 0 ? (
                   <div className="text-slate-400 py-12 text-center text-xs font-semibold italic">
@@ -1350,7 +1384,7 @@ export const AdminApiTest: React.FC = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-4 bg-[#060a12]/80 border border-white/5 rounded-2xl">
                 <p className="text-xxs text-fb-muted font-bold tracking-wide text-left max-w-sm leading-relaxed">
-                  İlgili ligin puan durumunu Opta sunucusundan indirin ve anasayfa widget'larında gösterilmesi amacıyla 'standings' koleksiyonuna sabitleyin.
+                  İlgili ligin puan durumunu API sunucusundan indirin ve anasayfa widget'larında gösterilmesi amacıyla 'standings' koleksiyonuna sabitleyin.
                 </p>
                 <button
                   onClick={runFetchStandings}
@@ -1449,14 +1483,14 @@ export const AdminApiTest: React.FC = () => {
               <div className="flex justify-between items-center pb-3 border-b border-white/[0.04]">
                 <h3 className="text-xs font-black uppercase text-fb-yellow tracking-wider flex items-center gap-2">
                   <FileText className="w-4 h-4 text-fb-yellow" />
-                  MAÇ DETAY ANALİZ MERKEZİ (OPTA İSTATİSTİK)
+                  MAÇ DETAY ANALİZ MERKEZİ (SAYISAL İSTATİSTİK)
                 </h3>
                 <span className="text-[10px] text-slate-500 font-mono font-bold uppercase">fixture details</span>
               </div>
 
               <div className="space-y-4">
                 <p className="text-xxs leading-relaxed font-semibold text-fb-muted">
-                  Fikstür sayfasından veya dışarıdan kopyalayacağınız Maç ID değerini buraya girerek ilgili müsabakanın tüm Opta istatistiklerini (şutlar, paslar vb.) ve resmi kadrolarını çekerek ilgili match belgesinin içerisine entegre edebilirsiniz.
+                  Fikstür sayfasından veya dışarıdan kopyalayacağınız Maç ID değerini buraya girerek ilgili müsabakanın tüm detaylı istatistiklerini (şutlar, paslar vb.) ve resmi kadrolarını çekerek ilgili match belgesinin içerisine entegre edebilirsiniz.
                 </p>
 
                 <div className="flex gap-3">
@@ -1488,7 +1522,7 @@ export const AdminApiTest: React.FC = () => {
                   <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-emerald-500/10 border border-emerald-500/25 p-3.5 rounded-xl text-xs">
                       <div className="text-xxs text-slate-300 font-semibold leading-relaxed">
-                        Müsabaka ({apiMatchDetails.teams?.home?.name} vs {apiMatchDetails.teams?.away?.name}) Opta verileri alındı. Bu verileri entegre edin.
+                        Müsabaka ({apiMatchDetails.teams?.home?.name} vs {apiMatchDetails.teams?.away?.name}) detaylı verileri alındı. Bu verileri entegre edin.
                       </div>
                       <button
                         onClick={saveMatchDetailsToFirestore}

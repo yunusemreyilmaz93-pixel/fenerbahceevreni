@@ -18,7 +18,7 @@ export const AdminSettings: React.FC = () => {
   const [form, setForm] = useState({
     siteName: 'Fenerbahçe Evreni',
     tagline: 'Bağımsız Analiz ve Taraftar Topluluğu',
-    metaTitle: 'Fenerbahçe Evreni - Mourinho Taktik & Scout Analizi',
+    metaTitle: 'Fenerbahçe Evreni - Haftalık Taktik & Scout Analizi',
     metaDescription: 'Fenerbahçe Evreni tamamen bağımsız bir spor analiz, transfer scout raporu ve muhtemel 11 veri merkezidir.',
     maintenanceMode: false,
     legalNoticeActive: true

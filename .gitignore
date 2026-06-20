@@ -6,3 +6,12 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Python data-worker environment & temporary paths
+data-worker/.venv/
+data-worker/**/__pycache__/
+data-worker/soccerdata_home/data/
+data-worker/soccerdata_home/logs/
+data-worker/output/*.json
+data-worker/output/*.csv
+

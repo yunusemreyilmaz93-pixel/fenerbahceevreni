@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
 import { latestArticles, transferTargets, playerPerformances } from '../constants/mockData';
+import { DataProvider, AdvancedPlayerStats, AdvancedMatchStats, ExternalPlayerMapping, DataSyncRun } from '../types/soccerdata';
 
 // Firestore Error Handler requested by Section 3 of Firebase-Integration Skill
 export enum OperationType {
@@ -140,8 +141,11 @@ const seedDatabaseLocal = () => {
     localStorage.setItem("cms_matches", JSON.stringify(initialMatches));
   }
 
-  // Match Reports seed
-  if (!localStorage.getItem("cms_match_reports")) {
+  // Match Reports seed / migration
+  if (localStorage.getItem("cms_match_reports") && !localStorage.getItem("cms_matchReports")) {
+    localStorage.setItem("cms_matchReports", localStorage.getItem("cms_match_reports")!);
+  }
+  if (!localStorage.getItem("cms_matchReports")) {
     const initialReports = [
       {
         id: "rep-1",
@@ -167,7 +171,7 @@ const seedDatabaseLocal = () => {
         createdAt: new Date(2026, 4, 25).toISOString()
       }
     ];
-    localStorage.setItem("cms_match_reports", JSON.stringify(initialReports));
+    localStorage.setItem("cms_matchReports", JSON.stringify(initialReports));
   }
 
   // Players seed
@@ -191,8 +195,11 @@ const seedDatabaseLocal = () => {
     localStorage.setItem("cms_players", JSON.stringify(initialPlayers));
   }
 
-  // Transfer Radar seed
-  if (!localStorage.getItem("cms_transfer_reports")) {
+  // Transfer Radar seed / migration
+  if (localStorage.getItem("cms_transfer_reports") && !localStorage.getItem("cms_transferReports")) {
+    localStorage.setItem("cms_transferReports", localStorage.getItem("cms_transfer_reports")!);
+  }
+  if (!localStorage.getItem("cms_transferReports")) {
     const initialTransfers = transferTargets.map(t => ({
       id: t.id,
       playerName: t.name,
@@ -210,7 +217,7 @@ const seedDatabaseLocal = () => {
       status: "published",
       createdAt: new Date().toISOString()
     }));
-    localStorage.setItem("cms_transfer_reports", JSON.stringify(initialTransfers));
+    localStorage.setItem("cms_transferReports", JSON.stringify(initialTransfers));
   }
 
   // Polls seed
@@ -253,7 +260,7 @@ const seedDatabaseLocal = () => {
         id: "prem-1",
         title: "Modern Sol Bek Hücum Isı Haritası & PDF",
         contentType: "pdf",
-        description: "Ferdi Kadıoğlu'nun 25.04.2026 itibarıyla son 10 iç saha maçında çizdiği içe kat etme koridoru ve Opta verileri.",
+        description: "Ferdi Kadıoğlu'nun 25.04.2026 itibarıyla son 10 iç saha maçında çizdiği içe kat etme koridoru ve gelişmiş analitik verileri.",
         content: "Bu özel araştırmada sol kanat bekimizin sahadaki tüm aksiyonları ve pas varyasyon kilitleri yer almaktadır.",
         pdfUrl: "#",
         accessLevel: "premium_member",
@@ -293,8 +300,11 @@ const seedDatabaseLocal = () => {
     localStorage.setItem("cms_sponsors", JSON.stringify(initialSponsors));
   }
 
-  // Homepage Settings
-  if (!localStorage.getItem("cms_homepage_settings")) {
+  // Homepage Settings / migration
+  if (localStorage.getItem("cms_homepage_settings") && !localStorage.getItem("cms_homeSettings")) {
+    localStorage.setItem("cms_homeSettings", localStorage.getItem("cms_homepage_settings")!);
+  }
+  if (!localStorage.getItem("cms_homeSettings")) {
     const initialHps = {
       featuredArticleIds: ["art-1", "art-2"],
       featuredMatchId: "match-1",
@@ -305,22 +315,25 @@ const seedDatabaseLocal = () => {
       heroSecondaryButtonText: "Maç Merkezi",
       updatedAt: new Date().toISOString()
     };
-    localStorage.setItem("cms_homepage_settings", JSON.stringify(initialHps));
+    localStorage.setItem("cms_homeSettings", JSON.stringify(initialHps));
   }
 
-  // Site Settings
-  if (!localStorage.getItem("cms_site_settings")) {
+  // Site Settings / migration
+  if (localStorage.getItem("cms_site_settings") && !localStorage.getItem("cms_siteSettings")) {
+    localStorage.setItem("cms_siteSettings", localStorage.getItem("cms_site_settings")!);
+  }
+  if (!localStorage.getItem("cms_siteSettings")) {
     const initialSettings = {
       siteTitle: "Fenerbahçe Evreni - Bağımsız Analiz Portalı",
       siteDescription: "Fenerbahçe taktik analiz, scout bülteni, taraftar fraksiyonları ve maç merkezi portalı.",
       contactEmail: "iletisim@fenerbahceevreni.com",
-      socialLinks: { twitter: "@FenerEvreni", instagram: "fenerbahceevreni", youtube: "fenerbahceevrenitv" },
+      socialLinks: { twitter: "@BasitBiOyun", instagram: "fenerbahceevreni", youtube: "@fenerbahcevreni" },
       disclaimerText: "Fenerbahçe Evreni, bağımsız bir taraftar ve analiz platformudur. Ticari ya da hukuki olarak Fenerbahçe SK ya da bağlı şirketleri ile herhangi bir resmi organik bağı veya ortaklığı bulunmamaktadır.",
       newsletterEnabled: true,
       premiumEnabled: true,
       updatedAt: new Date().toISOString()
     };
-    localStorage.setItem("cms_site_settings", JSON.stringify(initialSettings));
+    localStorage.setItem("cms_siteSettings", JSON.stringify(initialSettings));
   }
 };
 
@@ -328,10 +341,103 @@ const seedDatabaseLocal = () => {
 seedDatabaseLocal();
 
 
+let firebaseSeedingPromise: Promise<void> | null = null;
+
+export const seedDatabaseFirebase = async (): Promise<void> => {
+  if (!isFirebaseConfigured || !db) return;
+  if (localStorage.getItem("cms_firebase_seeded_done") === "true") return;
+
+  if (!firebaseSeedingPromise) {
+    firebaseSeedingPromise = (async () => {
+      try {
+        // Fetch to check if system is already seeded
+        const metaRef = doc(db, "metadata", "system");
+        const metaSnap = await getDoc(metaRef);
+        if (metaSnap.exists() && metaSnap.data().seeded === true) {
+          localStorage.setItem("cms_firebase_seeded_done", "true");
+          console.log("Firebase has already been seeded before.");
+          return;
+        }
+
+        console.log("Firebase not seeded yet. Starting auto-seeding of database tracking...");
+        
+        // Let's iterate all local collections and upload them
+        const collectionsToSeed = [
+          { localKey: 'cms_articles', colName: 'articles' },
+          { localKey: 'cms_matches', colName: 'matches' },
+          { localKey: 'cms_matchReports', colName: 'matchReports' },
+          { localKey: 'cms_players', colName: 'players' },
+          { localKey: 'cms_transferReports', colName: 'transferReports' },
+          { localKey: 'cms_polls', colName: 'polls' },
+          { localKey: 'cms_newsletter', colName: 'newsletter' },
+          { localKey: 'cms_premium', colName: 'premium' },
+          { localKey: 'cms_premiumWaitlist', colName: 'premiumWaitlist' },
+          { localKey: 'cms_sponsors', colName: 'sponsors' },
+          { localKey: 'cms_homeSettings', colName: 'homeSettings' },
+          { localKey: 'cms_siteSettings', colName: 'siteSettings' }
+        ];
+
+        for (const target of collectionsToSeed) {
+          const rawData = localStorage.getItem(target.localKey);
+          if (rawData) {
+            try {
+              const parsed = JSON.parse(rawData);
+              if (Array.isArray(parsed)) {
+                for (const item of parsed) {
+                  if (item && item.id) {
+                    await setDoc(doc(db, target.colName, item.id), item);
+                  }
+                }
+              } else if (parsed && typeof parsed === 'object') {
+                // Like homeSettings or siteSettings
+                await setDoc(doc(db, target.colName, 'main'), parsed);
+              }
+            } catch (err) {
+              console.error(`Error seeding collection ${target.colName}`, err);
+            }
+          }
+        }
+
+        // Set seeded true
+        await setDoc(metaRef, { seeded: true, seededAt: new Date().toISOString() });
+        localStorage.setItem("cms_firebase_seeded_done", "true");
+        console.log("Firebase successfully seeded and synchronized with premium blueprints!");
+      } catch (err) {
+        console.error("Failed to seed Firebase Firestore dynamically:", err);
+      }
+    })();
+  }
+  return firebaseSeedingPromise;
+};
+
+
+// Normalizes dirty/mismatched collection names into a single unified camelCase form.
+// This prevents desynchronization bugs where the admin panel writes to one collection name (e.g., camelCase)
+// and home page modules read from another (e.g., snake_case).
+export const normalizeCollectionName = (colName: string): string => {
+  const norm = colName.trim();
+  if (norm === 'match_reports' || norm === 'match-reports') return 'matchReports';
+  if (norm === 'site_settings' || norm === 'site-settings' || norm === 'site_settings_general') return 'siteSettings';
+  if (norm === 'contact_messages' || norm === 'contact-messages') return 'contactMessages';
+  if (norm === 'transfer_reports' || norm === 'transfer-reports') return 'transferReports';
+  if (norm === 'homepage_settings' || norm === 'homepage-settings' || norm === 'homeSettings' || norm === 'home_settings' || norm === 'home-settings') return 'homeSettings';
+  if (norm === 'newsletterSubscribers' || norm === 'newsletter-subscribers' || norm === 'newsletter_subscribers') return 'newsletter';
+  
+  // Soccerdata normalized custom collections
+  if (norm === 'advanced_player_stats' || norm === 'advanced-player-stats') return 'advancedPlayerStats';
+  if (norm === 'advanced_match_stats' || norm === 'advanced-match-stats') return 'advancedMatchStats';
+  if (norm === 'external_player_mappings' || norm === 'external-player-mappings') return 'externalPlayerMappings';
+  if (norm === 'data_sync_runs' || norm === 'data-sync-runs') return 'dataSyncRuns';
+  
+  return norm;
+};
+
 // Generic high-performance local/cloud operations
-export const dbGetCollection = async (collectionName: string): Promise<any[]> => {
+export const dbGetCollection = async (rawCollectionName: string): Promise<any[]> => {
+  const collectionName = normalizeCollectionName(rawCollectionName);
   if (isFirebaseConfigured && db) {
     try {
+      await seedDatabaseFirebase();
       const snap = await getDocs(collection(db, collectionName));
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (e) {
@@ -344,7 +450,8 @@ export const dbGetCollection = async (collectionName: string): Promise<any[]> =>
   }
 };
 
-export const dbUpsertDocument = async (collectionName: string, id: string, data: any): Promise<void> => {
+export const dbUpsertDocument = async (rawCollectionName: string, id: string, data: any): Promise<void> => {
+  const collectionName = normalizeCollectionName(rawCollectionName);
   const timestamped = {
     ...data,
     updatedAt: new Date().toISOString()
@@ -368,7 +475,8 @@ export const dbUpsertDocument = async (collectionName: string, id: string, data:
   }
 };
 
-export const dbAddDocument = async (collectionName: string, data: any): Promise<string> => {
+export const dbAddDocument = async (rawCollectionName: string, data: any): Promise<string> => {
+  const collectionName = normalizeCollectionName(rawCollectionName);
   const finalId = data.id || `${collectionName.slice(0, 3)}-${Math.random().toString(36).substr(2, 9)}`;
   const finalData = {
     ...data,
@@ -393,7 +501,8 @@ export const dbAddDocument = async (collectionName: string, data: any): Promise<
   }
 };
 
-export const dbDeleteDocument = async (collectionName: string, id: string): Promise<void> => {
+export const dbDeleteDocument = async (rawCollectionName: string, id: string): Promise<void> => {
+  const collectionName = normalizeCollectionName(rawCollectionName);
   if (isFirebaseConfigured && db) {
     try {
       await deleteDoc(doc(db, collectionName, id));
@@ -404,5 +513,163 @@ export const dbDeleteDocument = async (collectionName: string, id: string): Prom
     const list = await dbGetCollection(collectionName);
     const filtered = list.filter(item => item.id !== id);
     localStorage.setItem(`cms_${collectionName}`, JSON.stringify(filtered));
+  }
+};
+
+// --- SOCCERDATA ADVANCED STATS COLLECTIONS HELPERS ---
+export const COLL_ADV_PLAYER_STATS = 'advancedPlayerStats';
+export const COLL_ADV_MATCH_STATS = 'advancedMatchStats';
+export const COLL_EXT_PLAYER_MAPPINGS = 'externalPlayerMappings';
+export const COLL_DATA_SYNC_RUNS = 'dataSyncRuns';
+
+export const dbGetAdvancedPlayerStats = async (
+  playerDocumentId: string,
+  seasonKey?: string,
+  provider?: DataProvider
+): Promise<AdvancedPlayerStats[]> => {
+  if (isFirebaseConfigured && db) {
+    try {
+      let q = query(
+        collection(db, COLL_ADV_PLAYER_STATS),
+        where('playerDocumentId', '==', playerDocumentId)
+      );
+      if (seasonKey) {
+        q = query(q, where('seasonKey', '==', seasonKey));
+      }
+      if (provider) {
+        q = query(q, where('provider', '==', provider));
+      }
+      const snap = await getDocs(q);
+      return snap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, COLL_ADV_PLAYER_STATS);
+      return [];
+    }
+  } else {
+    const list = await dbGetCollection(COLL_ADV_PLAYER_STATS);
+    return list.filter((item: any) => {
+      if (item.playerDocumentId !== playerDocumentId) return false;
+      if (seasonKey && item.seasonKey !== seasonKey) return false;
+      if (provider && item.provider !== provider) return false;
+      return true;
+    });
+  }
+};
+
+export const dbGetAdvancedMatchStats = async (
+  matchDocumentId: string,
+  provider?: DataProvider
+): Promise<AdvancedMatchStats[]> => {
+  if (isFirebaseConfigured && db) {
+    try {
+      let q = query(
+        collection(db, COLL_ADV_MATCH_STATS),
+        where('matchDocumentId', '==', matchDocumentId)
+      );
+      if (provider) {
+        q = query(q, where('provider', '==', provider));
+      }
+      const snap = await getDocs(q);
+      return snap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, COLL_ADV_MATCH_STATS);
+      return [];
+    }
+  } else {
+    const list = await dbGetCollection(COLL_ADV_MATCH_STATS);
+    return list.filter((item: any) => {
+      if (item.matchDocumentId !== matchDocumentId) return false;
+      if (provider && item.provider !== provider) return false;
+      return true;
+    });
+  }
+};
+
+export const dbGetExternalPlayerMapping = async (
+  playerDocumentId: string
+): Promise<ExternalPlayerMapping | null> => {
+  if (isFirebaseConfigured && db) {
+    try {
+      const snap = await getDoc(doc(db, COLL_EXT_PLAYER_MAPPINGS, playerDocumentId));
+      if (snap.exists()) {
+        return { id: snap.id, ...snap.data() as any };
+      }
+      return null;
+    } catch (e) {
+      handleFirestoreError(e, OperationType.GET, `${COLL_EXT_PLAYER_MAPPINGS}/${playerDocumentId}`);
+      return null;
+    }
+  } else {
+    const list = await dbGetCollection(COLL_EXT_PLAYER_MAPPINGS);
+    const found = list.find((item: any) => item.id === playerDocumentId);
+    return found || null;
+  }
+};
+
+export const dbUpsertExternalPlayerMapping = async (
+  mapping: ExternalPlayerMapping
+): Promise<void> => {
+  if (!mapping.playerDocumentId) {
+    throw new Error('playerDocumentId is required to upsert player mapping');
+  }
+  const docId = mapping.playerDocumentId;
+  const timestamped = {
+    ...mapping,
+    updatedAt: new Date().toISOString()
+  };
+
+  if (isFirebaseConfigured && db) {
+    try {
+      await setDoc(doc(db, COLL_EXT_PLAYER_MAPPINGS, docId), timestamped, { merge: true });
+    } catch (e) {
+      handleFirestoreError(e, OperationType.WRITE, `${COLL_EXT_PLAYER_MAPPINGS}/${docId}`);
+    }
+  } else {
+    const list = await dbGetCollection(COLL_EXT_PLAYER_MAPPINGS);
+    const existingIdx = list.findIndex(item => item.id === docId);
+    if (existingIdx > -1) {
+      list[existingIdx] = { ...list[existingIdx], ...timestamped };
+    } else {
+      list.push({ id: docId, ...timestamped });
+    }
+    localStorage.setItem(`cms_${COLL_EXT_PLAYER_MAPPINGS}`, JSON.stringify(list));
+  }
+};
+
+export const dbGetDataSyncRuns = async (
+  provider?: DataProvider,
+  limitCount?: number
+): Promise<DataSyncRun[]> => {
+  if (isFirebaseConfigured && db) {
+    try {
+      let q = query(collection(db, COLL_DATA_SYNC_RUNS), orderBy('startedAt', 'desc'));
+      if (provider) {
+        q = query(collection(db, COLL_DATA_SYNC_RUNS), where('provider', '==', provider), orderBy('startedAt', 'desc'));
+      }
+      
+      const snap = await getDocs(q);
+      let results = snap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      if (limitCount && limitCount > 0) {
+        results = results.slice(0, limitCount);
+      }
+      return results;
+    } catch (e) {
+      handleFirestoreError(e, OperationType.LIST, COLL_DATA_SYNC_RUNS);
+      return [];
+    }
+  } else {
+    let list = await dbGetCollection(COLL_DATA_SYNC_RUNS);
+    list.sort((a, b) => {
+      const dateA = new Date(a.startedAt).getTime();
+      const dateB = new Date(b.startedAt).getTime();
+      return dateB - dateA;
+    });
+    if (provider) {
+      list = list.filter((item: any) => item.provider === provider);
+    }
+    if (limitCount && limitCount > 0) {
+      list = list.slice(0, limitCount);
+    }
+    return list;
   }
 };

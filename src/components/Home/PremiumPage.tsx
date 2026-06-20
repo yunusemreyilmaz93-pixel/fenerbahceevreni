@@ -400,7 +400,7 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ onNavigate }) => {
                     Raporun tamamı Premium üyeler için.
                   </p>
                   <p className="text-[10px] text-fb-muted font-bold text-center mt-0.5">
-                    Katılınca opta ısı grafikleri içeren 24 sayfalık PDF indirmeye açılır.
+                    Katılınca detaylı analiz grafikleri içeren 24 sayfalık PDF indirmeye açılır.
                   </p>
                 </div>
 

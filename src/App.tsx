@@ -384,14 +384,16 @@ export default function App() {
       try {
         await seedNewsletterSubscribersIfEmpty();
         
+        const isSeeded = localStorage.getItem("cms_firebase_seeded_done") === "true" || !!localStorage.getItem("cms_articles");
+        
         const arts = await dbGetCollection('articles');
-        setArticles(arts.length > 0 ? arts : latestArticles);
+        setArticles(arts.length > 0 || isSeeded ? arts : latestArticles);
 
         const targets = await dbGetCollection('transferReports');
-        setTransferReports(targets.length > 0 ? targets : transferTargets);
+        setTransferReports(targets.length > 0 || isSeeded ? targets : transferTargets);
 
         const plyrs = await dbGetCollection('players');
-        setPlayersList(plyrs.length > 0 ? plyrs : playerPerformances);
+        setPlayersList(plyrs.length > 0 || isSeeded ? plyrs : playerPerformances);
 
         const polls = await dbGetCollection('polls');
         const activePoll = polls.find((p: any) => p.status === 'active') || polls[0];

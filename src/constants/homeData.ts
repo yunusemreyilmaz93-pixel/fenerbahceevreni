@@ -35,8 +35,8 @@ export const NEXT_MATCH = {
 export const LATEST_NEWS: NewsItem[] = [
   {
     id: '1',
-    title: 'Mourinho: "Bu Taraftar Her Şeyin En İyisini Hak Ediyor"',
-    summary: 'Teknik direktörümüz Jose Mourinho, antrenman sonrası basın mensuplarına açıklamalarda bulundu.',
+    title: 'Teknik Direktörümüz: "Bu Taraftar Her Şeyin En İyisini Hak Ediyor"',
+    summary: 'Teknik direktörümüz, antrenman sonrası basın mensuplarına heyecan verici açıklamalarda bulundu.',
     image: 'https://picsum.photos/seed/mou/800/450',
     category: 'TAKIM',
     date: '2 Saat Önce',

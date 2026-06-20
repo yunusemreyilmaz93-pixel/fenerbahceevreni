@@ -27,7 +27,8 @@ import {
   Megaphone,
   Layers,
   HardDrive,
-  Activity
+  Activity,
+  Database
 } from 'lucide-react';
 import { logoutAdmin } from '../../lib/firebase';
 
@@ -55,6 +56,7 @@ import { AdminSources } from './AdminSources';
 import { AdminContentHealth } from './AdminContentHealth';
 import { AdminImportExport } from './AdminImportExport';
 import { AdminApiTest } from './AdminApiTest';
+import { AdminDataIntegration } from './AdminDataIntegration';
 
 interface AdminLayoutProps {
   adminUser: any;
@@ -112,6 +114,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
     { id: 'sources', label: 'Haber Kaynakları', icon: ShieldCheck },
     { id: 'content_health', label: 'İçerik Sağlığı', icon: HeartPulse },
     { id: 'import_export', label: 'İçe / Dışa Aktar', icon: HardDrive },
+    { id: 'data_integration', label: 'Veri Entegrasyonu', icon: Database },
     { id: 'homepage', label: 'Ana Sayfa Yönetimi', icon: Home },
     { id: 'settings', label: 'Site Ayarları', icon: Settings },
     { id: 'api_test', label: 'FUTBOL VERİ MERKEZİ', icon: Activity },
@@ -179,6 +182,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
         return <AdminContentHealth />;
       case 'import_export':
         return <AdminImportExport showToast={showToast} />;
+      case 'data_integration':
+        return <AdminDataIntegration showToast={showToast} adminUser={adminUser} />;
       case 'homepage':
         return <AdminHomepage showToast={showToast} />;
       case 'settings':

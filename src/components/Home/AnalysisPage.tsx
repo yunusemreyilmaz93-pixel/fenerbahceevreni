@@ -72,6 +72,42 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
   // Custom visual feedback toast
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
+  // Elite interactive features
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeScenario, setActiveScenario] = useState<'press' | 'transition' | 'lowBlock'>('press');
+  const [userVote, setUserVote] = useState<string | null>(null);
+  const [votes, setVotes] = useState({ agree: 142, disagree: 18, neutral: 34 });
+
+  // Scroll reader tracking
+  useEffect(() => {
+    if (!selectedArticleSlug) {
+      setScrollProgress(0);
+      return;
+    }
+    const handleScroll = () => {
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollHeight > 0) {
+        const progress = (window.scrollY / scrollHeight) * 100;
+        setScrollProgress(progress);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [selectedArticleSlug]);
+
+  const handleVote = (type: 'agree' | 'disagree' | 'neutral') => {
+    if (userVote) {
+      showLocalToast('Bu taktik analiz için zaten oy kullandınız!', 'error');
+      return;
+    }
+    setUserVote(type);
+    setVotes(prev => ({
+      ...prev,
+      [type]: prev[type] + 1
+    }));
+    showLocalToast('Geri bildiriminiz kaydedildi, teşekkürler!');
+  };
+
   const showLocalToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMsg({ text, type });
     setTimeout(() => {
@@ -87,8 +123,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
       slug: "fenerbahce-oyun-plani-problem",
       category: "Taktik",
       excerpt: "Topa sahip olmak her zaman oyunu kontrol etmek anlamına gelmez. Fenerbahçe’nin son maçlarda yaşadığı temel sorun, topun nerede ve hangi hızda dolaştığıyla ilgili.",
-      content: "Fenerbahçe’nin son haftalardaki performans grafiği incelendiğinde, sahadaki taktik diziliş ile pratik yerleşim arasında ciddi bir kopukluk göze çarpıyor. Topun mülkiyetine sahip olma oranlarımız %60 seviyelerine ulaşmasına rağmen, üçüncü bölgedeki üretkenlik endekslerimiz lig ortalamasının gerisinde kalıyor.\n\nTemel problem, orta alan ile hücum hattı arasındaki geçiş hızının düşüklüğüdür. Top geriden çıkarken stoperlerin gereğinden fazla yatay pas yapması, rakip savunma bloklarının yerleşmesine ve kaymalarını kusursuz yapmasına olanak tanıyor. Fred'in üstlendiği kilit oyun kurucu ve dinamo rolünün alternatifinin bulunmayışı, takımın ritmini doğrudan etkiliyor. \n\nMourinho'nun dikey pas öncelikli felsefesini sahaya yansıtabilmek adına oyuncularımızın topsuz alan koşularını artırması gerekmektedir. Özellikle beklerin hücum çizgisine ulaştığı anlarda kanat forvetlerimizin iç koridorlara girmemesi ön tarafta sayısal çoğunluğu kaybetmemize yol açıyor. Gelecek haftalardaki derbilerde, geçiş savunmasındaki zafiyetlerin giderilmesi birinci öncelik olacaktır.",
-      tags: ["Mourinho", "Taktik", "Gelişim", "Analiz"],
+      content: "Fenerbahçe’nin son haftalardaki performans grafiği incelendiğinde, sahadaki taktik diziliş ile pratik yerleşim arasında ciddi bir kopukluk göze çarpıyor. Topun mülkiyetine sahip olma oranlarımız %60 seviyelerine ulaşmasına rağmen, üçüncü bölgedeki üretkenlik endekslerimiz lig ortalamasının gerisinde kalıyor.\n\nTemel problem, orta alan ile hücum hattı arasındaki geçiş hızının düşüklüğüdür. Top geriden çıkarken stoperlerin gereğinden fazla yatay pas yapması, rakip savunma bloklarının yerleşmesine ve kaymalarını kusursuz yapmasına olanak tanıyor. Fred'in üstlendiği kilit oyun kurucu ve dinamo rolünün alternatifinin bulunmayışı, takımın ritmini doğrudan etkiliyor. \n\nModern dikey pas öncelikli felsefeyi sahaya yansıtabilmek adına oyuncularımızın topsuz alan koşularını artırması gerekmektedir. Özellikle beklerin hücum çizgisine ulaştığı anlarda kanat forvetlerimizin iç koridorlara girmemesi ön tarafta sayısal çoğunluğu kaybetmemize yol açıyor. Gelecek haftalardaki derbilerde, geçiş savunmasındaki zafiyetlerin giderilmesi birinci öncelik olacaktır.",
+      tags: ["Taktik", "Gelişim", "Analiz"],
       coverImage: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1200&auto=format&fit=crop",
       author: "Bora Karaca",
       status: "published",
@@ -156,7 +192,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
       category: "Transfer",
       excerpt: "Savunma önü oyuncusu sadece top kazanan değil, aynı zamanda ilk pas kalitesini yükselten bir profil olmalı.",
       content: "Camianın uzun yıllardır eksikliğini hissettiği ve modern futbolda oyunun merkezini yönetecek kusursuz 6 numara arayışı sürüyor. Scout ekibimiz, hem savunma geçişlerinde duvar olabilecek hem de geriden oyun kurarken pres altındayken bile top kaybetmeyecek 3 global adayı listeledi.",
-      tags: ["Scouting", "Transfer", "6 Numara", "Opta"],
+      tags: ["Scouting", "Transfer", "6 Numara", "Analiz"],
       coverImage: "https://images.unsplash.com/photo-1431324155629-1a6edd1d226a?w=800&auto=format&fit=crop",
       author: "Serhat Akıncı",
       status: "published",
@@ -206,8 +242,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
       slug: "premium-detayli-besiktas-derbisi-raporu",
       category: "Premium",
       excerpt: "Maçın tüm taktik kırılmaları, rakip zayıf yön analizleri, kilit kilit oyuncu eşleşmeleri ve bir sonraki maç için kritik galibiyet anahtarı.",
-      content: "Derbinin anahtarı orta sahadaki pres yoğunluğunda gizli. Beşiktaş'ın kilit oyun kurucusu Rafa Silva'yı durdurmak için İsmail Yüksek'in yapacağı gölge markaj, savunma hattımızın derinliğini doğrudan koruyacaktır. Bu yazıda her iki takımın son 5 maçlık Opta verileri ve geçiş haritaları karşılaştırılmaktadır.\n\nYanal hücum organizasyonlarında Beşiktaş'ın bek arkasında bıraktığı koridorlar, Tadić'in milimetrik pasları ve Ferdi'nin bindirmeleri için muazzam fırsatlar barındırıyor. Ancak orta saha merkez bloklarında yaşanacak basit top kayıpları hızlı kontra ataklara kapı aralayabilir. Şampiyonluk yolunda kritik 3 puanı getirecek tüm mikro taktikler ve oyuncu rollerine ait özel ısı tabloları bu raporun ekinde yer almaktadır.",
-      tags: ["Derbi", "Beşiktaş", "Isı Haritası", "Opta Rapor"],
+      content: "Derbinin anahtarı orta sahadaki pres yoğunluğunda gizli. Beşiktaş'ın kilit oyun kurucusu Rafa Silva'yı durdurmak için İsmail Yüksek'in yapacağı gölge markaj, savunma hattımızın derinliğini doğrudan koruyacaktır. Bu yazıda her iki takımın son 5 maçlık detaylı istatistikleri ve geçiş haritaları karşılaştırılmaktadır.\n\nYanal hücum organizasyonlarında Beşiktaş'ın bek arkasında bıraktığı koridorlar, Tadić'in milimetrik pasları ve Ferdi'nin bindirmeleri için muazzam fırsatlar barındırıyor. Ancak orta saha merkez bloklarında yaşanacak basit top kayıpları hızlı kontra ataklara kapı aralayabilir. Şampiyonluk yolunda kritik 3 puanı getirecek tüm mikro taktikler ve oyuncu rollerine ait özel ısı tabloları bu raporun ekinde yer almaktadır.",
+      tags: ["Derbi", "Beşiktaş", "Isı Haritası", "Taktik Rapor"],
       coverImage: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop",
       author: "Taktik Kurulu",
       status: "published",
@@ -228,7 +264,9 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
         // Only show published articles on public page
         const publishedOnly = fetched.filter(art => art.status === 'published');
         
-        if (publishedOnly && publishedOnly.length > 0) {
+        const isSeeded = localStorage.getItem("cms_firebase_seeded_done") === "true" || !!localStorage.getItem("cms_articles");
+        
+        if (publishedOnly && (publishedOnly.length > 0 || isSeeded)) {
           setArticles(publishedOnly);
         } else {
           // If Firestore is empty, use elegant fallback mock data
@@ -695,7 +733,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                     <span className="text-[9px] font-black uppercase tracking-widest text-orange-400">Tactical Chronology</span>
                     <h3 className="text-base font-black text-white italic uppercase">Maçın Hikayesi & Oyun Seti</h3>
                     <p className="text-xs text-fb-muted leading-relaxed">
-                      Geriden üçlü oyun kurma denemeleri ve beklendiği gibi topsuz dar alan presiyle orta sahayı sıkıştıran Mourinho organizasyon şablonunun detayları.
+                      Geriden üçlü oyun kurma denemeleri ve beklendiği gibi topsuz dar alan presiyle orta sahayı sıkıştıran teknik heyet organizasyon şablonunun detayları.
                     </p>
                   </div>
                 </div>
@@ -709,7 +747,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                     <span className="text-[9px] font-black uppercase tracking-widest text-fb-yellow">Performance Index</span>
                     <h3 className="text-base font-black text-white italic uppercase">Oyuncu Performans Puanları</h3>
                     <p className="text-xs text-fb-muted leading-relaxed">
-                      Sağ kanat rotasyonlarında İrfan Can'ın topsuz koşuları ve Fred'in sahadaki bağlantı başarı oranının Opta destekli karnesi. Szymański preste yine devleşti.
+                      Sağ kanat rotasyonlarında İrfan Can'ın topsuz koşuları ve Fred'in sahadaki bağlantı başarı oranının gelişmiş analitik karnesi. Szymański preste yine devleşti.
                     </p>
                   </div>
                 </div>
@@ -794,8 +832,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="pb-24 pt-28 text-left"
+            className="pb-24 pt-28 text-left relative"
           >
+            {scrollProgress > 0 && (
+              <div 
+                className="fixed top-0 left-0 h-1 bg-fb-yellow z-[210] transition-all duration-75" 
+                style={{ width: `${scrollProgress}%` }}
+              />
+            )}
             {currentArticle ? (
               <div className="container mx-auto px-6 max-w-4xl space-y-8">
                 
@@ -871,6 +915,181 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                   />
                 </div>
 
+                {/* 🔬 INTERACTIVE TACTICAL LAB CARD */}
+                <div className="p-6 md:p-8 rounded-3xl bg-fb-card border border-white/[0.06] text-left space-y-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-fb-card to-fb-navy/20">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-fb-yellow/[0.015] rounded-full blur-[80px] pointer-events-none"></div>
+                  
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1.5">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-[9px] uppercase font-black tracking-wider">
+                        <Sparkles size={11} /> CANLI TAKTİK PLAYBOOK SUİTİ
+                      </div>
+                      <h3 className="text-xl font-display font-black text-white italic uppercase tracking-tight">
+                        İnteraktif Taktik Laboratuvarı
+                      </h3>
+                      <p className="text-xs text-fb-muted max-w-lg font-semibold leading-relaxed">
+                        Fenerbahçe'nin maç senaryolarını test edin. Farklı taktik şablonlara geçerek oyuncuların sahadaki rollerini ve modern alan daraltma planlarını inceleyin.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap md:flex-col gap-1.5 shrink-0 self-start md:self-auto">
+                      {(['press', 'transition', 'lowBlock'] as const).map((sc) => (
+                        <button
+                          key={sc}
+                          onClick={() => setActiveScenario(sc)}
+                          className={`px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-left border transition-all cursor-pointer ${
+                            activeScenario === sc
+                              ? 'bg-fb-yellow border-fb-yellow text-fb-navy shadow-lg shadow-fb-yellow/15'
+                              : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:border-fb-yellow/30'
+                          }`}
+                        >
+                          {sc === 'press' && '🔥 ÖN ALAN BASKI SETİ'}
+                          {sc === 'transition' && '⚡ ASİMETRİK HÜCUM GEÇİŞİ'}
+                          {sc === 'lowBlock' && '🛡️ KOMPAKT DERİN ALÇAK BLOK'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pitch representation */}
+                  <div className="relative w-full h-[380px] md:h-[460px] bg-slate-950 rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
+                    {/* Visual grass pattern look */}
+                    <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#ffd21f_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                    
+                    {/* Pitch markings */}
+                    <div className="absolute inset-0 p-4">
+                      <div className="w-full h-full border border-white/10 rounded-xl relative">
+                        {/* Halfway line */}
+                        <div className="absolute top-1/2 left-0 w-full h-px bg-white/10"></div>
+                        {/* Center Circle */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border border-white/10"></div>
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/20"></div>
+                        
+                        {/* Penalty Area Top */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-20 border-b border-l border-r border-white/10"></div>
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[30%] h-8 border-b border-l border-r border-white/10"></div>
+                        {/* Penalty Area Bottom */}
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] h-20 border-t border-l border-r border-white/10"></div>
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[30%] h-8 border-t border-l border-r border-white/10"></div>
+                      </div>
+                    </div>
+
+                    {/* SVG Vector Line graphics for flow direction */}
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+                      {activeScenario === 'press' && (
+                        <>
+                          <path d="M 120 180 Q 200 150 280 180" fill="none" stroke="#FFD21F" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
+                          <path d="M 480 180 Q 400 150 320 180" fill="none" stroke="#FFD21F" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.6" />
+                        </>
+                      )}
+                      {activeScenario === 'transition' && (
+                        <>
+                          {/* Run vector arrows */}
+                          <path d="M 400 240 Q 450 160 440 80" fill="none" stroke="#FFD21F" strokeWidth="2" strokeDasharray="3 3" opacity="0.8" />
+                        </>
+                      )}
+                      {activeScenario === 'lowBlock' && (
+                        <>
+                          {/* Squeeze Area */}
+                          <rect x="25%" y="65%" width="50%" height="22%" fill="#FFD21F" fillOpacity="0.04" stroke="#FFD21F" strokeWidth="1" strokeDasharray="5 5" strokeOpacity="0.4" rx="12" />
+                        </>
+                      )}
+                    </svg>
+
+                    {/* Render Player Nodes */}
+                    {activeScenario === 'press' && [
+                      { id: 'GK', name: 'Livakovic', x: 50, y: 88, pos: 'K' },
+                      { id: 'LB', name: 'Oosterwolde', x: 22, y: 72, pos: 'DS' },
+                      { id: 'CB1', name: 'Djiku', x: 40, y: 76, pos: 'DF' },
+                      { id: 'CB2', name: 'Çağlar', x: 60, y: 76, pos: 'DF' },
+                      { id: 'RB', name: 'Osayi', x: 78, y: 72, pos: 'DS' },
+                      { id: 'DM1', name: 'İsmail', x: 38, y: 55, pos: 'OS' },
+                      { id: 'DM2', name: 'Fred', x: 62, y: 55, pos: 'OS' },
+                      { id: 'LW', name: 'Tadic', x: 20, y: 32, pos: 'FO' },
+                      { id: 'AM', name: 'Szymanski', x: 50, y: 36, pos: 'OS' },
+                      { id: 'RW', name: 'İrfan Can', x: 80, y: 32, pos: 'FO' },
+                      { id: 'CF', name: 'Dzeko', x: 50, y: 16, pos: 'ST' },
+                    ].map(plyr => (
+                      <div
+                        key={plyr.id}
+                        style={{ left: `${plyr.x}%`, top: `${plyr.y}%`, transform: 'translate(-50%, -50%)' }}
+                        className="absolute flex flex-col items-center justify-center z-20 cursor-pointer group transition-all duration-1000 ease-in-out"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-fb-navy to-[#181F30] border-2 border-fb-yellow flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-black/80 group-hover:scale-110 transition-transform">
+                          {plyr.pos}
+                        </div>
+                        <span className="text-[9px] font-black tracking-tight text-white/90 bg-slate-900/95 hover:bg-slate-950 px-1.5 py-0.5 rounded border border-white/5 mt-1 whitespace-nowrap">
+                          {plyr.name}
+                        </span>
+                      </div>
+                    ))}
+
+                    {activeScenario === 'transition' && [
+                      { id: 'GK', name: 'Livakovic', x: 50, y: 88, pos: 'K' },
+                      { id: 'LB', name: 'Oosterwolde', x: 18, y: 68, pos: 'DS' },
+                      { id: 'CB1', name: 'Djiku', x: 38, y: 75, pos: 'DF' },
+                      { id: 'CB2', name: 'Çağlar', x: 58, y: 75, pos: 'DF' },
+                      { id: 'RB', name: 'Osayi', x: 88, y: 36, pos: 'DS' },
+                      { id: 'DM1', name: 'İsmail', x: 32, y: 50, pos: 'OS' },
+                      { id: 'DM2', name: 'Fred', x: 62, y: 44, pos: 'OS' },
+                      { id: 'LW', name: 'Tadic', x: 15, y: 26, pos: 'FO' },
+                      { id: 'AM', name: 'Szymanski', x: 44, y: 28, pos: 'OS' },
+                      { id: 'RW', name: 'İrfan Can', x: 74, y: 20, pos: 'FO' },
+                      { id: 'CF', name: 'Dzeko', x: 46, y: 14, pos: 'ST' },
+                    ].map(plyr => (
+                      <div
+                        key={plyr.id}
+                        style={{ left: `${plyr.x}%`, top: `${plyr.y}%`, transform: 'translate(-50%, -50%)' }}
+                        className="absolute flex flex-col items-center justify-center z-20 cursor-pointer group transition-all duration-1000 ease-in-out"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-fb-navy to-[#181F30] border-2 border-fb-yellow flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-black/80 group-hover:scale-110 transition-transform">
+                          {plyr.pos}
+                        </div>
+                        <span className="text-[9px] font-black tracking-tight text-white/90 bg-slate-900/95 hover:bg-slate-950 px-1.5 py-0.5 rounded border border-white/5 mt-1 whitespace-nowrap">
+                          {plyr.name}
+                        </span>
+                      </div>
+                    ))}
+
+                    {activeScenario === 'lowBlock' && [
+                      { id: 'GK', name: 'Livakovic', x: 50, y: 92, pos: 'K' },
+                      { id: 'LB', name: 'Oosterwolde', x: 26, y: 81, pos: 'DS' },
+                      { id: 'CB1', name: 'Djiku', x: 42, y: 83, pos: 'DF' },
+                      { id: 'CB2', name: 'Çağlar', x: 58, y: 83, pos: 'DF' },
+                      { id: 'RB', name: 'Osayi', x: 74, y: 81, pos: 'DS' },
+                      { id: 'DM1', name: 'İsmail', x: 36, y: 71, pos: 'OS' },
+                      { id: 'DM2', name: 'Fred', x: 64, y: 71, pos: 'OS' },
+                      { id: 'LW', name: 'Tadic', x: 22, y: 58, pos: 'FO' },
+                      { id: 'AM', name: 'Szymanski', x: 50, y: 64, pos: 'OS' },
+                      { id: 'RW', name: 'İrfan Can', x: 78, y: 58, pos: 'FO' },
+                      { id: 'CF', name: 'Dzeko', x: 50, y: 44, pos: 'ST' },
+                    ].map(plyr => (
+                      <div
+                        key={plyr.id}
+                        style={{ left: `${plyr.x}%`, top: `${plyr.y}%`, transform: 'translate(-50%, -50%)' }}
+                        className="absolute flex flex-col items-center justify-center z-20 cursor-pointer group transition-all duration-1000 ease-in-out"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-fb-navy to-[#181F30] border-2 border-fb-yellow flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-black/80 group-hover:scale-110 transition-transform">
+                          {plyr.pos}
+                        </div>
+                        <span className="text-[9px] font-black tracking-tight text-white/90 bg-slate-900/95 hover:bg-slate-950 px-1.5 py-0.5 rounded border border-white/5 mt-1 whitespace-nowrap">
+                          {plyr.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Scenario Info Box */}
+                  <div className="p-4 rounded-2xl bg-fb-dark border border-white/5 space-y-1">
+                    <span className="text-[9px] font-black uppercase text-fb-yellow tracking-widest">Taktik Doktrini</span>
+                    <p className="text-xs text-slate-200 font-semibold leading-relaxed">
+                      {activeScenario === 'press' && "🔥 ÖN ALAN BASKI SETİ: 1-4-2-3-1 esnek ön blok yerleşimiyle rakip stoperlere yoğun pas-kanal baskısı uygularız. Orta saha çizgimiz (Fred-İsmail) rakip kontra ihtimallerinde ilk pas önleme müdahalelerini üstlenir."}
+                      {activeScenario === 'transition' && "⚡ ASİMETRİK HÜCUM GEÇİŞİ: Sağ bek (Osayi) kanat çizgisi boyunca tam bindirme yaparken, sol bek (Oosterwolde) savunma emniyeti için merkeze yaklaşır. Fred ise boşalan sağ iç yarım alan koridoruna sürpriz sızma koşusu atar."}
+                      {activeScenario === 'lowBlock' && "🛡️ KOMPAKT DERİN ALÇAK BLOK: Skor avantajı veya rakip baskısını kırma durumlarında uygulanan 4-5-1 türevi kompakt duruştur. Bloklar arası mesafe minimumda tutularak ceza sahası önünde etten duvar örülür."}
+                    </p>
+                  </div>
+                </div>
+
                 {/* CONTENT BODY */}
                 <div className="prose prose-invert max-w-none space-y-6 text-sm text-slate-300 font-semibold leading-relaxed">
                   {currentArticle.isPremium ? (
@@ -878,14 +1097,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                     <div className="space-y-6">
                       {/* First couple of paragraphs rendered */}
                       <p>
-                        {currentArticle.content.split('\n\n')[0] || "Beşiktaş derbisine giden şampiyonluk yolunda kritik teknik hazırlıklar bitti. Mourinho'nun sahada uygulayacağı özel setler, ısı tablosunda belirgin bir baskı vadediyor..."}
+                        {currentArticle.content.split('\n\n')[0] || "Beşiktaş derbisine giden şampiyonluk yolunda kritik teknik hazırlıklar bitti. Teknik heyetimizin sahada uygulayacağı özel setler, ısı tablosunda belirgin bir baskı vadediyor..."}
                       </p>
                       
                       {/* Gradient Teaser overlay block */}
                       <div className="relative pt-24 pb-4">
                         <div className="absolute inset-0 bg-gradient-to-t from-fb-dark via-fb-dark/80 to-transparent z-10"></div>
                         <p className="text-slate-400/30 filter blur-[1px] select-none">
-                          Orta alan pres hatlarında Beşiktaş’ın derin stoper kaymalarını bozmak adına Fred’in sürpriz ceza sahası koşuları kritik önem taşıyor. Eğer topsuz preste rakibi gafil avlayabilirsek ilk 20 dakikada tabelayı bulmamız işten bile değil. Opta ısı matrisi verilerine göre rakibimizin en çok zaaf verdiği bölge sol yarım iç koridor...
+                          Orta alan pres hatlarında Beşiktaş’ın derin stoper kaymalarını bozmak adına Fred’in sürpriz ceza sahası koşuları kritik önem taşıyor. Eğer topsuz preste rakibi gafil avlayabilirsek ilk 20 dakikada tabelayı bulmamız işten bile değil. Detaylı ısı matrisi verilerine göre rakibimizin en çok zaaf verdiği bölge sol yarım iç koridor...
                         </p>
                       </div>
 
@@ -899,7 +1118,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                         <div className="space-y-2">
                           <h3 className="text-xl font-display font-black text-white italic uppercase tracking-tight">Bu içerik Fenerbahçe Evreni Premium üyeleri için hazırlanmıştır</h3>
                           <p className="text-xs text-fb-muted max-w-sm mx-auto leading-relaxed">
-                            Bu analiz ve verinin devamı, kapsamlı taktik dosyaları, Opta ısı haritaları ve scouting metrik bültenimize üye olan taraftarlarımıza özeldir.
+                            Bu analiz ve verinin devamı, kapsamlı taktik dosyaları, özel ısı haritaları ve scouting metrik bültenimize üye olan taraftarlarımıza özeldir.
                           </p>
                         </div>
 
@@ -923,6 +1142,112 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                       ))}
                     </div>
                   )}
+                </div>
+
+                {/* METRIC COMPARISON SLIDERS */}
+                <div className="p-6 md:p-8 rounded-3xl bg-fb-card border border-white/[0.06] text-left space-y-5">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-fb-yellow" />
+                    <span className="text-xs font-black uppercase tracking-wider text-white">Veri Laboratuvarı: Lig Kıyaslaması</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {/* Metric 1 */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-black text-fb-muted">
+                        <span>ATAK GEÇİŞ TEMPOSU (M/SN SÜRAT)</span>
+                        <span className="text-[#FFD21F]">Fenerbahçe: 9.2 (Üst Sınıf) <span className="text-slate-400 font-normal">/ Lig Ort: 6.8</span></span>
+                      </div>
+                      <div className="h-1.5 bg-fb-dark rounded-full overflow-hidden flex">
+                        <div className="h-full bg-[#FFD21F] rounded-full" style={{ width: '92%' }}></div>
+                      </div>
+                    </div>
+
+                    {/* Metric 2 */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-black text-fb-muted">
+                        <span>PPDA PRES YOĞUNLUĞU (DÜŞÜK DAHA İYİDİR)</span>
+                        <span className="text-[#FFD21F]">Fenerbahçe: 8.4 PA (En Yoğun) <span className="text-slate-400 font-normal">/ Lig Ort: 11.2 PA</span></span>
+                      </div>
+                      <div className="h-1.5 bg-fb-dark rounded-full overflow-hidden flex">
+                        <div className="h-full bg-[#FFD21F] rounded-full" style={{ width: '85%' }}></div>
+                      </div>
+                    </div>
+
+                    {/* Metric 3 */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-black text-fb-muted">
+                        <span>3. BÖLGEDE TOP KAZANMA BAŞARISI</span>
+                        <span className="text-[#FFD21F]">Fenerbahçe: %68.2 <span className="text-slate-400 font-normal">/ Lig Ort: %48.5</span></span>
+                      </div>
+                      <div className="h-1.5 bg-fb-dark rounded-full overflow-hidden flex">
+                        <div className="h-full bg-[#FFD21F] rounded-full" style={{ width: '68%' }}></div>
+                      </div>
+                    </div>
+
+                    {/* Metric 4 */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-black text-fb-muted">
+                        <span>MAÇ BAŞINA AKAN OYUN XG (GOL BEKLENTİSİ)</span>
+                        <span className="text-[#FFD21F]">Fenerbahçe: 1.84 <span className="text-slate-400 font-normal">/ Lig Ort: 1.12</span></span>
+                      </div>
+                      <div className="h-1.5 bg-fb-dark rounded-full overflow-hidden flex">
+                        <div className="h-full bg-[#FFD21F] rounded-full" style={{ width: '88%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* USER REACTION / VOTE BOX */}
+                <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] text-center space-y-4">
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-black uppercase text-white tracking-widest">TAKTIKSEL SEÇİM GÖRÜŞÜNÜZ</h4>
+                    <p className="text-[11px] text-fb-muted font-semibold">Sizce bu analizdeki taktik vizyon sahada şampiyonluk getirecek formül mü?</p>
+                  </div>
+
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <button 
+                      onClick={() => handleVote('agree')}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+                        userVote === 'agree' 
+                          ? 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40 font-black' 
+                          : 'bg-white/5 text-slate-300 border-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <span>👍 Katılıyorum</span>
+                      <span className="font-mono text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-fb-muted">
+                        {votes.agree}
+                      </span>
+                    </button>
+
+                    <button 
+                      onClick={() => handleVote('neutral')}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+                        userVote === 'neutral' 
+                          ? 'bg-amber-950/80 text-amber-400 border-amber-500/40 font-black' 
+                          : 'bg-white/5 text-slate-300 border-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <span>😐 Kararsızım</span>
+                      <span className="font-mono text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-fb-muted">
+                        {votes.neutral}
+                      </span>
+                    </button>
+
+                    <button 
+                      onClick={() => handleVote('disagree')}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+                        userVote === 'disagree' 
+                          ? 'bg-rose-950/80 text-rose-400 border-rose-500/40 font-black' 
+                          : 'bg-white/5 text-slate-300 border-white/5 hover:bg-white/10'
+                      }`}
+                    >
+                      <span>👎 Katılmıyorum</span>
+                      <span className="font-mono text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-fb-muted">
+                        {votes.disagree}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Related Articles Section */}

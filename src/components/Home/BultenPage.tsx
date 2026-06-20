@@ -419,7 +419,7 @@ const BultenPage: React.FC<BultenPageProps> = ({ onNavigate }) => {
                     <span className="flex h-1.5 w-1.5 rounded-full bg-fb-yellow" /> 4. TARAFTARIN NABZI
                   </h4>
                   <p className="text-xs text-slate-300">
-                    Haftanın anketinde taraftarların büyük bölümü en acil ihtiyacı merkez orta saha olarak görüyor. Kadronun derinliği arttıkça Mourinho'nun taktik rotasyonlarında taraftar güven endeksi %85 seviyesine tırmandı.
+                    Haftanın anketinde taraftarların büyük bölümü en acil ihtiyacı merkez orta saha olarak görüyor. Kadronun derinliği arttıkça teknik heyetin taktik rotasyonlarında taraftar güven endeksi %85 seviyesine tırmandı.
                   </p>
                 </div>
 

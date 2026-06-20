@@ -35,6 +35,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
   const [teams, setTeams] = useState<any[]>([]);
   const [standings, setStandings] = useState<any[]>([]);
   const [matchReports, setMatchReports] = useState<any[]>([]);
+  const [dbPlayers, setDbPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Selected visual active match (featured or first or fallback)
@@ -135,14 +136,14 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
               newEventTxt = "Kritik an! Osayi-Samuel sağ kanattan fırtına gibi bindi, ceza sahasına kesti fakat son anda savunma araya girdi.";
             }
           } else if (nextMinute === 45) {
-            newEventTxt = "İlk yarı düdüğü çaldı. Oyuncular soyunma odasına Mourinho’nun taktik direktiflerini almak üzere gidiyor.";
+            newEventTxt = "İlk yarı düdüğü çaldı. Oyuncular soyunma odasına teknik heyetin taktik direktiflerini almak üzere gidiyor.";
             eventType = 'whistle';
           } else if (nextMinute === 60) {
             if (randomChance > 0.6) {
               newEventTxt = "Sarı Kart! Rakip orta saha oyuncusu Sebastian Szymański'yi hızlı atağa çıkarken faulle durdurdu.";
               eventType = 'card';
             } else {
-              newEventTxt = "Mourinho oyuna müdahale etti: Kulübedeki dinamik kanat opsiyonları ısınma çalışmalarını hızlandırıyor.";
+              newEventTxt = "Teknik heyet oyuna müdahale etti: Kulübedeki dinamik kanat opsiyonları ısınma çalışmalarını hızlandırıyor.";
             }
           } else if (nextMinute === 75) {
             if (randomChance > 0.5) {
@@ -204,10 +205,12 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
         const teamsList = await dbGetCollection('teams');
         const standingsDocList = await dbGetCollection('standings');
         const reportsList = await dbGetCollection('match_reports');
+        const playersList = await dbGetCollection('players');
         
         setMatches(matchesList || []);
         setTeams(teamsList || []);
         setMatchReports(reportsList || []);
+        setDbPlayers(playersList || []);
 
         // Standings might be a single doc with standingsList inside
         if (standingsDocList && standingsDocList.length > 0) {
@@ -388,19 +391,67 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
   // Get dynamic probable XI from active match
   const currentXI = resolvedActiveMatch.probableXI || null;
 
+  // Helper to fetch details from dynamic dbPlayers (such as shirt number or position)
+  const getPlayerFromDb = (fallbackName: string, positionKey: string) => {
+    if (!dbPlayers || dbPlayers.length === 0) return null;
+    
+    const baseNameNormalize = (nameStr: string) => nameStr.toLowerCase()
+      .replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ç/g, 'c')
+      .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ö/g, 'o')
+      .replace(/ć/g, 'c').replace(/š/g, 's').replace(/ž/g, 'z')
+      .replace(/đ/g, 'd');
+
+    const cleanFallback = baseNameNormalize(fallbackName);
+    
+    // Find matching player by name substrings
+    let found = dbPlayers.find(p => {
+      if (!p.name) return false;
+      const cleanPName = baseNameNormalize(p.name);
+      return cleanPName.includes(cleanFallback) || cleanFallback.includes(cleanPName);
+    });
+
+    if (found) {
+      let resolvedNo = 9;
+      if (found.shirtNumber) {
+        resolvedNo = parseInt(found.shirtNumber) || 9;
+      } else if (found.no) {
+        resolvedNo = parseInt(found.no) || 9;
+      } else {
+        if (fallbackName.includes("Livakovi")) resolvedNo = 40;
+        else if (fallbackName.includes("Osayi")) resolvedNo = 21;
+        else if (fallbackName.includes("Djiku")) resolvedNo = 6;
+        else if (fallbackName.includes("Söyüncü")) resolvedNo = 2;
+        else if (fallbackName.includes("Oosterwolde")) resolvedNo = 24;
+        else if (fallbackName.includes("Yüksek")) resolvedNo = 5;
+        else if (fallbackName.includes("Fred")) resolvedNo = 35;
+        else if (fallbackName.includes("Kahveci")) resolvedNo = 17;
+        else if (fallbackName.includes("Szymański") || fallbackName.includes("Szymanski")) resolvedNo = 53;
+        else if (fallbackName.includes("Tadić") || fallbackName.includes("Tadic")) resolvedNo = 10;
+        else if (fallbackName.includes("Džeko") || fallbackName.includes("Dzeko")) resolvedNo = 9;
+      }
+
+      return {
+        name: found.name,
+        no: resolvedNo,
+        role: found.position || "Oyuncu"
+      };
+    }
+    return null;
+  };
+
   // Key Player mapping positions
   const squadXI_Dynamic = currentXI ? {
-    GK: { name: currentXI.GK || "Dominik Livaković", no: 40, role: "Kaleci" },
-    RB: { name: currentXI.RB || "Bright Osayi-Samuel", no: 21, role: "Sağ Bek" },
-    CB1: { name: currentXI.CB1 || "Alexander Djiku", no: 6, role: "Stoper" },
-    CB2: { name: currentXI.CB2 || "Çağlar Söyüncü", no: 2, role: "Stoper" },
-    LB: { name: currentXI.LB || "Jayden Oosterwolde", no: 24, role: "Sol Bek" },
-    DM1: { name: currentXI.DM1 || "İsmail Yüksek", no: 5, role: "Ankor Defansif Orta Saha" },
-    DM2: { name: currentXI.DM2 || "Fred", no: 35, role: "Merkez Oyun Kurucu" },
-    RW: { name: currentXI.RW || "İrfan Can Kahveci", no: 17, role: "Ters Ayaklı Sağ Kanat" },
-    AM: { name: currentXI.AM || "Sebastian Szymański", no: 53, role: "Pres Gücü On Numara" },
-    LW: { name: currentXI.LW || "Dušan Tadić", no: 10, role: "Kreatif Sol Kanat" },
-    CF: { name: currentXI.CF || "Edin Džeko", no: 9, role: "Target Man / Santrafor" }
+    GK: getPlayerFromDb(currentXI.GK || "Dominik Livaković", "GK") || { name: currentXI.GK || "Dominik Livaković", no: 40, role: "Kaleci" },
+    RB: getPlayerFromDb(currentXI.RB || "Bright Osayi-Samuel", "RB") || { name: currentXI.RB || "Bright Osayi-Samuel", no: 21, role: "Sağ Bek" },
+    CB1: getPlayerFromDb(currentXI.CB1 || "Alexander Djiku", "CB1") || { name: currentXI.CB1 || "Alexander Djiku", no: 6, role: "Stoper" },
+    CB2: getPlayerFromDb(currentXI.CB2 || "Çağlar Söyüncü", "CB2") || { name: currentXI.CB2 || "Çağlar Söyüncü", no: 2, role: "Stoper" },
+    LB: getPlayerFromDb(currentXI.LB || "Jayden Oosterwolde", "LB") || { name: currentXI.LB || "Jayden Oosterwolde", no: 24, role: "Sol Bek" },
+    DM1: getPlayerFromDb(currentXI.DM1 || "İsmail Yüksek", "DM1") || { name: currentXI.DM1 || "İsmail Yüksek", no: 5, role: "Ankor Defansif Orta Saha" },
+    DM2: getPlayerFromDb(currentXI.DM2 || "Fred", "DM2") || { name: currentXI.DM2 || "Fred", no: 35, role: "Merkez Oyun Kurucu" },
+    RW: getPlayerFromDb(currentXI.RW || "İrfan Can Kahveci", "RW") || { name: currentXI.RW || "İrfan Can Kahveci", no: 17, role: "Ters Ayaklı Sağ Kanat" },
+    AM: getPlayerFromDb(currentXI.AM || "Sebastian Szymański", "AM") || { name: currentXI.AM || "Sebastian Szymański", no: 53, role: "Pres Gücü On Numara" },
+    LW: getPlayerFromDb(currentXI.LW || "Dušan Tadić", "LW") || { name: currentXI.LW || "Dušan Tadić", no: 10, role: "Kreatif Sol Kanat" },
+    CF: getPlayerFromDb(currentXI.CF || "Edin Džeko", "CF") || { name: currentXI.CF || "Edin Džeko", no: 9, role: "Target Man / Santrafor" }
   } : null;
 
   // Search details for next match, last match, standings state
@@ -522,7 +573,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
             <span className="text-[9px] font-black tracking-widest text-[#FFD21F]/80 uppercase block mb-1">MAÇ RAPORLARI</span>
             <div className="space-y-1">
               <div className="text-xs font-bold text-white">{matchReports.length} Taktik Analiz</div>
-              <div className="text-[10px] text-slate-400 font-mono">Derinlemesine Mourinho karnesi</div>
+              <div className="text-[10px] text-slate-400 font-mono">Derinlemesine teknik heyet karnesi</div>
             </div>
           </div>
         </div>
@@ -982,7 +1033,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                               <div className="h-px bg-white/5" />
 
                               <div>
-                                <span className="text-[8px] text-[#FFD21F] font-black uppercase block tracking-wider font-mono mb-1">Mourinho Maç İçi Görevi</span>
+                                <span className="text-[8px] text-[#FFD21F] font-black uppercase block tracking-wider font-mono mb-1">Taktiksel Maç İçi Görevi</span>
                                 <p className="text-xs text-slate-300 leading-relaxed font-semibold">
                                   Teknik kurulun taktiksel kurgusunda <strong>{squadXI_Dynamic[selectedXIPosition as keyof typeof squadXI_Dynamic].name}</strong>, alan dengesini kapamak, {resolvedActiveMatch.awayTeam || 'rakip'} kilit orta sahalarına agresif gölge baskısı yapmak ve asimetrik pas koridorlarını desteklemek üzere yerleşik olacaktır.
                                 </p>
@@ -1122,10 +1173,10 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                       </div>
                     </div>
 
-                    {/* Mourinho's Dynamic Simulated Directives */}
+                    {/* Dynamic Simulated Directives */}
                     <div className="p-4 rounded-xl bg-gradient-to-r from-fb-navy/50 to-fb-dark border border-fb-yellow/10 space-y-2">
                       <span className="text-[9px] text-[#FFD21F] font-black uppercase tracking-widest font-mono flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5 text-[#FFD21F]" /> Mourinho Kenar Direktifi
+                        <Sparkles className="w-3.5 h-3.5 text-[#FFD21F]" /> Taktik Kenar Direktifi
                       </span>
                       <p className="text-xxs text-slate-300 leading-relaxed font-semibold italic text-left">
                         {liveSim.minute === 90 ? (
@@ -1372,7 +1423,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                     )}
 
                     <p className="text-xs text-slate-400 leading-relaxed leading-snug">
-                      Derbi ve lig karşılaşmalarının anlık istatistiki Opta parametreleri, antrenör raporları ve analist şablonları veri tabanından bu panele aktarılır.
+                      Derbi ve lig karşılaşmalarının anlık istatistiki parametreleri, antrenör raporları ve analist şablonları veri tabanından bu panele aktarılır.
                     </p>
                   </div>
 
@@ -1817,7 +1868,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                   </h4>
                   
                   <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed">
-                    {report.summary || 'Fenerbahçe\'nin galibiyeti sonrasındaki taktiksel gelişim, Mourinho tercihleri ve koridor varyasyon analiz notu.'}
+                    {report.summary || 'Fenerbahçe\'nin galibiyeti sonrasındaki taktiksel gelişim, teknik heyet tercihleri ve koridor varyasyon analiz notu.'}
                   </p>
                 </div>
 

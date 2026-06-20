@@ -275,7 +275,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ showToast, initiateC
           <h2 className="text-xl font-display font-black text-white uppercase italic tracking-wide flex items-center gap-2">
             <ShieldAlert className="text-fb-yellow" size={20} /> Maç Sonu Analiz Raporları
           </h2>
-          <p className="text-xs text-fb-muted">Oynanan karşılaşmalar için Opta puan kartları ve taktik analiz dokümanları.</p>
+          <p className="text-xs text-fb-muted">Oynanan karşılaşmalar için detaylı puan kartları ve taktik analiz dokümanları.</p>
         </div>
         {!formOpen && (
           <button
@@ -504,7 +504,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ showToast, initiateC
                           />
                         </div>
                         <div className="col-span-3">
-                          <label className="text-[9px] text-slate-500 font-black block mb-0.5">Opta Puanı</label>
+                          <label className="text-[9px] text-slate-500 font-black block mb-0.5">Maç Puanı</label>
                           <input
                             type="number"
                             step="0.1"
@@ -665,7 +665,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ showToast, initiateC
           ) : filtered.length === 0 ? (
             <EmptyState
               title="Kayıtlı Maç Sonu Analizi Bulunmuyor."
-              text="Fenerbahçe’nin biten müsabakaları için Opta puanlarıyla zenginleştirilmiş taktik detay sayfasını şimdi oluşturun."
+              text="Fenerbahçe’nin biten müsabakaları için analitik verilerle zenginleştirilmiş taktik detay sayfasını şimdi oluşturun."
               buttonLabel="Yeni Rapor Yaz"
               onButtonClick={openNew}
               icon={<ShieldAlert size={20} />}
@@ -725,7 +725,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ showToast, initiateC
                                     category: 'Maç Raporu',
                                     isPremium: rep.isPremium,
                                     readingTime: 'Saha Analiz Raporu',
-                                    tags: 'Post-Match, Opta Değerleri'
+                                    tags: 'Post-Match, Analiz Değerleri'
                                   });
                                 }}
                                 className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 cursor-pointer"

@@ -17,8 +17,13 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Logo & disclaimer brief */}
           <div className="lg:col-span-2 space-y-6 text-left">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FFD21F] flex items-center justify-center">
-                <span className="text-[#0B0F19] font-black text-xl italic font-display">FE</span>
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,210,31,0.25)] overflow-hidden p-0.5">
+                <img 
+                  src="https://firebasestorage.googleapis.com/v0/b/fenerbahceevreni-a4280.firebasestorage.app/o/fb%20_evreni_logo.png?alt=media&token=e6aa00eb-d16b-47f6-bf10-270b23d5a10c" 
+                  alt="FE Logo" 
+                  className="w-full h-full object-contain"
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <span className="font-display font-black tracking-tight text-xl text-white">FENERBAHÇE EVRENİ</span>
             </div>
@@ -28,11 +33,33 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </p>
 
             <div className="flex gap-3">
-              {[Twitter, Instagram, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 rounded-xl bg-white/[0.03] hover:bg-[#FFD21F] hover:text-[#0B0F19] flex items-center justify-center text-slate-400 transition-all border border-white/[0.05]">
-                  <Icon size={16} />
-                </a>
-              ))}
+              <a 
+                href="https://x.com/BasitBiOyun" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="w-9 h-9 rounded-xl bg-white/[0.03] hover:bg-[#FFD21F] hover:text-[#0B0F19] flex items-center justify-center text-slate-400 transition-all border border-white/[0.05]"
+                title="Twitter"
+              >
+                <Twitter size={16} />
+              </a>
+              <a 
+                href="https://instagram.com/fenerbahceevreni" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="w-9 h-9 rounded-xl bg-white/[0.03] hover:bg-[#FFD21F] hover:text-[#0B0F19] flex items-center justify-center text-slate-400 transition-all border border-white/[0.05]"
+                title="Instagram"
+              >
+                <Instagram size={16} />
+              </a>
+              <a 
+                href="https://www.youtube.com/@fenerbahcevreni" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="w-9 h-9 rounded-xl bg-white/[0.03] hover:bg-[#FFD21F] hover:text-[#0B0F19] flex items-center justify-center text-slate-400 transition-all border border-white/[0.05]"
+                title="YouTube"
+              >
+                <Youtube size={16} />
+              </a>
             </div>
           </div>
 
@@ -124,9 +151,19 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         {/* Brand new disclaimer required */}
         <div className="pt-8 border-t border-white/[0.04] flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex flex-col md:flex-row items-center gap-3 text-center md:text-left">
-            <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
-              <ShieldAlert className="w-4 h-4" />
+          <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+            <div className="flex items-center gap-2.5 shrink-0 justify-center md:justify-start">
+              <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-0.5 shadow-[0_0_15px_rgba(255,210,31,0.2)] overflow-hidden">
+                <img 
+                  src="https://firebasestorage.googleapis.com/v0/b/fenerbahceevreni-a4280.firebasestorage.app/o/fb%20_evreni_logo.png?alt=media&token=e6aa00eb-d16b-47f6-bf10-270b23d5a10c" 
+                  alt="FE Logo" 
+                  className="w-full h-full object-contain"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                <ShieldAlert className="w-4 h-4" />
+              </div>
             </div>
             <p className="text-[10px] md:text-xs text-slate-400 max-w-xl leading-relaxed font-semibold">
               Fenerbahçe Evreni, bağımsız bir taraftar ve analiz platformudur. Fenerbahçe Spor Kulübü ile resmî bir bağı yoktur.

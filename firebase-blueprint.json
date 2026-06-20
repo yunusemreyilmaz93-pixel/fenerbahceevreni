@@ -236,7 +236,7 @@
     },
     "matchReports": {
       "schema": "MatchReport",
-      "description": "Post match report card detail and opta scores"
+      "description": "Post match report card detail and detailed performance metrics"
     },
     "players": {
       "schema": "Player",

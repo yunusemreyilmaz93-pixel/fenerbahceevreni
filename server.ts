@@ -2,8 +2,83 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
+import * as adminRaw from "firebase-admin";
+
+const admin = adminRaw as any;
 
 dotenv.config();
+
+let adminApp: any = null;
+let adminInitError: string | null = null;
+
+try {
+  adminApp = admin.initializeApp({
+    credential: admin.credential.applicationDefault()
+  });
+} catch (error: any) {
+  adminInitError = error.message;
+  console.warn("Firebase Admin standard initialization failed (safe mode active):", error.message);
+}
+
+const checkAdmin = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) => {
+  if (adminInitError || !adminApp) {
+    console.error("Firebase Admin initialization state error:", adminInitError);
+    return res.status(500).json({
+      success: false,
+      message: "Sunucu taraflı yetkilendirme sistemi (Firebase Admin) yapılandırılamadı."
+    });
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      success: false,
+      message: "Yetkisiz erişim. Kimlik doğrulama token'ı sağlanmadı."
+    });
+  }
+
+  const token = authHeader.split("Bearer ")[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const email = decodedToken.email;
+
+    if (!email) {
+      return res.status(403).json({
+        success: false,
+        message: "Erişim engellendi. Geçerli bir e-posta adresi bulunamadı."
+      });
+    }
+
+    const adminEmailsEnv = process.env.ADMIN_EMAILS || "";
+    const adminEmails = adminEmailsEnv
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    const userEmailNormalized = email.trim().toLowerCase();
+
+    if (!adminEmails.includes(userEmailNormalized)) {
+      console.warn(`Admin yetkisi reddedildi: ${userEmailNormalized}`);
+      return res.status(403).json({
+        success: false,
+        message: "Erişim reddedildi. Bu işlemi yapmaya yetkiniz yok."
+      });
+    }
+
+    (req as any).user = decodedToken;
+    next();
+  } catch (error: any) {
+    console.error("Firebase ID Token doğrulama hatası:", error.message);
+    return res.status(401).json({
+      success: false,
+      message: "Oturum geçersiz veya süresi dolmuş."
+    });
+  }
+};
 
 // Helper to make API-Sports call and handle non-JSON responses gracefully
 async function fetchFromApiSports(
@@ -158,7 +233,7 @@ async function startServer() {
   });
 
   // API Proxy - Test Connection
-  app.get("/api/sports/test-connection", async (req, res) => {
+  app.get("/api/sports/test-connection", checkAdmin, async (req, res) => {
     const result = await fetchFromApiSports(
       "Test Connection",
       "/api/sports/test-connection",
@@ -168,7 +243,7 @@ async function startServer() {
   });
 
   // API Proxy - Türkiye Ligleri (Leagues)
-  app.get("/api/sports/leagues", async (req, res) => {
+  app.get("/api/sports/leagues", checkAdmin, async (req, res) => {
     const country = req.query.country || "Turkey";
     const externalUrl = `https://v3.football.api-sports.io/leagues?country=${encodeURIComponent(country as string)}`;
     const result = await fetchFromApiSports(
@@ -180,7 +255,7 @@ async function startServer() {
   });
 
   // API Proxy - Team Search (Fenerbahçe vb.)
-  app.get("/api/sports/teams", async (req, res) => {
+  app.get("/api/sports/teams", checkAdmin, async (req, res) => {
     const search = req.query.search || "Fenerbahce";
     const country = req.query.country || "Turkey";
     const externalUrl = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(search as string)}&country=${encodeURIComponent(country as string)}`;
@@ -193,7 +268,7 @@ async function startServer() {
   });
 
   // API Proxy - Squad
-  app.get("/api/sports/squad", async (req, res) => {
+  app.get("/api/sports/squad", checkAdmin, async (req, res) => {
     const teamId = req.query.teamId;
     if (!teamId) {
       return res.status(400).json({ 
@@ -211,7 +286,7 @@ async function startServer() {
   });
 
   // API Proxy - Fixtures
-  app.get("/api/sports/fixtures", async (req, res) => {
+  app.get("/api/sports/fixtures", checkAdmin, async (req, res) => {
     const teamId = req.query.teamId;
     const season = req.query.season || "2025";
     const leagueId = req.query.leagueId;
@@ -233,7 +308,7 @@ async function startServer() {
   });
 
   // API Proxy - Standings
-  app.get("/api/sports/standings", async (req, res) => {
+  app.get("/api/sports/standings", checkAdmin, async (req, res) => {
     const leagueId = req.query.leagueId || "203"; // default 203 (Süper Lig)
     const season = req.query.season || "2025";
 

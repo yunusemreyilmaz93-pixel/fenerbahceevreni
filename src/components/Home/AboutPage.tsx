@@ -104,7 +104,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
     },
     {
       q: "Premium içerikler ücretsiz içerikleri bitirecek mi?",
-      a: "Hayır. Ücretsiz içerikler her zaman devam edecektir. Premium ise daha derin, arşivlik ve özel Opta verileri barındıran PDF raporları için ek bir seçenek olarak sunulur."
+      a: "Hayır. Ücretsiz içerikler her zaman devam edecektir. Premium ise daha derin, arşivlik ve özel gelişmiş analitik verileri barındıran PDF raporları için ek bir seçenek olarak sunulur."
     },
     {
       q: "Sponsorlu içerikler olacak mı?",
@@ -357,7 +357,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               },
               {
                 title: "Kaynak ve bağlam önemlidir",
-                text: "Transfer, istatistik ve maç değerlendirmelerinde tamamen bağlamlı, Opta uyumlu ve somut kaynaklı ilerlemeye azami gayret ederiz."
+                text: "Transfer, istatistik ve maç değerlendirmelerinde tamamen bağlamlı, analitik verilere uygun ve somut kaynaklı ilerlemeye azami gayret ederiz."
               },
               {
                 title: "Skor değil, oyun da önemlidir",
@@ -403,7 +403,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             {[
               {
                 title: "Maç Önü Analizleri",
-                desc: "Gelecek rakibin zayıf ve güçlü noktaları, muhtemel 11'ler, taktik riskler ve Mourinho'nun muhtemel maç planı analizleri."
+                desc: "Gelecek rakibin zayıf ve güçlü noktaları, muhtemel 11'ler, taktik riskler ve teknik heyetin muhtemel maç planı analizleri."
               },
               {
                 title: "Maç Sonu Raporları",
@@ -423,7 +423,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               },
               {
                 title: "Premium Raporlar",
-                desc: "Opta destekli geniş detaylar, özel scout arşiv bültenleri ve yüksek kalitede indirilebilir PDF kitapçık dosyaları."
+                desc: "Kapsamlı ve detaylı analizler, özel scout arşiv bültenleri ve yüksek kalitede indirilebilir PDF kitapçık dosyaları."
               }
             ].map((content, idx) => (
               <div 

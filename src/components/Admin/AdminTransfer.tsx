@@ -240,7 +240,7 @@ export const AdminTransfer: React.FC<AdminTransferProps> = ({ showToast, initiat
           <h2 className="text-xl font-display font-black text-white uppercase italic tracking-wide flex items-center gap-2">
             <Award className="text-fb-yellow" size={20} /> Scout & Transfer Radar Raporları
           </h2>
-          <p className="text-xs text-slate-400">Oyuncu hedeflerini, Opta uyumluluk skorlarını ve detaylı transfer dosyalarını yönetin.</p>
+          <p className="text-xs text-slate-400">Oyuncu hedeflerini, gelişmiş uyumluluk skorlarını ve detaylı transfer dosyalarını yönetin.</p>
         </div>
         {!formOpen && (
           <button
@@ -376,7 +376,7 @@ export const AdminTransfer: React.FC<AdminTransferProps> = ({ showToast, initiat
                   />
                   <div>
                     <span className="text-xs font-black text-white block">PREMIUM KİLİTLİ SEVİYE</span>
-                    <span className="text-[10px] text-slate-400 font-semibold">Sadece premium üyelerin görüntüleyebileceği derin Opta raporu yapar.</span>
+                    <span className="text-[10px] text-slate-400 font-semibold">Sadece premium üyelerin görüntüleyebileceği derin analiz raporu yapar.</span>
                   </div>
                 </label>
               </div>
@@ -385,7 +385,7 @@ export const AdminTransfer: React.FC<AdminTransferProps> = ({ showToast, initiat
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black uppercase text-[#10b981]">OPTA GÜÇLÜ YÖNLER (VİRGÜLLE AYIRIN)</label>
+                  <label className="text-[10px] font-black uppercase text-[#10b981]">ÖNE ÇIKAN GÜÇLÜ YÖNLER (VİRGÜLLE AYIRIN)</label>
                   <textarea
                     value={form.strengths}
                     onChange={(e) => handleFormChange('strengths', e.target.value)}
@@ -531,7 +531,7 @@ export const AdminTransfer: React.FC<AdminTransferProps> = ({ showToast, initiat
                       <th className="p-4">Pozisyon / Kulüp</th>
                       <th className="p-4">Gider / Yaş</th>
                       <th className="p-4">Bülten Durumu</th>
-                      <th className="p-4">Uyumluluk (Opta)</th>
+                      <th className="p-4">Sistem Uyumluluğu</th>
                       <th className="p-4 pr-6 text-right">Eylemler</th>
                     </tr>
                   </thead>
@@ -579,7 +579,7 @@ export const AdminTransfer: React.FC<AdminTransferProps> = ({ showToast, initiat
                                   isPremium: r.isPremium,
                                   content: `### OYUNCU DETAYLARI\n- Yas: ${r.age}\n- Kulup: ${r.currentClub}\n- Uyruk: ${r.nationality}\n- Maliyet Tahmini: ${r.estimatedCost}\n\n### COG RAPOR DEĞERLENDİRMESİ\n${r.summary}\n\n### SISTEMSEL UYUM DETAYI\n${r.tacticalFit}`,
                                   category: 'Transfer / Scout Raporu',
-                                  readingTime: `Opta Fit: ${r.fitScore}`
+                                  readingTime: `Uyum Skoru: ${r.fitScore}`
                                 });
                               }}
                               className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 cursor-pointer"

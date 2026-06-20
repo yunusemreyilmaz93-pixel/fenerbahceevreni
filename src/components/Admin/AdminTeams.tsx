@@ -35,7 +35,7 @@ export const AdminTeams: React.FC = () => {
     league: 'Trendyol Süper Lig',
     country: 'Türkiye',
     stadium: 'Ülker Stadyumu Şükrü Saracoğlu Spor Kompleksi',
-    coach: 'Jose Mourinho',
+    coach: 'Teknik Direktör',
     status: 'active' // active, passive
   });
 
@@ -103,7 +103,7 @@ export const AdminTeams: React.FC = () => {
       league: t.league || 'Trendyol Süper Lig',
       country: t.country || 'Türkiye',
       stadium: t.stadium || 'Ülker Stadyumu Şükrü Saracoğlu Spor Kompleksi',
-      coach: t.coach || 'Jose Mourinho',
+      coach: t.coach || 'Teknik Direktör',
       status: t.status || 'active'
     });
     setFormOpen(true);
@@ -248,7 +248,7 @@ export const AdminTeams: React.FC = () => {
               <label className="text-[10px] font-black uppercase text-slate-400">Teknik Direktör (Coach)</label>
               <input
                 type="text"
-                placeholder="Örn: Jose Mourinho, Okan Buruk"
+                placeholder="Örn: Teknik Direktör"
                 value={form.coach}
                 onChange={(e) => setForm(p => ({ ...p, coach: e.target.value }))}
                 className="px-4 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white"

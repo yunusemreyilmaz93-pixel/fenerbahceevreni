@@ -73,7 +73,7 @@ export const latestArticles: Article[] = [
     id: "art-1",
     category: "Taktik Analiz",
     title: "Fenerbahçe’nin oyun planında asıl problem ne?",
-    excerpt: "Mourinho dönemindeki pozisyon oyunu ve hücum geçişlerindeki yavaş kalma nedenlerini, sayısal veriler ve taktik tahtası üzerindeki incelemelerle ele alıyoruz.",
+    excerpt: "Takımımızdaki pozisyon oyunu ve hücum geçişlerindeki yavaş kalma nedenlerini, sayısal veriler ve taktik tahtası üzerindeki incelemelerle ele alıyoruz.",
     readingTime: "6 dk okuma",
     author: "Bora Karaca",
     date: "25 May 2026"

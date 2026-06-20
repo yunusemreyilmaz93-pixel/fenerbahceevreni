@@ -231,7 +231,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
       currentClub: "Hollanda Eredivisie",
       estimatedCost: "12-14M €",
       fitScore: 9.1,
-      strengths: ["Kapsamlı oyun aklı", "İkili mücadele üstünlüğü", "Opta asist beklentisi"],
+      strengths: ["Kapsamlı oyun aklı", "İkili mücadele üstünlüğü", "Asist beklentisi (xA)"],
       concerns: ["Yüksek bonservis talebi", "Premier lig talipleriyle rekabet"],
       tacticalFit: "Hem 6 hem 8 numarada kusursuz oynayan, ısı haritasında sahanın her santimetresine dokunan, geçişlerde pas hatası yapmayan elit bir modern orta saha lideri. Mourinho'nun taktiksel rüyası rolünde.",
       summary: "Orta saha göbeğinde hem savunma sertliğini yükseltecek hem de hücum üretkenliğini en üst seviyeye çıkaracak, geleceği pırlanta gibi parlayan modern bir Nordik dinamosu.",
@@ -252,7 +252,9 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
         // Only show published publicly
         const published = list.filter((r: any) => r.status === 'published');
         
-        if (published && published.length > 0) {
+        const isSeeded = localStorage.getItem("cms_firebase_seeded_done") === "true" || !!localStorage.getItem("cms_articles");
+        
+        if (published && (published.length > 0 || isSeeded)) {
           // Normalize firebase array fields just in case they are saved as string
           const normalized = published.map((report: any) => ({
             ...report,
@@ -1060,7 +1062,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                         <div className="space-y-1.5">
                           <h3 className="text-lg font-display font-black text-white italic uppercase tracking-tight">Bu transfer raporunun tamamı Premium üyelerimize özeldir</h3>
                           <p className="text-xs text-fb-muted max-w-sm mx-auto leading-relaxed">
-                            Ayrıntılı Opta filtreleri, hücum/savunma kıyaslama şemaları, olası sözleşme taslağı ve alternatif ucuz adayların yer aldığı tam transfer analizine ancak Premium listemizde yetki verilir.
+                            Ayrıntılı gelişmiş filtreler, hücum/savunma kıyaslama şemaları, olası sözleşme taslağı ve alternatif ucuz adayların yer aldığı tam transfer analizine ancak Premium listemizde yetki verilir.
                           </p>
                         </div>
 

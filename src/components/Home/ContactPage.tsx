@@ -30,8 +30,8 @@ interface ContactPageProps {
 export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate, initialType }) => {
   const [siteSettings, setSiteSettings] = useState<any>({
     contactEmail: "iletisim@fenerbahceevreni.com",
-    twitterUrl: "https://x.com/FenerEvreni",
-    youtubeUrl: "https://youtube.com",
+    twitterUrl: "https://x.com/BasitBiOyun",
+    youtubeUrl: "https://www.youtube.com/@fenerbahcevreni",
     instagramUrl: "https://instagram.com"
   });
 

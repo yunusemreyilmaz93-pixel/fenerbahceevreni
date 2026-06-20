@@ -18,7 +18,12 @@ import {
   BookOpen,
   PlusCircle,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Sliders,
+  RotateCcw,
+  Share2,
+  ThumbsDown,
+  Plus
 } from 'lucide-react';
 import { dbGetCollection, dbAddDocument, dbUpsertDocument } from '../../lib/dbService';
 import SEO from './SEO';
@@ -59,6 +64,311 @@ interface PlayersPageProps {
   onNavigate: (view: string) => void;
 }
 
+const AVAILABLE_PLAYERS = [
+  { name: 'Dominik Livaković', pos: 'GK', overall: 84, class: 'Kaleci' },
+  { name: 'İrfan Can Eğribayat', pos: 'GK', overall: 77, class: 'Yedek Kaleci' },
+  { name: 'Ertuğrul Çetin', pos: 'GK', overall: 68, class: 'Genç Kaleci' },
+  { name: 'Çağlar Söyüncü', pos: 'CB', overall: 82, class: 'Milli Stoper' },
+  { name: 'Alexander Djiku', pos: 'CB', overall: 81, class: 'Savaşçı Stoper' },
+  { name: 'Rodrigo Becão', pos: 'CB', overall: 80, class: 'Hava Hakimi Stoper' },
+  { name: 'Samet Akaydin', pos: 'CB', overall: 75, class: 'Mücadeleci Stoper' },
+  { name: 'Serdar Aziz', pos: 'CB', overall: 74, class: 'Tecrübeli Stoper' },
+  { name: 'Jayden Oosterwolde', pos: 'LB/CB', overall: 81, class: 'Atletik Sol Bek' },
+  { name: 'Filip Kostić', pos: 'LB/LM', overall: 79, class: 'Hücumcu Sol Bek / Sol Kanat' },
+  { name: 'Levent Mercan', pos: 'LB', overall: 73, class: 'Yedek Sol Bek' },
+  { name: 'Yusuf Akçiçek', pos: 'CB', overall: 68, class: 'Genç Stoper' },
+  { name: 'Bright Osayi-Samuel', pos: 'RB', overall: 79, class: 'Hızlı Sağ Bek' },
+  { name: 'Mert Müldür', pos: 'RB/LB', overall: 77, class: 'Savaşçı Bek' },
+  { name: 'Sofyan Amrabat', pos: 'DM', overall: 82, class: 'Orta Saha Çpası' },
+  { name: 'İsmail Yüksek', pos: 'DM/MC', overall: 80, class: 'Dinamik Ön Libero' },
+  { name: 'Fred', pos: 'MC', overall: 83, class: 'Orta Saha Dinamosu' },
+  { name: 'Sebastian Szymański', pos: 'AM', overall: 81, class: 'Ofansif Orta Saha' },
+  { name: 'Mert Hakan Yandaş', pos: 'MC/AM', overall: 76, class: 'Orta Saha Lideri' },
+  { name: 'Bartuğ Elmaz', pos: 'DM/MC', overall: 72, class: 'Genç Ön Libero' },
+  { name: 'Dušan Tadić', pos: 'LW/AM', overall: 83, class: 'Oyun Kurucu / Sol Kanat' },
+  { name: 'Allan Saint-Maximin', pos: 'LW', overall: 81, class: 'Dripling Ustası' },
+  { name: 'İrfan Can Kahveci', pos: 'AM/RW', overall: 82, class: 'Sihirbaz Sağ Kanat' },
+  { name: 'Cengiz Ünder', pos: 'RW', overall: 78, class: 'Uzaktan Şutör / Sağ Kanat' },
+  { name: 'Oğuz Aydın', pos: 'LW/RW', overall: 76, class: 'Genç Kanat' },
+  { name: 'Emre Mor', pos: 'RW/LW', overall: 74, class: 'Driplingci Kanat' },
+  { name: 'Ryan Kent', pos: 'LW/RW', overall: 75, class: 'Sözleşmeli Sol Kanat' },
+  { name: 'Edin Džeko', pos: 'CF', overall: 81, class: 'Usta Bitirici / Santrfor' },
+  { name: 'Youssef En-Nesyri', pos: 'CF', overall: 82, class: 'Hava Hakimi Santrfor' },
+  { name: 'Cenk Tosun', pos: 'CF', overall: 76, class: 'Milli Santrfor' },
+  { name: 'Melih Bostan', pos: 'CF', overall: 71, class: 'Genç Santrfor' },
+  { name: 'YENİ TRANSFER', pos: 'TR', overall: 85, class: 'Planlanan Takviye' }
+];
+
+const TACTICAL_FORMATIONS: { [key: string]: { role: string; label: string; x: number; y: number; desc: string }[] } = {
+  '4231': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'DM1', label: 'OLO1', x: 35, y: 54, desc: 'Ön Libero 1' },
+    { role: 'DM2', label: 'OLO2', x: 65, y: 54, desc: 'Ön Libero 2' },
+    { role: 'LW', label: 'SLK', x: 15, y: 32, desc: 'Sol Kanat' },
+    { role: 'AM', label: 'OOK', x: 50, y: 34, desc: 'Oyun Kurucu' },
+    { role: 'RW', label: 'SGK', x: 85, y: 32, desc: 'Sağ Kanat' },
+    { role: 'CF', label: 'STF', x: 50, y: 14, desc: 'Santrfor' }
+  ],
+  '433': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'DM', label: 'OLO', x: 50, y: 58, desc: 'Ön Libero' },
+    { role: 'MC1', label: 'OSA1', x: 32, y: 44, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 68, y: 44, desc: 'Sağ Orta Saha' },
+    { role: 'LW', label: 'SLK', x: 18, y: 22, desc: 'Sol Kanat' },
+    { role: 'RW', label: 'SGK', x: 82, y: 22, desc: 'Sağ Kanat' },
+    { role: 'CF', label: 'STF', x: 50, y: 13, desc: 'Santrfor' }
+  ],
+  '352': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'CB1', label: 'STP1', x: 25, y: 74, desc: 'Sol Stoper' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 77, desc: 'Orta Stoper' },
+    { role: 'CB3', label: 'STP3', x: 75, y: 74, desc: 'Sağ Stoper' },
+    { role: 'LM', label: 'SLKB', x: 12, y: 46, desc: 'Sol Kanat Bek' },
+    { role: 'DM', label: 'OLO', x: 50, y: 58, desc: 'Merkez Libero' },
+    { role: 'RM', label: 'SGKB', x: 88, y: 46, desc: 'Sağ Kanat Bek' },
+    { role: 'MC1', label: 'OSA1', x: 32, y: 41, desc: 'Sol İç Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 68, y: 41, desc: 'Sağ İç Orta Saha' },
+    { role: 'CF1', label: 'STF1', x: 35, y: 16, desc: 'Sol Santrfor' },
+    { role: 'CF2', label: 'STF2', x: 65, y: 16, desc: 'Sağ Santrfor' }
+  ],
+  '442': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 44, desc: 'Sol Kanat Orta Saha' },
+    { role: 'MC1', label: 'OSA1', x: 38, y: 48, desc: 'Sol Merkez Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 62, y: 48, desc: 'Sağ Merkez Orta Saha' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 44, desc: 'Sağ Kanat Orta Saha' },
+    { role: 'CF1', label: 'STF1', x: 35, y: 18, desc: 'Sol Forvet' },
+    { role: 'CF2', label: 'STF2', x: 65, y: 18, desc: 'Sağ Forvet' }
+  ],
+  '343': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'CB1', label: 'STP1', x: 25, y: 74, desc: 'Sol Stoper' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 77, desc: 'Orta Stoper' },
+    { role: 'CB3', label: 'STP3', x: 75, y: 74, desc: 'Sağ Stoper' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 46, desc: 'Sol Kanat Bek' },
+    { role: 'MC1', label: 'OSA1', x: 38, y: 52, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 62, y: 52, desc: 'Sağ Orta Saha' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 46, desc: 'Sağ Kanat Bek' },
+    { role: 'LW', label: 'SLK', x: 20, y: 22, desc: 'Sol Kanat Forvet' },
+    { role: 'RW', label: 'SGK', x: 80, y: 22, desc: 'Sağ Kanat Forvet' },
+    { role: 'CF', label: 'STF', x: 50, y: 14, desc: 'Santrfor' }
+  ],
+  '4141': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'DM', label: 'OLO', x: 50, y: 58, desc: 'Tek Ön Libero' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 36, desc: 'Sol Kanat' },
+    { role: 'MC1', label: 'OSA1', x: 35, y: 38, desc: 'Sol Ofansif Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 65, y: 38, desc: 'Sağ Ofansif Orta Saha' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 36, desc: 'Sağ Kanat' },
+    { role: 'CF', label: 'STF', x: 50, y: 15, desc: 'Santrfor' }
+  ],
+  '451': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 40, desc: 'Sol Kanat' },
+    { role: 'DM1', label: 'OLO1', x: 35, y: 54, desc: 'Defansif Orta Saha' },
+    { role: 'MC1', label: 'OSA', x: 50, y: 42, desc: 'Merkez Orta Saha' },
+    { role: 'DM2', label: 'OLO2', x: 65, y: 54, desc: 'Defansif Orta Saha 2' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 40, desc: 'Sağ Kanat' },
+    { role: 'CF', label: 'STF', x: 50, y: 15, desc: 'Santrfor' }
+  ],
+  '41212': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'DM', label: 'OLO', x: 50, y: 60, desc: 'Defansif Orta Saha' },
+    { role: 'MC1', label: 'OSA1', x: 28, y: 44, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 72, y: 44, desc: 'Sağ Orta Saha' },
+    { role: 'AM', label: 'OOK', x: 50, y: 29, desc: 'Oyun Kurucu' },
+    { role: 'CF1', label: 'STF1', x: 35, y: 15, desc: 'Sol Santrfor' },
+    { role: 'CF2', label: 'STF2', x: 65, y: 15, desc: 'Sağ Santrfor' }
+  ],
+  '4321': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'MC1', label: 'OSA1', x: 28, y: 54, desc: 'Sol Orta Saha' },
+    { role: 'DM', label: 'OLO', x: 50, y: 58, desc: 'Merkez Ön Libero' },
+    { role: 'MC2', label: 'OSA2', x: 72, y: 54, desc: 'Sağ Orta Saha' },
+    { role: 'AM', label: 'HF1', x: 35, y: 30, desc: 'Sol Ofansif Forvet' },
+    { role: 'RW', label: 'HF2', x: 65, y: 30, desc: 'Sağ Ofansif Forvet' },
+    { role: 'CF', label: 'STF', x: 50, y: 14, desc: 'Tek Forvet' }
+  ],
+  '4222': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'DM1', label: 'OLO1', x: 35, y: 54, desc: 'Ön Libero 1' },
+    { role: 'DM2', label: 'OLO2', x: 65, y: 54, desc: 'Ön Libero 2' },
+    { role: 'AM', label: 'OOK1', x: 30, y: 32, desc: 'Ofansif Oyun Kurucu 1' },
+    { role: 'RW', label: 'OOK2', x: 70, y: 32, desc: 'Ofansif Oyun Kurucu 2' },
+    { role: 'CF1', label: 'STF1', x: 35, y: 15, desc: 'Sol Santrfor' },
+    { role: 'CF2', label: 'STF2', x: 65, y: 15, desc: 'Sağ Santrfor' }
+  ],
+  '3412': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'CB1', label: 'STP1', x: 25, y: 74, desc: 'Sol Stoper' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 77, desc: 'Orta Stoper' },
+    { role: 'CB3', label: 'STP3', x: 75, y: 74, desc: 'Sağ Stoper' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 46, desc: 'Sol Orta Saha Bek' },
+    { role: 'MC1', label: 'OSA1', x: 38, y: 52, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 62, y: 52, desc: 'Sağ Orta Saha' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 46, desc: 'Sağ Orta Saha Bek' },
+    { role: 'AM', label: 'OOK', x: 50, y: 32, desc: 'Oyun Kurucu' },
+    { role: 'CF1', label: 'STF1', x: 35, y: 15, desc: 'Sol Santrfor' },
+    { role: 'CF2', label: 'STF2', x: 65, y: 15, desc: 'Sağ Santrfor' }
+  ],
+  '3421': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'CB1', label: 'STP1', x: 25, y: 74, desc: 'Sol Stoper' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 77, desc: 'Orta Stoper' },
+    { role: 'CB3', label: 'STP3', x: 75, y: 74, desc: 'Sağ Stoper' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 48, desc: 'Sol Orta Saha Bek' },
+    { role: 'MC1', label: 'OSA1', x: 38, y: 54, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 62, y: 54, desc: 'Sağ Orta Saha' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 48, desc: 'Sağ Orta Saha Bek' },
+    { role: 'AM', label: 'OOK1', x: 32, y: 28, desc: 'Sol Ofansif Forvet' },
+    { role: 'RW', label: 'OOK2', x: 68, y: 28, desc: 'Sağ Ofansif Forvet' },
+    { role: 'CF', label: 'STF', x: 50, y: 13, desc: 'Santrfor' }
+  ],
+  '532': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 12, y: 70, desc: 'Sol Kanat Defans' },
+    { role: 'CB1', label: 'STP1', x: 30, y: 74, desc: 'Sol Stoper' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 76, desc: 'Orta Stoper' },
+    { role: 'CB3', label: 'STP3', x: 70, y: 74, desc: 'Sağ Stoper' },
+    { role: 'RB', label: 'SGB', x: 88, y: 70, desc: 'Sağ Kanat Defans' },
+    { role: 'MC1', label: 'OSA1', x: 30, y: 48, desc: 'Sol İç' },
+    { role: 'DM', label: 'OLO', x: 50, y: 56, desc: 'Ön Libero' },
+    { role: 'MC2', label: 'OSA2', x: 70, y: 48, desc: 'Sağ İç' },
+    { role: 'CF1', label: 'STF1', x: 35, y: 18, desc: 'Sol Santrfor' },
+    { role: 'CF2', label: 'STF2', x: 65, y: 18, desc: 'Sağ Santrfor' }
+  ],
+  '523': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 12, y: 70, desc: 'Sol Kanat Defans' },
+    { role: 'CB1', label: 'STP1', x: 30, y: 74, desc: 'Sol Stoper' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 76, desc: 'Orta Stoper' },
+    { role: 'CB3', label: 'STP3', x: 70, y: 74, desc: 'Sağ Stoper' },
+    { role: 'RB', label: 'SGB', x: 88, y: 70, desc: 'Sağ Kanat Defans' },
+    { role: 'MC1', label: 'OSA1', x: 36, y: 52, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 64, y: 52, desc: 'Sağ Orta Saha' },
+    { role: 'LW', label: 'SLK', x: 20, y: 24, desc: 'Sol Kanat Forvet' },
+    { role: 'RW', label: 'SGK', x: 80, y: 24, desc: 'Sağ Kanat Forvet' },
+    { role: 'CF', label: 'STF', x: 50, y: 14, desc: 'Santrfor' }
+  ],
+  '541': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 12, y: 70, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 30, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 76, desc: 'Stoper 2' },
+    { role: 'CB3', label: 'STP3', x: 70, y: 74, desc: 'Stoper 3' },
+    { role: 'RB', label: 'SGB', x: 88, y: 70, desc: 'Sağ Bek' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 42, desc: 'Sol Kanat' },
+    { role: 'MC1', label: 'OSA1', x: 38, y: 48, desc: 'Sol Merkez Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 62, y: 48, desc: 'Sağ Merkez Orta Saha' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 42, desc: 'Sağ Kanat' },
+    { role: 'CF', label: 'STF', x: 50, y: 16, desc: 'Tek Forvet' }
+  ],
+  '4312': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'MC1', label: 'OSA1', x: 28, y: 52, desc: 'Sol Orta Saha' },
+    { role: 'DM', label: 'OLO', x: 50, y: 58, desc: 'Merkez Ön Libero' },
+    { role: 'MC2', label: 'OSA2', x: 72, y: 52, desc: 'Sağ Orta Saha' },
+    { role: 'AM', label: 'OOK', x: 50, y: 32, desc: 'Oyun Kurucu' },
+    { role: 'CF1', label: 'STF1', x: 35, y: 15, desc: 'Sol Santrfor' },
+    { role: 'CF2', label: 'STF2', x: 65, y: 15, desc: 'Sağ Santrfor' }
+  ],
+  '3142': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'CB1', label: 'STP1', x: 25, y: 74, desc: 'Sol Stoper' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 77, desc: 'Orta Stoper' },
+    { role: 'CB3', label: 'STP3', x: 75, y: 74, desc: 'Sağ Stoper' },
+    { role: 'DM', label: 'OLO', x: 50, y: 60, desc: 'Defansif Orta Saha' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 42, desc: 'Sol Kanat' },
+    { role: 'MC1', label: 'OSA1', x: 35, y: 44, desc: 'Sol İç' },
+    { role: 'MC2', label: 'OSA2', x: 65, y: 44, desc: 'Sağ İç' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 42, desc: 'Sağ Kanat' },
+    { role: 'CF1', label: 'STF1', x: 35, y: 15, desc: 'Sol Santrfor' },
+    { role: 'CF2', label: 'STF2', x: 65, y: 15, desc: 'Sağ Santrfor' }
+  ],
+  '424': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'MC1', label: 'OSA1', x: 38, y: 52, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 62, y: 52, desc: 'Sağ Orta Saha' },
+    { role: 'LW', label: 'SLK', x: 15, y: 20, desc: 'Sol Kanat Forvet' },
+    { role: 'RW', label: 'SGK', x: 85, y: 20, desc: 'Sağ Kanat Forvet' },
+    { role: 'CF1', label: 'STF1', x: 38, y: 16, desc: 'Sol Santrfor' },
+    { role: 'CF2', label: 'STF2', x: 62, y: 16, desc: 'Sağ Santrfor' }
+  ],
+  '3331': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'CB1', label: 'STP1', x: 25, y: 74, desc: 'Sol Stoper' },
+    { role: 'CB2', label: 'STP2', x: 50, y: 77, desc: 'Orta Stoper' },
+    { role: 'CB3', label: 'STP3', x: 75, y: 74, desc: 'Sağ Stoper' },
+    { role: 'DM', label: 'OLO', x: 50, y: 60, desc: 'Merkez Libero' },
+    { role: 'MC1', label: 'OSA1', x: 32, y: 48, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 68, y: 48, desc: 'Sağ Orta Saha' },
+    { role: 'AM', label: 'OOK1', x: 25, y: 30, desc: 'Sol Ofansif Sektör' },
+    { role: 'LW', label: 'OOK2', x: 50, y: 32, desc: 'Merkez Ofansif Bölge' },
+    { role: 'RW', label: 'OOK3', x: 75, y: 30, desc: 'Sağ Ofansif Sektör' },
+    { role: 'CF', label: 'STF', x: 50, y: 14, desc: 'Santrfor' }
+  ],
+  '4411': [
+    { role: 'GK', label: 'KL', x: 50, y: 88, desc: 'Kaleci' },
+    { role: 'LB', label: 'SLB', x: 15, y: 72, desc: 'Sol Bek' },
+    { role: 'CB1', label: 'STP1', x: 38, y: 74, desc: 'Stoper 1' },
+    { role: 'CB2', label: 'STP2', x: 62, y: 74, desc: 'Stoper 2' },
+    { role: 'RB', label: 'SGB', x: 85, y: 72, desc: 'Sağ Bek' },
+    { role: 'LM', label: 'SLKB', x: 15, y: 46, desc: 'Sol Kanat' },
+    { role: 'MC1', label: 'OSA1', x: 38, y: 50, desc: 'Sol Orta Saha' },
+    { role: 'MC2', label: 'OSA2', x: 62, y: 50, desc: 'Sağ Orta Saha' },
+    { role: 'RM', label: 'SGKB', x: 85, y: 46, desc: 'Sağ Kanat' },
+    { role: 'AM', label: 'OOK', x: 50, y: 30, desc: 'Gizli Forvet' },
+    { role: 'CF', label: 'STF', x: 50, y: 14, desc: 'Santrfor' }
+  ]
+};
+
+const getPlayerAvatarUrl = (name: string) => {
+  if (name === 'YENİ TRANSFER' || name === '[YENİ TRANSFER]' || name === 'Transfer') {
+    return 'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=transfer&backgroundColor=eab308';
+  }
+  return `https://api.dicebear.com/7.x/micah/svg?seed=${encodeURIComponent(name)}&backgroundColor=0f172a,1e3a8a,facc15`;
+};
+
 export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
   // States
   const [polls, setPolls] = useState<Poll[]>([]);
@@ -80,6 +390,66 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
   const [newCommentText, setNewCommentText] = useState('');
   const [customCommentUser, setCustomCommentUser] = useState('');
   const [topicToast, setTopicToast] = useState<string | null>(null);
+
+  // --- INTERACTIVE SQUAD BUILDER STATES ---
+  const [activeFormation, setActiveFormation] = useState<string>('4231');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [lineup, setLineup] = useState<{ [role: string]: string }>({
+    'GK': 'Dominik Livaković',
+    'LB': 'Jayden Oosterwolde',
+    'CB1': 'Alexander Djiku',
+    'CB2': 'Çağlar Söyüncü',
+    'CB3': 'Rodrigo Becão',
+    'RB': 'Bright Osayi-Samuel',
+    'LM': 'Jayden Oosterwolde',
+    'RM': 'Bright Osayi-Samuel',
+    'DM': 'Sofyan Amrabat',
+    'DM1': 'Sofyan Amrabat',
+    'DM2': 'Fred',
+    'MC1': 'Fred',
+    'MC2': 'Sebastian Szymański',
+    'LW': 'Allan Saint-Maximin',
+    'AM': 'Sebastian Szymański',
+    'RW': 'Dušan Tadić',
+    'CF': 'Edin Džeko',
+    'CF1': 'Youssef En-Nesyri',
+    'CF2': 'Edin Džeko'
+  });
+  const [activePositionSelector, setActivePositionSelector] = useState<string | null>(null);
+  const [squadNotes, setSquadNotes] = useState('');
+  const [copiedLineup, setCopiedLineup] = useState(false);
+
+  // --- INTERACTIVE TRANSFER RUMOR STATES ---
+  const [rumors, setRumors] = useState([
+    {
+      id: 'rumor-1',
+      player: 'Paulo Dybala',
+      source: 'La Gazzetta dello Sport',
+      excerpt: 'Roma’daki sözleşme belirsizliği sürerken Fenerbahçe’nin cazip bir teklifle menajeriyle temas kurduğu bildirildi.',
+      role: 'Oyun Kurucu / Santrfor',
+      hotVotes: 184,
+      coldVotes: 72
+    },
+    {
+      id: 'rumor-2',
+      player: 'Talha Sanel',
+      source: 'TRT Spor Özel',
+      excerpt: 'Süper Lig’de çıkış yapan genç yıldız adayı için scout ekibinin olumlu rapor yazdığı ve Jose Mourinho’nun onay verdiği iddia edildi.',
+      role: 'Stoper / Defans',
+      hotVotes: 95,
+      coldVotes: 23
+    },
+    {
+      id: 'rumor-3',
+      player: 'Jayden Oosterwolde',
+      source: 'Sky Sports',
+      excerpt: 'Premier Lig ekiplerinden birinin sol bek mevkisi için €25M bandında resmi bir teklif paketini yönetime sunduğu konuşuluyor.',
+      role: 'Sol Bek / Stoper (Teklif)',
+      hotVotes: 142,
+      coldVotes: 89
+    }
+  ]);
+  const [votedRumors, setVotedRumors] = useState<{ [id: string]: 'hot' | 'cold' }>({});
 
   // Stats Counters
   const communityStats = {
@@ -211,6 +581,27 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
         const vComment = localStorage.getItem('voted_featured_comment');
         if (vComment) setFeaturedCommentVote(vComment as any);
 
+        // Retrieve rumors and squad line-up from Storage
+        const vRumor1 = localStorage.getItem('voted_rumor_rumor-1') as 'hot' | 'cold' | null;
+        const vRumor2 = localStorage.getItem('voted_rumor_rumor-2') as 'hot' | 'cold' | null;
+        const vRumor3 = localStorage.getItem('voted_rumor_rumor-3') as 'hot' | 'cold' | null;
+        const loadedVotedRumors: { [id: string]: 'hot' | 'cold' } = {};
+        if (vRumor1) loadedVotedRumors['rumor-1'] = vRumor1;
+        if (vRumor2) loadedVotedRumors['rumor-2'] = vRumor2;
+        if (vRumor3) loadedVotedRumors['rumor-3'] = vRumor3;
+        setVotedRumors(loadedVotedRumors);
+
+        const savedLineup = localStorage.getItem('squad_builder_lineup');
+        if (savedLineup) {
+          try {
+            setLineup(JSON.parse(savedLineup));
+          } catch (_) {}
+        }
+        const savedFormation = localStorage.getItem('squad_builder_formation');
+        if (savedFormation && TACTICAL_FORMATIONS[savedFormation]) {
+          setActiveFormation(savedFormation);
+        }
+
       } catch (err) {
         console.error("Taraftar Odası load error: ", err);
       } finally {
@@ -292,6 +683,128 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
 
     localStorage.setItem('voted_player_of_the_week', option);
     setVotedPlayerOfWeek(option);
+  };
+
+  // --- DYNAMIC SQUAD RATING COMPUTATIONS ---
+  const squadMetrics = React.useMemo(() => {
+    const currentPositions = TACTICAL_FORMATIONS[activeFormation];
+    let totalDefense = 0;
+    let totalAttack = 0;
+    let defenseCount = 0;
+    let attackCount = 0;
+    let creativityBonus = 55;
+    let pressingBonus = 55;
+
+    currentPositions.forEach(p => {
+      const selectedPlayerName = lineup[p.role];
+      const playerObj = AVAILABLE_PLAYERS.find(pl => pl.name === selectedPlayerName);
+      if (playerObj) {
+        if (['GK', 'LB', 'RB', 'CB', 'CB1', 'CB2', 'CB3', 'DM', 'DM1', 'DM2', 'LM', 'RM'].includes(p.role)) {
+          totalDefense += playerObj.overall;
+          defenseCount++;
+        } else {
+          totalAttack += playerObj.overall;
+          attackCount++;
+        }
+
+        if (playerObj.name === 'Dušan Tadić') creativityBonus += 15;
+        if (playerObj.name === 'İrfan Can Kahveci') creativityBonus += 12;
+        if (playerObj.name === 'Sebastian Szymański') {
+          creativityBonus += 8;
+          pressingBonus += 8;
+        }
+        if (playerObj.name === 'Fred') {
+          creativityBonus += 10;
+          pressingBonus += 12;
+        }
+        if (playerObj.name === 'İsmail Yüksek') pressingBonus += 15;
+        if (playerObj.name === 'Sofyan Amrabat') pressingBonus += 10;
+        if (playerObj.name === 'Allan Saint-Maximin') creativityBonus += 10;
+      }
+    });
+
+    const defenseRating = defenseCount > 0 ? Math.round(totalDefense / defenseCount) : 80;
+    const attackRating = attackCount > 0 ? Math.round(totalAttack / attackCount) : 80;
+
+    return {
+      defense: Math.min(99, Math.max(65, defenseRating)),
+      attack: Math.min(99, Math.max(65, attackRating)),
+      creativity: Math.min(99, Math.max(50, creativityBonus)),
+      pressing: Math.min(99, Math.max(50, pressingBonus))
+    };
+  }, [lineup, activeFormation]);
+
+  // Handle position select
+  const handleAssignPlayer = (role: string, playerName: string) => {
+    const updatedLineup = { ...lineup, [role]: playerName };
+    setLineup(updatedLineup);
+    setActivePositionSelector(null);
+    localStorage.setItem('squad_builder_lineup', JSON.stringify(updatedLineup));
+  };
+
+  const handleFormationChange = (form: string) => {
+    setActiveFormation(form);
+    localStorage.setItem('squad_builder_formation', form);
+  };
+
+  const handleResetLineup = () => {
+    const defaultLineup = {
+      'GK': 'Dominik Livaković',
+      'LB': 'Jayden Oosterwolde',
+      'CB1': 'Alexander Djiku',
+      'CB2': 'Çağlar Söyüncü',
+      'CB3': 'Rodrigo Becão',
+      'RB': 'Bright Osayi-Samuel',
+      'LM': 'Jayden Oosterwolde',
+      'RM': 'Bright Osayi-Samuel',
+      'DM': 'Sofyan Amrabat',
+      'DM1': 'Sofyan Amrabat',
+      'DM2': 'Fred',
+      'MC1': 'Fred',
+      'MC2': 'Sebastian Szymański',
+      'LW': 'Allan Saint-Maximin',
+      'AM': 'Sebastian Szymański',
+      'RW': 'Dušan Tadić',
+      'CF': 'Edin Džeko',
+      'CF1': 'Youssef En-Nesyri',
+      'CF2': 'Edin Džeko'
+    };
+    setLineup(defaultLineup);
+    localStorage.setItem('squad_builder_lineup', JSON.stringify(defaultLineup));
+  };
+
+  const handleShareLineup = () => {
+    const currentPositions = TACTICAL_FORMATIONS[activeFormation];
+    const teamText = currentPositions.map(p => `${p.desc || p.role}: ${lineup[p.role] || 'Belirtilmedi'}`).join('\n');
+    const fullText = `🔥 Fenerbahçe Evreni - Benim Taktik Kadrom (${activeFormation}):\n\n${teamText}\n\nKadro Endekslerim:\n⚡ Hücum: ${squadMetrics.attack}\n🛡️ Savunma: ${squadMetrics.defense}\n✨ Yaratıcılık: ${squadMetrics.creativity}\n🔥 Pres Gücü: ${squadMetrics.pressing}\n\nTaktik Notu: ${squadNotes ? squadNotes : "Mourinho asimetrik geçiş planı."}\n\nKendi kadronu kurup oylamak için taraftar odasına gel!`;
+    
+    try {
+      navigator.clipboard.writeText(fullText);
+      setCopiedLineup(true);
+      setTimeout(() => setCopiedLineup(false), 3000);
+    } catch (e) {
+      console.warn("Could not copy:", e);
+    }
+    setShowShareModal(true);
+  };
+
+  // --- RUMOR VOTE HANDLER ---
+  const handleRumorVote = (rumorId: string, type: 'hot' | 'cold') => {
+    if (votedRumors[rumorId]) return;
+
+    setRumors(prev => prev.map(rum => {
+      if (rum.id === rumorId) {
+        return {
+          ...rum,
+          hotVotes: type === 'hot' ? rum.hotVotes + 1 : rum.hotVotes,
+          coldVotes: type === 'cold' ? rum.coldVotes + 1 : rum.coldVotes
+        };
+      }
+      return rum;
+    }));
+
+    setVotedRumors(prev => ({ ...prev, [rumorId]: type }));
+    localStorage.setItem(`voted_rumor_${rumorId}`, type);
   };
 
   // Featured Comment pulse
@@ -550,6 +1063,338 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* KIŞİSELLEŞTİRİLMİŞ 11 KURMA LABORATUVARI */}
+            <div className="p-6 md:p-8 rounded-2xl bg-fb-card border border-white/[0.06] relative overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.3)]">
+              <div className="absolute top-0 right-0 p-3 text-[9px] font-black text-white bg-emerald-900 border-l border-b border-white/10 uppercase rounded-bl-xl tracking-widest">
+                TAKTİK LABORATUVARI
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Sliders size={16} className="text-fb-yellow animate-pulse" />
+                    <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020]">
+                      KADIKÖY TAKTİK TAHTASI
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-display font-black text-white mt-1 uppercase tracking-tight">
+                    İLK 11'İNİ SEN BELİRLE
+                  </h3>
+                  <p className="text-xs text-fb-muted mt-1 leading-relaxed">
+                    Formasyonu seç, pozisyonlara tıkla ve hayalindeki Fenerbahçe kadrosunu sahaya diz! Kadro endeksleri seçimine göre canlı hesaplanır.
+                  </p>
+                </div>
+
+                {/* Formasyon Seçimi ve Sıfırla */}
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-fb-dark/60 border border-white/5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-black uppercase text-fb-muted mr-1">DİZİLİŞ SEÇ:</span>
+                    <select
+                      value={activeFormation}
+                      onChange={(e) => handleFormationChange(e.target.value)}
+                      className="px-3 py-2 rounded-xl bg-slate-950 border border-fb-yellow/20 text-xs text-white uppercase font-black focus:outline-none focus:border-fb-yellow cursor-pointer select-none"
+                    >
+                      {Object.keys(TACTICAL_FORMATIONS).map(form => (
+                        <option key={form} value={form} className="bg-slate-950 text-white font-black">
+                          {form === '41212' ? '4-1-2-1-2 (BAKLAVA)' : form === '4321' ? '4-3-2-1 (NOEL AĞACI)' : form.split('').join('-')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={handleResetLineup}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-red-950/30 text-rose-400 hover:text-rose-300 text-xs font-black border border-white/5 transition-all"
+                  >
+                    <RotateCcw size={12} />
+                    KADROYU SIFIRLA
+                  </button>
+                </div>
+
+                {/* Canlı Endeks Değerleri */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { label: "OFS. GÜCÜ", value: squadMetrics.attack, color: "text-amber-400", bg: "bg-amber-400/10" },
+                    { label: "DEF. DİRENCİ", value: squadMetrics.defense, color: "text-emerald-400", bg: "bg-emerald-400/10" },
+                    { label: "YARATICILIK", value: squadMetrics.creativity, color: "text-indigo-400", bg: "bg-indigo-400/10" },
+                    { label: "PRES GÜCÜ", value: squadMetrics.pressing, color: "text-orange-400", bg: "bg-orange-400/10" }
+                  ].map((metric, i) => (
+                    <div key={i} className={`p-3 rounded-xl ${metric.bg} border border-white/5 text-center`}>
+                      <span className="text-[9px] font-black uppercase text-fb-muted block tracking-wider">{metric.label}</span>
+                      <span className={`text-xl font-mono font-black italic block mt-0.5 ${metric.color}`}>
+                        {metric.value}<span className="text-xs font-bold text-slate-500 font-sans">/99</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Futbol Sahası ve Oyuncu Seçici */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  
+                  {/* Yeşil Saha */}
+                  <div className="md:col-span-2 relative aspect-[3/4] rounded-2xl bg-gradient-to-b from-[#1b4332] to-[#081c15] border border-emerald-500/30 shadow-inner overflow-hidden flex flex-col justify-between p-4 min-h-[380px]">
+                    {/* Saha Çizgileri */}
+                    <div className="absolute inset-0 border-2 border-white/10 rounded-2xl pointer-events-none m-2" />
+                    {/* Ceza Sahası Üst */}
+                    <div className="absolute left-[20%] right-[20%] top-2 h-1/6 border-b border-x border-white/10 pointer-events-none" />
+                    {/* Altıpas Üst */}
+                    <div className="absolute left-[35%] right-[35%] top-2 h-[7%] border-b border-x border-white/10 pointer-events-none" />
+                    {/* Ceza Sahası Alt */}
+                    <div className="absolute left-[20%] right-[20%] bottom-2 h-1/6 border-t border-x border-white/10 pointer-events-none" />
+                    {/* Altıpas Alt */}
+                    <div className="absolute left-[35%] right-[35%] bottom-2 h-[7%] border-t border-x border-white/10 pointer-events-none" />
+                    {/* Orta Saha Çizgisi */}
+                    <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-[1px] bg-white/10 pointer-events-none" />
+                    {/* Orta Yuvarlak */}
+                    <div className="absolute left-1/2 top-1/2 w-20 h-20 -translate-x-1/2 -translate-y-1/2 border border-white/10 rounded-full pointer-events-none" />
+
+                    {/* Sahanın İçindeki Oyuncu Pinleri */}
+                    {TACTICAL_FORMATIONS[activeFormation].map((p) => {
+                      const currentPlayer = lineup[p.role] || "Boş";
+                      const isSelectedNode = activePositionSelector === p.role;
+                      const hasPlayer = currentPlayer && currentPlayer !== "Boş";
+                      const avatarUrl = getPlayerAvatarUrl(currentPlayer);
+                      
+                      return (
+                        <button
+                          key={p.role}
+                          type="button"
+                          onClick={() => setActivePositionSelector(isSelectedNode ? null : p.role)}
+                          style={{ left: `${p.x}%`, top: `${p.y}%` }}
+                          className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group focus:outline-none z-10"
+                        >
+                          <motion.div
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.95 }}
+                            className={`rounded-full flex items-center justify-center border shadow-xl transition-all relative overflow-visible ${isSelectedNode ? 'border-fb-yellow bg-fb-navy scale-110 shadow-fb-yellow/30 w-12 h-12' : 'border-fb-yellow/50 bg-fb-navy/95 w-11 h-11 hover:border-white shadow-black/60'}`}
+                          >
+                            {hasPlayer ? (
+                              <div className="w-full h-full rounded-full overflow-hidden relative">
+                                <img 
+                                  src={avatarUrl} 
+                                  alt={currentPlayer}
+                                  className="w-full h-full object-cover bg-slate-900"
+                                  referrerPolicy="no-referrer"
+                                />
+                                <span className="absolute bottom-0 right-0 bg-fb-yellow text-fb-navy text-[7px] font-black leading-none px-1 py-0.5 rounded border border-fb-navy scale-90">
+                                  {p.label}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] font-sans font-black text-fb-yellow/70">
+                                {p.label}
+                              </span>
+                            )}
+                          </motion.div>
+                          <div className={`mt-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tight text-center truncate max-w-[90px] leading-tight ${isSelectedNode ? 'bg-white text-fb-navy font-black shadow-lg' : 'bg-fb-dark/90 text-white border border-white/5 font-bold shadow-md'}`}>
+                            {currentPlayer.split(' ').pop()}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Oyuncu Atama Paneli */}
+                  <div className="p-4 rounded-xl bg-fb-dark/80 border border-white/5 flex flex-col justify-between space-y-4">
+                    <div>
+                      <span className="text-[9px] font-black uppercase text-fb-yellow tracking-widest block mb-2">OYUNCU ATAMA ODASI</span>
+                      {activePositionSelector ? (
+                        <div className="space-y-3">
+                          <div className="p-2.5 rounded-lg bg-fb-navy/50 border border-fb-yellow/20 flex items-center justify-between">
+                            <div className="text-left">
+                              <span className="text-[8px] font-black text-fb-muted block uppercase">SEÇİLEN POZİSYON</span>
+                              <span className="text-xs font-bold text-white uppercase">{TACTICAL_FORMATIONS[activeFormation].find(f => f.role === activePositionSelector)?.desc} ({activePositionSelector})</span>
+                            </div>
+                            <span className="text-[9px] px-1 py-0.5 rounded bg-fb-yellow/10 text-fb-yellow font-mono">Seçildi</span>
+                          </div>
+                          
+                          <p className="text-[10px] text-slate-400 font-bold leading-tight">Bu pozisyona yerleştirmek istediğiniz oyuncuyu seçin:</p>
+                          
+                          <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+                            {/* Özel Transfer Girişi Seçeneği */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const customName = prompt("Bu mevki için düşündüğünüz transfer adayının ismini girin (Örn: Paul Pogba veya TRANSFER):");
+                                if (customName && customName.trim()) {
+                                  handleAssignPlayer(activePositionSelector, customName.trim());
+                                } else {
+                                  handleAssignPlayer(activePositionSelector, "YENİ TRANSFER");
+                                }
+                              }}
+                              className="w-full p-2.5 rounded-lg text-left text-xs font-black bg-gradient-to-r from-fb-yellow/20 to-fb-navy/30 border border-fb-yellow/40 hover:border-fb-yellow text-fb-yellow flex items-center gap-2 transition-all mb-1"
+                            >
+                              <PlusCircle size={14} className="text-fb-yellow animate-pulse" />
+                              <span>✍ MEVKİYE TRANSFER YAZIN</span>
+                            </button>
+
+                            {AVAILABLE_PLAYERS.map((pl) => {
+                              const isPlaced = Object.values(lineup).includes(pl.name);
+                              const isPlacedExactlyHere = lineup[activePositionSelector] === pl.name;
+                              const pAvatar = getPlayerAvatarUrl(pl.name);
+                              
+                              return (
+                                <button
+                                  key={pl.name}
+                                  type="button"
+                                  onClick={() => handleAssignPlayer(activePositionSelector, pl.name)}
+                                  className={`w-full p-2 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all ${isPlacedExactlyHere ? 'bg-fb-yellow/20 border border-fb-yellow text-white' : 'bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 text-slate-300'}`}
+                                >
+                                  <img 
+                                    src={pAvatar} 
+                                    alt="" 
+                                    className="w-7 h-7 rounded-full bg-slate-900 border border-white/10 object-cover shrink-0"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                  <div className="text-left flex-1 min-w-0">
+                                    <span className="block truncate leading-tight">{pl.name}</span>
+                                    <span className="text-[9px] font-bold text-fb-muted block">{pl.class}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                                    <span className="font-mono text-[9px] font-bold opacity-75">OVR:{pl.overall}</span>
+                                    {isPlaced && !isPlacedExactlyHere && (
+                                      <span className="text-[8px] px-1 bg-white/10 text-slate-400 rounded font-normal shrink-0 font-sans">Dizili</span>
+                                    )}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-[200px] flex flex-col items-center justify-center text-center p-4">
+                          <Sliders className="text-fb-muted mb-2 animate-bounce opacity-45" size={24} />
+                          <p className="text-xs font-bold text-slate-300">Pozisyon Seçin</p>
+                          <p className="text-[10px] text-fb-muted mt-1 max-w-[150px]">
+                            Uyum ve performans endeksini simüle etmek için soldaki sahada bir role dokunun.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Taktik Notu */}
+                    <div className="space-y-2 pt-2 border-t border-white/5">
+                      <span className="text-[9px] font-black uppercase text-fb-muted block">TAKTİK PLAN NOTU</span>
+                      <input
+                        type="text"
+                        value={squadNotes}
+                        onChange={(e) => setSquadNotes(e.target.value)}
+                        placeholder="Örn: İsmail pres, Fred geçiş rolünde."
+                        className="w-full bg-white/[0.02] border border-white/10 focus:border-fb-yellow/40 rounded-lg p-2 text-xs font-bold text-slate-200 placeholder-slate-600 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Paylaş / Raporlama */}
+                <div className="pt-2">
+                  <button
+                    onClick={handleShareLineup}
+                    className="w-full flex items-center justify-center gap-2 group p-4 rounded-xl bg-gradient-to-r from-fb-yellow to-amber-400 text-fb-navy font-display font-black text-xs uppercase tracking-wider hover:shadow-[0_4px_20px_rgba(255,176,32,0.3)] transition-all cursor-pointer"
+                  >
+                    <Share2 size={14} className="group-hover:rotate-12 transition-transform" />
+                    {copiedLineup ? "KOPYALANDI VE PAYLAŞILIYOR! ✓" : "PAYLAŞ"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* SÖYLENTİ DEĞİRMENİ */}
+            <div className="p-6 md:p-8 rounded-2xl bg-fb-card border border-white/[0.06] relative overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.3)]">
+              <div className="absolute top-0 right-0 p-3 text-[9px] font-black text-rose-400 bg-rose-500/10 uppercase rounded-bl-xl tracking-widest border-l border-b border-rose-500/10">
+                SÖYLENTİ PAROMETRESİ
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Flame size={16} className="text-rose-500 animate-pulse" />
+                    <span className="text-[10px] uppercase font-black tracking-widest text-rose-500">
+                      DOĞRULUK VE SICAKLIK VEZNESİ
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-display font-black text-white mt-1 uppercase tracking-tight">
+                    TRANSFER SÖYLENTİ DEĞİRMENİ
+                  </h3>
+                  <p className="text-xs text-fb-muted mt-1 leading-relaxed">
+                    Ortalıkta dolaşan Fenerbahçe scout / transfer iddialarını taraftarlar oyluyor. Sence söylenti ne kadar sıcak?
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {rumors.map((rum) => {
+                    const myVote = votedRumors[rum.id];
+                    const totalVec = rum.hotVotes + rum.coldVotes;
+                    const hotPercent = totalVec > 0 ? Math.round((rum.hotVotes / totalVec) * 100) : 50;
+                    const coldPercent = 100 - hotPercent;
+
+                    return (
+                      <div key={rum.id} className="p-4 rounded-xl bg-fb-dark/60 border border-white/5 space-y-3 relative group text-left">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="px-2 py-0.5 rounded bg-fb-yellow/10 text-fb-yellow text-[9px] font-black uppercase tracking-wide">{rum.player}</span>
+                              <span className="text-[10px] text-slate-400 font-bold">Kaynak: {rum.source}</span>
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-500 block mt-0.5 uppercase tracking-wider">{rum.role}</span>
+                          </div>
+                        </div>
+
+                        <p className="text-xs text-slate-300 font-bold leading-relaxed">{rum.excerpt}</p>
+
+                        {/* Oylama Çubuğu veya Oy Verme Butonları */}
+                        <div className="pt-2">
+                          {myVote ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-[10px] font-mono font-black">
+                                <span className="text-amber-400 flex items-center gap-1">🔥 GERÇEKÇİ (%{hotPercent})</span>
+                                <span className="text-sky-400 flex items-center gap-1">❄️ ASILSIZ (%{coldPercent})</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden flex">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${hotPercent}%` }}
+                                  transition={{ duration: 0.8 }}
+                                  className="h-full bg-amber-500"
+                                />
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${coldPercent}%` }}
+                                  transition={{ duration: 0.8 }}
+                                  className="h-full bg-sky-500"
+                                />
+                              </div>
+                              <div className="flex items-center justify-between text-[8px] text-fb-muted font-bold pt-1">
+                                <span>Toplam Değerlendirme: {totalVec} Taraftar</span>
+                                <span className="text-fb-yellow">Tercihiniz: {myVote === 'hot' ? '🔥 Gerçekçi' : '❄️ Asılsız'}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleRumorVote(rum.id, 'hot')}
+                                className="flex-1 py-2 px-3 rounded-lg border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/40 text-[11px] font-black text-amber-400 transition-all text-center flex items-center justify-center gap-1 cursor-pointer font-sans"
+                              >
+                                <span>🔥</span> GERÇEKÇİ
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRumorVote(rum.id, 'cold')}
+                                className="flex-1 py-2 px-3 rounded-lg border border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/10 hover:border-sky-500/40 text-[11px] font-black text-sky-400 transition-all text-center flex items-center justify-center gap-1 cursor-pointer font-sans"
+                              >
+                                <span>❄️</span> ASILSIZ
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -893,6 +1738,51 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
               </div>
             </div>
 
+            {/* CANLI KADIKÖY MAÇ GÜNÜ SOHBET AKIŞI & AI TAKTİK SENTEZİ */}
+            <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] space-y-4 relative overflow-hidden">
+              <span className="absolute top-2 right-2 text-xs font-black px-1.5 py-0.5 rounded bg-red-600/20 border border-red-500/20 text-red-400 animate-pulse uppercase tracking-wider text-[8px]">
+                CANLI AKIŞ
+              </span>
+              
+              <div>
+                <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020] block mb-1">
+                  KADIKÖY SOHBET ODASI
+                </span>
+                <span className="text-[9px] font-bold text-fb-muted block leading-tight">Tribün ateşi simülatörü ve akıllı analiz.</span>
+              </div>
+
+              {/* Chat Stream Card Area */}
+              <div className="space-y-2 p-3.5 rounded-xl bg-fb-dark/80 border border-white/5 max-h-[190px] overflow-y-auto font-sans text-xs">
+                {[
+                  { user: "genc_fb_90", msg: "Bu kadroyu Mourinho görse direkt asistan yapar adamı!", time: "Saniyeler önce", color: "text-amber-400" },
+                  { user: "kadikoy_muhtari", msg: "Fred varken oyunun hızı 2 katına çıkıyor cidden.", time: "1 dk önce", color: "text-sky-400" },
+                  { user: "taktik_kral", msg: "Çift forvet dizilişi Amrabat'ın yükünü çok artırır yalnız.", time: "3 dk önce", color: "text-emerald-400" },
+                  { user: "di_maria_1907", msg: "Dybala dedikoduları doğru çıksa var ya, lig biter lig!", time: "5 dk önce", color: "text-slate-300" }
+                ].map((post, index) => (
+                  <div key={index} className="space-y-0.5 border-b border-white/[0.02] pb-1.5 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between text-[9px]">
+                      <span className={`font-black ${post.color}`}>{post.user}</span>
+                      <span className="text-slate-500 font-bold">{post.time}</span>
+                    </div>
+                    <p className="text-slate-300 font-semibold leading-tight text-[11px] text-left">{post.msg}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* AI Sentezi Bubble with neon pulse */}
+              <div className="p-3.5 rounded-xl bg-fb-navy/30 border border-fb-yellow/20 space-y-2 text-left relative overflow-hidden">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-fb-yellow animate-ping shrink-0" />
+                  <span className="text-[9px] font-black uppercase text-fb-yellow tracking-widest flex items-center gap-1">
+                    <Sparkles size={10} /> YAPAY ZEKA COACH SENTEZİ
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-200 font-bold leading-relaxed italic text-left">
+                  "Seçtiğiniz kadroda {activeFormation.split('').join('-')} dizilişiyle Amrabat ve Fred çift pivotu merkez omurgayı kilitliyor. Bu asimetrik geçiş sisteminde Saint-Maximin ve Tadiç genişliği takım hücum katsayısını {squadMetrics.attack} seviyesine taşıyor."
+                </p>
+              </div>
+            </div>
+
             {/* 9. Community Guidelines */}
             <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] space-y-4">
               <div className="flex items-center gap-2">
@@ -989,6 +1879,162 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
         - Direct real-time listener binding payload query for active matches and predictions leaderboard scoring.
         - Automated fan predictions badge achievements system.
       */}
+
+      {showShareModal && (
+        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-lg bg-[#0a141d] rounded-2xl border border-fb-yellow/30 shadow-[0_20px_50px_rgba(234,179,8,0.15)] p-6 relative overflow-hidden"
+          >
+            {/* Background design accents */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-fb-yellow/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-[#FF001F]/5 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Header Section */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-fb-yellow animate-ping" />
+                <h4 className="font-display font-black text-white text-sm tracking-wider uppercase">
+                  HAZIR! PAYLAŞMA KARTI
+                </h4>
+              </div>
+              <button 
+                onClick={() => setShowShareModal(false)}
+                className="text-fb-muted hover:text-white transition-colors p-1"
+              >
+                ✕ Kapat
+              </button>
+            </div>
+
+            {/* Visual simulated card */}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-[#122434] to-[#040b10] border border-white/5 space-y-4 mb-5 shadow-inner">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="text-[10px] uppercase font-black text-fb-yellow tracking-widest leading-none">FENERBAHÇE EVRENİ</h5>
+                  <span className="text-xs text-white/50 font-bold block mt-1">Özel 11 Kadrosu</span>
+                </div>
+                <div className="px-2 py-1 rounded bg-fb-yellow/10 border border-fb-yellow/30 text-fb-yellow text-[10px] font-black uppercase">
+                  DİZİLİŞ: {activeFormation.split('').join('-')}
+                </div>
+              </div>
+
+              {/* Player names list preview */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 py-2 border-y border-white/5">
+                {TACTICAL_FORMATIONS[activeFormation]?.map(p => {
+                  const plName = lineup[p.role] || "Boş";
+                  return (
+                    <div key={p.role} className="flex items-center gap-1.5 text-[10px] truncate">
+                      <span className="text-fb-yellow/70 font-mono font-black shrink-0 w-8">{p.label}:</span>
+                      <span className="truncate font-bold text-slate-200">
+                        {plName}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Metrics preview */}
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div className="p-1.5 rounded bg-amber-400/5 border border-amber-400/10">
+                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">HÜCUM</span>
+                  <span className="text-xs font-black text-amber-400">{squadMetrics.attack}</span>
+                </div>
+                <div className="p-1.5 rounded bg-emerald-400/5 border border-emerald-400/10">
+                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">SAVUNMA</span>
+                  <span className="text-xs font-black text-emerald-400">{squadMetrics.defense}</span>
+                </div>
+                <div className="p-1.5 rounded bg-cyan-400/5 border border-cyan-400/10">
+                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">KREATİF</span>
+                  <span className="text-xs font-black text-cyan-400">{squadMetrics.creativity}</span>
+                </div>
+                <div className="p-1.5 rounded bg-rose-400/5 border border-rose-400/10">
+                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">PRES</span>
+                  <span className="text-xs font-black text-rose-400">{squadMetrics.pressing}</span>
+                </div>
+              </div>
+
+              {/* Taktik plan preview */}
+              <div className="text-center px-1">
+                <span className="text-[8px] font-black text-fb-muted tracking-wider block uppercase">AKTİF TAKTİK PLAN NOTU</span>
+                <p className="text-[10px] italic text-slate-300 font-bold leading-normal mt-0.5 truncate">
+                  "{squadNotes || 'Mourinho asimetrik geçiş planı.'}"
+                </p>
+              </div>
+            </div>
+
+            {/* Action text */}
+            <p className="text-[10px] text-fb-muted font-bold text-center mb-4">
+              Kadro şablonunuz başarıyla kopyalandı! Sosyal medyada hızlıca paylaşmak için aşağıdaki servislerden birini seçin:
+            </p>
+
+            {/* Social network share action buttons */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {/* Twitter */}
+              <a 
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                  `🔥 Fenerbahçe Evreni'nde kurduğum ilk 11'im hazır!\n⚽ Diziliş: ${activeFormation.split('').join('-')}\n⚡ Hücum: ${squadMetrics.attack} | 🛡️ Savunma: ${squadMetrics.defense}\n\n👉 Kendi kadronu kurmak ve taraftar odasına katılmak için siteye gel!`
+                )}`}
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-[#1DA1F2] hover:bg-[#1991db] text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all text-center"
+              >
+                <span>🐦 TWITTER (X)</span>
+              </a>
+
+              {/* WhatsApp */}
+              <a 
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                  `🔥 Fenerbahçe Evreni'nde kurduğum efsane kadroma bak!\n⚽ Diziliş: ${activeFormation.split('').join('-')}\n⚡ Hücum: ${squadMetrics.attack} | 🛡️ Savunma: ${squadMetrics.defense}\n📝 Taktik Notu: ${squadNotes || 'Asimetrik geçiş planı.'}\n\n👉 Kadroyu görmek ve kendi kadronu kurmak için tıklayın!`
+                )}`}
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all text-center"
+              >
+                <span>💬 WHATSAPP</span>
+              </a>
+
+              {/* Instagram Walkthrough */}
+              <button 
+                type="button"
+                onClick={() => {
+                  alert("Mobil cihazınıza uygun kopya panoya alındı! Instagram Hikayesi veya Gönderisi açıp 'Metin' ekleyerek doğrudan yapıştırabilirsiniz.");
+                }}
+                className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F56040] hover:scale-[1.02] text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all"
+              >
+                <span>📸 INSTAGRAM</span>
+              </button>
+
+              {/* TikTok Walkthrough */}
+              <button 
+                type="button"
+                onClick={() => {
+                  alert("TikTok için kopyalama tamamlandı! Videonuza veya durumunuza bu metni ekleyerek Fenerbahçeli taraftar arkadaşlarınızla etkileşime girin.");
+                }}
+                className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-gradient-to-r from-black to-[#00f2fe] hover:scale-[1.02] text-white text-xs font-black uppercase tracking-wider shadow-lg transition-all"
+              >
+                <span>🎵 TIKTOK</span>
+              </button>
+            </div>
+
+            {/* Clipboard and final status info */}
+            <div className="text-center pt-2">
+              <button 
+                type="button"
+                onClick={() => {
+                  const plainText = TACTICAL_FORMATIONS[activeFormation]?.map(p => `${p.desc || p.role}: ${lineup[p.role] || 'Boş'}`).join('\n') || '';
+                  const shareTxt = `Fenerbahçe Evreni Kadrom\nDiziliş: ${activeFormation}\nHücum: ${squadMetrics.attack}\nSavunma: ${squadMetrics.defense}\n---\n${plainText}`;
+                  navigator.clipboard.writeText(shareTxt);
+                  alert("Kadro metni panoya kopyalandı!");
+                }}
+                className="text-[10px] text-fb-yellow font-black uppercase hover:underline cursor-pointer bg-transparent border-none outline-none"
+              >
+                📋 KADRO METNİNİ MANUEL KOPYALA
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
     </div>
   );
