@@ -61,20 +61,16 @@ class SoccerDataJsonEncoder(json.JSONEncoder):
 
 def fetch_sofascore_url(reader, url):
     """
-    Resilient helper to invoke GET via reader using soccerdata's underlying
-    caching/TLS client if possible, otherwise falling back safely.
+    Uses the soccerdata reader's true prepared TLS session to make the GET request.
+    Does not use reader.get(url) or create dynamic requests standard Sessions.
     """
-    logger.info(f"Issuing HTTP GET request to: {url}")
-    if hasattr(reader, "get") and callable(reader.get):
-        return reader.get(url)
-    elif hasattr(reader, "_request") and callable(reader._request):
-        return reader._request(url)
-    elif hasattr(reader, "session") and hasattr(reader.session, "get"):
+    logger.info(f"Issuing GET using reader's prepared session to: {url}")
+    if hasattr(reader, "_session") and reader._session is not None:
+        return reader._session.get(url)
+    elif hasattr(reader, "session") and reader.session is not None:
         return reader.session.get(url)
     else:
-        import requests
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-        return requests.get(url, headers=headers)
+        raise AttributeError("The soccerdata reader does not contain a prepared HTTP _session or session.")
 
 def process_endpoint_url(reader, url):
     """
@@ -90,16 +86,19 @@ def process_endpoint_url(reader, url):
         "contentType": None,
         "rawResponseByteSize": 0,
         "responseBodyPreview": "",
+        "responseType": None,
         "success": False,
         "error": None
     }
     
     res = None
+    is_success = False
+    
     try:
         # Call fetch helper
         res = fetch_sofascore_url(reader, url)
     except Exception as e:
-        attempt_diag["error"] = str(e)
+        attempt_diag["error"] = f"Fetch exception: {type(e).__name__}: {str(e)}"
         logger.warning(f"Fetch failed for {url}: {e}")
         return False, None, attempt_diag, None
         
@@ -107,13 +106,17 @@ def process_endpoint_url(reader, url):
         attempt_diag["error"] = "Received None response object"
         return False, None, attempt_diag, None
         
+    # Read type metrics
+    try:
+        res_module = type(res).__module__
+        res_name = type(res).__name__
+        attempt_diag["responseType"] = f"{res_module}.{res_name}"
+    except Exception as e:
+        attempt_diag["responseType"] = "Unknown"
+        attempt_diag["error"] = f"Exception getting type(response): {type(e).__name__}: {str(e)}"
+        
     # httpStatus
     status_code = getattr(res, "status_code", None)
-    if status_code is None:
-        status_code = getattr(res, "status", None)
-    if status_code is None:
-        status_code = 200
-        
     attempt_diag["httpStatus"] = status_code
     
     # finalUrl
@@ -128,76 +131,85 @@ def process_endpoint_url(reader, url):
     attempt_diag["contentType"] = content_type
     
     # rawResponseByteSize & responseBodyPreview
-    content_bytes = b""
-    text_val = ""
+    response_content = None
+    response_text = ""
     
-    if hasattr(res, "content") and getattr(res, "content") is not None:
-        content_bytes = getattr(res, "content", b"")
-        attempt_diag["rawResponseByteSize"] = len(content_bytes)
-    elif isinstance(res, (str, bytes)):
-        if isinstance(res, bytes):
-            content_bytes = res
-            attempt_diag["rawResponseByteSize"] = len(res)
-        else:
-            text_val = res
-            attempt_diag["rawResponseByteSize"] = len(res.encode("utf-8"))
-    elif isinstance(res, dict):
-        try:
-            dumped = json.dumps(res)
-            attempt_diag["rawResponseByteSize"] = len(dumped.encode("utf-8"))
-            text_val = dumped
-        except Exception:
-            pass
+    try:
+        response_content = getattr(res, "content", None)
+    except Exception as e:
+        attempt_diag["error"] = f"Exception reading response.content: {type(e).__name__}: {str(e)}"
+        
+    try:
+        response_text = getattr(res, "text", "")
+    except Exception as e:
+         if not attempt_diag["error"]:
+             attempt_diag["error"] = f"Exception reading response.text: {type(e).__name__}: {str(e)}"
+         else:
+             attempt_diag["error"] += f" | Exception reading response.text: {type(e).__name__}: {str(e)}"
             
-    # Derive text_val for preview
-    if not text_val:
-        if hasattr(res, "text") and getattr(res, "text") is not None:
-            text_val = getattr(res, "text", "")
-        elif content_bytes:
-            try:
-                text_val = content_bytes.decode("utf-8", errors="replace")
-            except Exception:
-                text_val = ""
-        elif isinstance(res, dict):
-            text_val = json.dumps(res)
-            
-    attempt_diag["responseBodyPreview"] = text_val[:500] if text_val else ""
+    if response_content is not None and isinstance(response_content, bytes):
+        attempt_diag["rawResponseByteSize"] = len(response_content)
+    else:
+        attempt_diag["rawResponseByteSize"] = 0
+        
+    # Derive safe responseBodyPreview
+    preview_text = response_text[:500] if response_text else ""
+    # Filter potential credentials securely
+    for term in ["cookie", "token", "authorization", "key", "password", "secret", "credential", "session"]:
+        if term in preview_text.lower():
+            preview_text = "[Sanitized for security: contains sensitive keywords]"
+            break
+    attempt_diag["responseBodyPreview"] = preview_text
     
-    # json parsing: only if response is successful (2xx) and body is non-empty
-    data = None
+    # Validate success (only if status_code is available, successful, and content was successfully read)
     is_success = (status_code is not None and 200 <= status_code < 300)
-    
+    if is_success and (response_content is None or response_text is None):
+        is_success = False
+        attempt_diag["error"] = "Successfully connected but response content properties could not be read."
+        
+    data = None
     if is_success:
         try:
+            # First attempt with .json()
             if hasattr(res, "json") and callable(res.json):
-                if text_val.strip():
-                    data = res.json()
+                data = res.json()
+            else:
+                raise AttributeError("Response object has no callable json() method")
+        except Exception as json_err:
+            # Fallback with json.loads(response_text)
+            try:
+                if response_text and response_text.strip():
+                    data = json.loads(response_text)
                 else:
                     data = {}
-            elif isinstance(res, dict):
-                data = res
-            elif text_val.strip():
-                data = json.loads(text_val)
-            else:
-                data = {}
-        except Exception as e:
-            attempt_diag["error"] = f"Failed to parse JSON body: {e}"
-            is_success = False
+            except Exception as loads_err:
+                attempt_diag["error"] = f"response.json() failed: {type(json_err).__name__}: {str(json_err)} | json.loads(response.text) failed: {type(loads_err).__name__}: {str(loads_err)}"
+                is_success = False
     else:
-        attempt_diag["error"] = f"HTTP Error status code: {status_code}"
-        if text_val.strip():
+        if status_code is not None:
+            attempt_diag["error"] = f"HTTP Error status code: {status_code}"
+        else:
+            if not attempt_diag["error"]:
+                attempt_diag["error"] = "Missing HTTP Status Code"
+        
+        # Still attempt to parse error body if any to preserve troubleshooting details
+        if response_text and response_text.strip():
             try:
-                data = json.loads(text_val)
+                data = json.loads(response_text)
             except Exception:
-                data = {"raw_text": text_val[:1000]}
+                data = {"raw_text": response_text[:1000]}
         else:
             data = {}
             
     # Check for SofaScore REST errors inside successfully parsed JSON
-    if is_success and isinstance(data, dict):
-        if "error" in data or (len(data) == 1 and "message" in data) or not data:
-            err_msg = data.get("error", {}).get("message", data.get("message", "Empty query or error content"))
-            attempt_diag["error"] = f"SofaScore API payload error: {err_msg}"
+    if is_success:
+        if isinstance(data, dict):
+            if "error" in data or (len(data) == 1 and "message" in data) or not data:
+                err_msg = data.get("error", {}).get("message", data.get("message", "Empty query or error content"))
+                attempt_diag["error"] = f"SofaScore API payload error: {err_msg}"
+                is_success = False
+        else:
+            attempt_diag["error"] = f"Response is successful but JSON parsed root is of type {type(data).__name__}, not dictionary"
             is_success = False
             
     attempt_diag["success"] = is_success
