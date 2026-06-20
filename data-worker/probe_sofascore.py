@@ -124,7 +124,7 @@ def create_failed_manifest(output_path, step, error_msg, args):
 
 def main():
     global global_available_confirmed
-    from providers import SuperLigSofascore
+    from providers import SuperLigSofascore, create_superlig_reader
     parser = argparse.ArgumentParser(description="Probe SofaScore Süper Lig Integration")
     parser.add_argument("--season", default="2025-26", help="Season in YYYY-YY format")
     parser.add_argument("--team", default="Fenerbahçe", help="Team name to filter")
@@ -194,16 +194,12 @@ def main():
             args
         )
 
-    # Instantiate the Sofascore reader using compatibility adapter
+    # Instantiate the Sofascore reader using compatibility adapter factory
     reader = None
     try:
         logger.warning("Soccerdata default league discovery does not include Super Lig; verified tournament ID 52 adapter is active.")
-        logger.info(f"Initializing SuperLigSofascore adapter for TUR-Super Lig, season: {args.season}")
-        # Initialize
-        reader = SuperLigSofascore(
-            leagues="TUR-Super Lig",
-            seasons=args.season
-        )
+        # Initialize via factory
+        reader = create_superlig_reader(season=args.season)
     except Exception as e:
         create_failed_manifest(
             output_abs_path,

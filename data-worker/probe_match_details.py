@@ -184,7 +184,7 @@ def count_shotmap_shots(data):
     return shot_count
 
 def main():
-    from providers import SuperLigSofascore
+    from providers import create_superlig_reader
     
     parser = argparse.ArgumentParser(description="Probe SofaScore Match Details")
     parser.add_argument("--event-id", required=True, type=int, help="SofaScore unique match event ID")
@@ -202,10 +202,10 @@ def main():
 
     logger.info(f"Starting Match Details Probe for Event ID: {args.event_id}")
     
-    # Initialize SuperLigSofascore reader
+    # Initialize SuperLigSofascore reader via helper factory
     reader = None
     try:
-        reader = SuperLigSofascore(leagues="TUR-Super Lig", seasons="2025-26")
+        reader = create_superlig_reader(season="2025-26")
     except Exception as e:
         logger.error(f"Failed to initialize soccerdata Sofascore reader: {e}")
         # Build immediate fail payload
