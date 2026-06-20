@@ -22,6 +22,13 @@ SOCCERDATA_DIR = os.path.join(SCRIPT_DIR, "soccerdata_home")
 # Set the environment variables absolutely
 os.environ["SOCCERDATA_DIR"] = SOCCERDATA_DIR
 
+# Add SCRIPT_DIR to sys.path so we can import local modules easily
+if SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, SCRIPT_DIR)
+
+# Global status tracker across stages
+global_available_confirmed = False
+
 # Establish logging
 logging.basicConfig(
     level=logging.INFO,
@@ -94,7 +101,9 @@ def create_failed_manifest(output_path, step, error_msg, args):
         "success": False,
         "errorStep": step,
         "errorMessage": error_msg,
-        "availableLeagueConfirmed": False,
+        "availableLeagueConfirmed": global_available_confirmed,
+        "providerTournamentId": 52,
+        "leagueDiscoveryMode": "verified_id_adapter",
         "leagueColumns": [],
         "seasonColumns": [],
         "tableColumns": [],
@@ -114,6 +123,8 @@ def create_failed_manifest(output_path, step, error_msg, args):
     sys.exit(1)
 
 def main():
+    global global_available_confirmed
+    from providers import SuperLigSofascore
     parser = argparse.ArgumentParser(description="Probe SofaScore Süper Lig Integration")
     parser.add_argument("--season", default="2025-26", help="Season in YYYY-YY format")
     parser.add_argument("--team", default="Fenerbahçe", help="Team name to filter")
@@ -161,13 +172,12 @@ def main():
 
     # --- 2. AVAILABLE LEAGUES STEP ---
     logger.info("--- STEP 2: AVAILABLE LEAGUES ---")
-    available_confirmed = False
     try:
         # Check available leagues classmethod
         available = sd.Sofascore.available_leagues()
         logger.info(f"Available leagues: {available}")
         if "TUR-Super Lig" in available:
-            available_confirmed = True
+            global_available_confirmed = True
             logger.info(" 'TUR-Super Lig' discovered and confirmed in available leagues!")
         else:
             create_failed_manifest(
@@ -184,12 +194,13 @@ def main():
             args
         )
 
-    # Instantiate the Sofascore reader
+    # Instantiate the Sofascore reader using compatibility adapter
     reader = None
     try:
-        logger.info(f"Initializing Sofascore reader for TUR-Super Lig, season: {args.season}")
+        logger.warning("Soccerdata default league discovery does not include Super Lig; verified tournament ID 52 adapter is active.")
+        logger.info(f"Initializing SuperLigSofascore adapter for TUR-Super Lig, season: {args.season}")
         # Initialize
-        reader = sd.Sofascore(
+        reader = SuperLigSofascore(
             leagues="TUR-Super Lig",
             seasons=args.season
         )
@@ -197,7 +208,7 @@ def main():
         create_failed_manifest(
             output_abs_path,
             "configuration",
-            f"Failed to initialize sd.Sofascore: {str(e)}",
+            f"Failed to initialize SuperLigSofascore: {str(e)}",
             args
         )
 
@@ -408,7 +419,9 @@ def main():
         "teamQuery": args.team,
         "fetchedAt": pd.Timestamp.now().isoformat(),
         "success": True,
-        "availableLeagueConfirmed": available_confirmed,
+        "availableLeagueConfirmed": global_available_confirmed,
+        "providerTournamentId": 52,
+        "leagueDiscoveryMode": "verified_id_adapter",
         "leagueColumns": league_cols,
         "seasonColumns": season_cols,
         "tableColumns": table_cols,
