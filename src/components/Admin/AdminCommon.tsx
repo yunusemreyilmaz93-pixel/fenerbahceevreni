@@ -386,8 +386,7 @@ export const ContentPreviewModal: React.FC<ContentPreviewModalProps> = ({
 };
 
 // 7. FIREBASE IMAGE UPLOADER COMPONENT WITH LOADING, PROGRESS & PREVIEW
-import { storage, auth, getCurrentAdminUser } from '../../lib/firebase';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { auth, getCurrentAdminUser, getFirebaseStorage, isFirebaseConfigured } from '../../lib/firebase';
 import { Upload, Loader2, Trash2 as TrashIcon, Check } from 'lucide-react';
 
 interface FirebaseImageUploaderProps {
@@ -409,6 +408,7 @@ export const FirebaseImageUploader: React.FC<FirebaseImageUploaderProps> = ({
   const [progress, setProgress] = React.useState(0);
   const [error, setError] = React.useState<string | null>(null);
   const [dragOver, setDragOver] = React.useState(false);
+  const [storageReady, setStorageReady] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Determine file name by folder type (per user request)
@@ -441,7 +441,7 @@ export const FirebaseImageUploader: React.FC<FirebaseImageUploaderProps> = ({
 
     const adminUser = auth?.currentUser || getCurrentAdminUser();
     // Check if authenticated admin
-    if (!adminUser && storage) {
+    if (!adminUser && isFirebaseConfigured) {
       setError('Görsel yüklemek için sisteme yönetici girişi yapmanız gerekmektedir.');
       return;
     }
@@ -453,7 +453,11 @@ export const FirebaseImageUploader: React.FC<FirebaseImageUploaderProps> = ({
     const targetFileName = getTargetFileName();
     const fullPath = `${folderPath}/${idOrSlug}/${targetFileName}`;
 
+    const storage = await getFirebaseStorage();
+    setStorageReady(!!storage);
+
     if (storage) {
+        const { ref, uploadBytesResumable, getDownloadURL } = await import('firebase/storage');
       try {
         const storageRef = ref(storage, fullPath);
         const uploadTask = uploadBytesResumable(storageRef, file, {
@@ -535,7 +539,7 @@ export const FirebaseImageUploader: React.FC<FirebaseImageUploaderProps> = ({
     <div className="space-y-2 text-left">
       <div className="flex justify-between items-center">
         <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">{label}</label>
-        {storage && (
+        {storageReady && (
           <span className="text-[8px] font-bold text-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded uppercase">
             LIVE STORAGE ACTIVE
           </span>
