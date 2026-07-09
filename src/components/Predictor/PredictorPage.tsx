@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useCallback } from 'react';
+﻿import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toPng } from 'html-to-image';
 import { INITIAL_STANDINGS, FIXTURES, Match, TeamStanding } from '../../constants/predictorData';
@@ -198,7 +198,7 @@ const PredictorPage: React.FC = () => {
           >
             <div>
               <div className="text-xs font-bold tracking-[0.3em] mb-2" style={{ color: MUTED }}>
-                FENERBAHÇE EVRENİ · 2025–2026
+                FENERBAHÇE EVRENİ · 2026–2027
               </div>
               <h1 style={{
                 fontSize: 'clamp(28px, 5vw, 52px)',
@@ -572,7 +572,7 @@ const ShareCard = React.forwardRef<
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '28px', paddingBottom: '24px', borderBottom: '1px solid rgba(245,197,24,0.18)' }}>
           <div>
             <div style={{ fontSize: '13px', fontWeight: 700, color: MUTED, letterSpacing: '5px', textTransform: 'uppercase', marginBottom: '6px', fontFamily: 'Arial, sans-serif' }}>
-              FENERBAHÇE EVRENİ · 2025–2026
+              FENERBAHÇE EVRENİ · 2026–2027
             </div>
             <div style={{ fontSize: '54px', fontWeight: 900, fontStyle: 'italic', color: YELLOW, lineHeight: 0.9, letterSpacing: '-1px', textTransform: 'uppercase' }}>
               Şampİyonluk Senaryom

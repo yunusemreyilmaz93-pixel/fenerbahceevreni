@@ -88,10 +88,10 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="text-left">
             <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FFD21F] block mb-2 font-mono">
-              SarÄ± Lacivert TribÃ¼n NabzÄ±
+              Sarı Lacivert Tribün Nabzı
             </span>
             <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tight italic">
-              Taraftar OdasÄ±
+              Taraftar Odası
             </h2>
           </div>
           {poll?.totalVotes ? (
@@ -104,25 +104,25 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
         {/* Community Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch mb-12">
           
-          {/* 1. HaftanÄ±n Anketi Card (Middle Left) */}
+          {/* 1. Haftanın Anketi Card (Middle Left) */}
           <div className="lg:col-span-4 rounded-2xl bg-[#111625] border border-white/[0.08] p-6 flex flex-col justify-between hover:border-white/[0.12] transition-colors shadow-lg relative min-h-[380px]">
             {loading ? (
               <div className="py-24 text-center text-[#FFD21F] font-mono text-xs uppercase tracking-widest">
-                YÃ¼kleniyor...
+                Yükleniyor...
               </div>
             ) : !poll ? (
               // Clean Turkish Empty State as requested
               <div className="py-20 text-center space-y-4">
                 <Vote className="w-10 h-10 text-slate-500 mx-auto opacity-70" />
                 <p className="text-slate-400 text-xs font-black uppercase tracking-widest font-mono">
-                  Anket henÃ¼z oluÅŸturulmadÄ±.
+                  Anket henüz oluşturulmadı.
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-[#FFD21F] pb-3 border-b border-white/[0.04]">
                   <Vote className="w-5 h-5 shrink-0" />
-                  <span className="text-xs font-black uppercase tracking-widest font-mono">HaftanÄ±n Anketi</span>
+                  <span className="text-xs font-black uppercase tracking-widest font-mono">Haftanın Anketi</span>
                 </div>
                 
                 <h3 className="text-base font-black text-white italic tracking-tight leading-snug">
@@ -168,20 +168,20 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
             )}
 
             <p className="text-[10px] text-slate-500 italic pt-4 mt-6 border-t border-white/[0.05] font-mono leading-relaxed">
-              {votedOptionId ? 'âœ“ Tercihiniz kaydedildi. KatkÄ±nÄ±z iÃ§in teÅŸekkÃ¼rler!' : 'Oyunuz anlÄ±k veri tabanÄ±mÄ±zda toplanÄ±r.'}
+              {votedOptionId ? '✓ Tercihiniz kaydedildi. Katkınız için teşekkürler!' : 'Oyunuz anlık veri tabanımızda toplanır.'}
             </p>
           </div>
 
-          {/* 2. MaÃ§ Tahmini Card (Middle) */}
+          {/* 2. Maç Tahmini Card (Middle) */}
           <div className="lg:col-span-4 rounded-2xl bg-[#111625] border border-white/[0.08] p-6 flex flex-col justify-between hover:border-white/[0.12] transition-colors shadow-lg relative min-h-[380px]">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-[#FFD21F] pb-3 border-b border-white/[0.04]">
                 <Award className="w-5 h-5 shrink-0" />
-                <span className="text-xs font-black uppercase tracking-widest font-mono">MaÃ§ Tahmini</span>
+                <span className="text-xs font-black uppercase tracking-widest font-mono">Maç Tahmini</span>
               </div>
               
               <h3 className="text-base font-black text-white italic tracking-tight leading-snug">
-                SÄ±radaki mÃ¼cadelede sarÄ± lacivertli ekibimizin skor beklentiniz nasÄ±l?
+                Sıradaki mücadelede sarı lacivertli ekibimizin skor beklentiniz nasıl?
               </h3>
 
               {!predictVotes.voted ? (
@@ -190,7 +190,7 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
                     onClick={() => handlePredict('win')}
                     className="p-3.5 rounded-xl bg-[#0B0F19]/45 border border-white/10 hover:border-[#FFD21F] text-xs font-black uppercase tracking-wider text-white transition-all text-center hover:bg-[#151C30]/40 cursor-pointer"
                   >
-                    FenerbahÃ§e Galibiyeti
+                    Fenerbahçe Galibiyeti
                   </button>
                   <button
                     onClick={() => handlePredict('draw')}
@@ -202,7 +202,7 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
                     onClick={() => handlePredict('loss')}
                     className="p-3.5 rounded-xl bg-[#0B0F19]/45 border border-white/10 hover:border-[#FFD21F] text-xs font-black uppercase tracking-wider text-white transition-all text-center hover:bg-[#151C30]/40 cursor-pointer"
                   >
-                    Puan KaybÄ±
+                    Puan Kaybı
                   </button>
                 </div>
               ) : (
@@ -211,7 +211,7 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
                     {/* Win */}
                     <div>
                       <div className="flex justify-between font-black text-white mb-1 uppercase tracking-wide">
-                        <span>FenerbahÃ§e Galibiyeti</span>
+                        <span>Fenerbahçe Galibiyeti</span>
                         <span>{Math.round((predictVotes.win / (predictVotes.win + predictVotes.draw + predictVotes.loss)) * 100)}%</span>
                       </div>
                     </div>
@@ -225,7 +225,7 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
                     {/* Loss */}
                     <div>
                       <div className="flex justify-between font-black text-white mb-1 uppercase tracking-wide">
-                        <span>Puan KaybÄ±</span>
+                        <span>Puan Kaybı</span>
                         <span>{Math.round((predictVotes.loss / (predictVotes.win + predictVotes.draw + predictVotes.loss)) * 100)}%</span>
                       </div>
                     </div>
@@ -235,32 +235,32 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
             </div>
 
             <p className="text-[10px] text-slate-500 italic pt-4 mt-6 border-t border-white/[0.05] font-mono">
-              Oylanma bittiÄŸi an veri merkezimizde gÃ¶rselleÅŸir.
+              Oylanma bittiği an veri merkezimizde görselleşir.
             </p>
           </div>
 
-          {/* 3. Taraftar GÃ¶rÃ¼ÅŸÃ¼ Card (Middle Right) */}
+          {/* 3. Taraftar Görüşü Card (Middle Right) */}
           <div className="lg:col-span-4 rounded-2xl bg-[#111625] border border-white/[0.08] p-6 flex flex-col justify-between hover:border-white/[0.12] transition-colors shadow-lg relative min-h-[380px]">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-[#3DDC97] pb-3 border-b border-white/[0.04]">
                 <MessageSquare className="w-5 h-5 shrink-0" />
-                <span className="text-xs font-black uppercase tracking-widest font-mono">Taraftar GÃ¶rÃ¼ÅŸÃ¼</span>
+                <span className="text-xs font-black uppercase tracking-widest font-mono">Taraftar Görüşü</span>
               </div>
               
               {poll?.featuredComment?.comment ? (
                 <div className="p-4 rounded-xl bg-[#0B0F19]/55 border border-white/[0.04] space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-black text-[#FFD21F] font-mono">@{poll.featuredComment.username || 'anonim'}</span>
-                    <span className="text-[9px] text-[#3DDC97] font-black uppercase tracking-widest font-mono">PREMÄ°UM ANALÄ°ST</span>
+                    <span className="text-[9px] text-[#3DDC97] font-black uppercase tracking-widest font-mono">PREMİUM ANALİST</span>
                   </div>
                   <p className="text-xs text-slate-200 leading-relaxed font-semibold italic">
                     "{poll.featuredComment.comment}"
                   </p>
                   <div className="flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase font-mono">
-                    <span>Taktik TartÄ±ÅŸma MasasÄ±</span>
+                    <span>Taktik Tartışma Masası</span>
                     {poll.featuredComment.likes ? (
                       <span className="text-emerald-400 flex items-center gap-1">
-                        <ThumbsUp className="w-3 h-3" /> {poll.featuredComment.likes} BeÄŸeni
+                        <ThumbsUp className="w-3 h-3" /> {poll.featuredComment.likes} Beğeni
                       </span>
                     ) : null}
                   </div>
@@ -269,10 +269,10 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
                 <div className="p-6 rounded-xl bg-[#0B0F19]/55 border border-dashed border-white/[0.08] text-center space-y-3">
                   <MessageSquare className="w-8 h-8 text-slate-600 mx-auto" />
                   <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono leading-relaxed">
-                    Ã–ne Ã§Ä±kan taraftar gÃ¶rÃ¼ÅŸÃ¼ henÃ¼z seÃ§ilmedi.
+                    Öne çıkan taraftar görüşü henüz seçilmedi.
                   </p>
                   <p className="text-[10px] text-slate-500 italic font-mono">
-                    TartÄ±ÅŸma masasÄ±ndaki en iyi analiz burada yayÄ±nlanÄ±r.
+                    Tartışma masasındaki en iyi analiz burada yayınlanır.
                   </p>
                 </div>
               )}
@@ -282,7 +282,7 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
               onClick={() => onNavigate('fan-room')}
               className="w-full py-3.5 bg-[#3DDC97]/10 hover:bg-[#3DDC97] text-[#3DDC97] hover:text-[#0B0F19] transition-all text-xs font-black uppercase tracking-wider rounded-xl mt-6 cursor-pointer"
             >
-              TartÄ±ÅŸmaya KatÄ±l
+              Tartışmaya Katıl
             </button>
           </div>
 
@@ -298,13 +298,13 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
         >
           <div className="space-y-3 max-w-2xl text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FFD21F]/10 border border-[#FFD21F]/20 rounded-full text-[9px] font-black uppercase text-[#FFD21F] tracking-widest font-mono">
-              Ã–ZEL INTERAKTIF SISTEM
+              ÖZEL INTERAKTIF SISTEM
             </div>
             <h3 className="text-2xl font-black text-white italic uppercase tracking-tight">
-              FenerbahÃ§e Fraksiyon AtlasÄ± & Kimlik Analizi
+              Fenerbahçe Fraksiyon Atlası & Kimlik Analizi
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed max-w-xl font-medium">
-              TopluluÄŸumuzdaki farklÄ± taraftar fraksiyonlarÄ±nÄ± analiz ettiÄŸimiz derin interaktif haritaya gir. EÄŸilimleri gÃ¶rselleÅŸtirin ve Ã¶zgÃ¼n kimlik testimizle kendi taraftar kompozisyonunuzu bulun!
+              Topluluğumuzdaki farklı taraftar fraksiyonlarını analiz ettiğimiz derin interaktif haritaya gir. Eğilimleri görselleştirin ve özgün kimlik testimizle kendi taraftar kompozisyonunuzu bulun!
             </p>
           </div>
 
@@ -314,14 +314,14 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
               className="px-6 py-3 bg-[#FFD21F] hover:bg-white text-[#0B0F19] font-black rounded-xl text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md hover:scale-[1.01]"
             >
               <Map className="w-4 h-4" />
-              ATLAS'A GÄ°R
+              ATLAS'A GİR
             </button>
             <button
               onClick={onStartQuiz}
               className="px-6 py-3 bg-white/[0.03] hover:bg-white/[0.08] text-white font-black rounded-xl border border-white/[0.08] text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Play className="w-4 h-4 text-[#FFD21F] fill-[#FFD21F]" />
-              KÄ°MLÄ°K TESTÄ°NÄ° AÃ‡
+              KİMLİK TESTİNİ AÇ
             </button>
           </div>
         </motion.div>
@@ -332,4 +332,5 @@ const CommunitySection: React.FC<CommunitySectionProps> = ({ onNavigate, onStart
 };
 
 export default CommunitySection;
+
 

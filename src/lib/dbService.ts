@@ -53,7 +53,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 
 // Local-first bootstrap: legacy key migrations + real configuration defaults only.
 // Content collections (articles, matches, players, transfers, polls, ...) are NEVER
-// seeded with fabricated data â€” they start empty and are filled via the admin panel,
+// seeded with fabricated data — they start empty and are filled via the admin panel,
 // JSON import or future API integrations. UI must render premium empty states.
 const seedDatabaseLocal = () => {
   // --- Legacy localStorage key migrations (snake_case -> camelCase) ---
@@ -76,10 +76,10 @@ const seedDatabaseLocal = () => {
       featuredArticleIds: [],
       featuredMatchId: null,
       featuredTransferReportIds: [],
-      heroTitle: "BAÄIMSIZ FENERBAHÃ‡E ANALÄ°Z ATLASI",
-      heroSubtitle: "CamianÄ±n taktik rÃ¼zgarlarÄ±nÄ± tarafsÄ±z analiz dosyalarÄ±, scout haritalarÄ± ve interaktif fraksiyon ÅŸemalarÄ±yla analiz eden baÄŸÄ±msÄ±z futbol bÃ¼lteni.",
-      heroPrimaryButtonText: "Taktik HaritayÄ± AÃ§",
-      heroSecondaryButtonText: "MaÃ§ Merkezi",
+      heroTitle: "BAĞIMSIZ FENERBAHÇE ANALİZ ATLASI",
+      heroSubtitle: "Camianın taktik rüzgarlarını tarafsız analiz dosyaları, scout haritaları ve interaktif fraksiyon şemalarıyla analiz eden bağımsız futbol bülteni.",
+      heroPrimaryButtonText: "Taktik Haritayı Aç",
+      heroSecondaryButtonText: "Maç Merkezi",
       updatedAt: new Date().toISOString()
     };
     localStorage.setItem("cms_homeSettings", JSON.stringify(initialHps));
@@ -87,11 +87,11 @@ const seedDatabaseLocal = () => {
 
   if (!localStorage.getItem("cms_siteSettings")) {
     const initialSettings = {
-      siteTitle: "FenerbahÃ§e Evreni - BaÄŸÄ±msÄ±z Analiz PortalÄ±",
-      siteDescription: "FenerbahÃ§e taktik analiz, scout bÃ¼lteni, taraftar fraksiyonlarÄ± ve maÃ§ merkezi portalÄ±.",
+      siteTitle: "Fenerbahçe Evreni - Bağımsız Analiz Portalı",
+      siteDescription: "Fenerbahçe taktik analiz, scout bülteni, taraftar fraksiyonları ve maç merkezi portalı.",
       contactEmail: "iletisim@fenerbahceevreni.com",
       socialLinks: { twitter: "@BasitBiOyun", instagram: "fenerbahceevreni", youtube: "@fenerbahcevreni" },
-      disclaimerText: "FenerbahÃ§e Evreni, baÄŸÄ±msÄ±z bir taraftar ve analiz platformudur. Ticari ya da hukuki olarak FenerbahÃ§e SK ya da baÄŸlÄ± ÅŸirketleri ile herhangi bir resmi organik baÄŸÄ± veya ortaklÄ±ÄŸÄ± bulunmamaktadÄ±r.",
+      disclaimerText: "Fenerbahçe Evreni, bağımsız bir taraftar ve analiz platformudur. Ticari ya da hukuki olarak Fenerbahçe SK ya da bağlı şirketleri ile herhangi bir resmi organik bağı veya ortaklığı bulunmamaktadır.",
       newsletterEnabled: true,
       premiumEnabled: true,
       updatedAt: new Date().toISOString()
@@ -105,7 +105,7 @@ seedDatabaseLocal();
 
 // Local-first real-data bootstrap: load the scraped squad file into the players
 // collection when it is empty. This is REAL club data (Transfermarkt snapshot),
-// not fabricated content â€” and it is replaced automatically once admin/API data exists.
+// not fabricated content — and it is replaced automatically once admin/API data exists.
 let squadBootstrapPromise: Promise<void> | null = null;
 export const bootstrapSquadFromLocalFile = (): Promise<void> => {
   if (!squadBootstrapPromise) {
@@ -116,8 +116,8 @@ export const bootstrapSquadFromLocalFile = (): Promise<void> => {
         const data = await res.json();
         if (!Array.isArray(data?.players) || data.players.length === 0) return;
 
-        // Versiyon-farkÄ±nda yÃ¼kleme: dosya gÃ¼ncellendiÄŸinde (updatedAt deÄŸiÅŸince)
-        // localStorage tazelensin. KullanÄ±cÄ± admin'den dÃ¼zenlediyse (manuel iÅŸaret) dokunma.
+        // Versiyon-farkında yükleme: dosya güncellendiğinde (updatedAt değişince)
+        // localStorage tazelensin. Kullanıcı admin'den düzenlediyse (manuel işaret) dokunma.
         const fileVersion: string = data.updatedAt || data.scrapedAt || '';
         const storedVersion = localStorage.getItem('cms_players_version');
         const existing = localStorage.getItem('cms_players');
@@ -129,10 +129,10 @@ export const bootstrapSquadFromLocalFile = (): Promise<void> => {
         if (isEmpty || isStale) {
           localStorage.setItem('cms_players', JSON.stringify(data.players));
           localStorage.setItem('cms_players_version', fileVersion);
-          console.log(`Kadro yÃ¼klendi: ${data.players.length} oyuncu (${data.season}, kaynak: ${data.source})`);
+          console.log(`Kadro yüklendi: ${data.players.length} oyuncu (${data.season}, kaynak: ${data.source})`);
         }
       } catch (err) {
-        console.warn('Yerel kadro dosyasÄ± yÃ¼klenemedi:', err);
+        console.warn('Yerel kadro dosyası yüklenemedi:', err);
       }
     })();
   }
@@ -140,7 +140,7 @@ export const bootstrapSquadFromLocalFile = (): Promise<void> => {
 };
 
 
-// GerÃ§ek maÃ§ verisi bootstrap'Ä± (hazÄ±rlÄ±k maÃ§larÄ± / fikstÃ¼r). Kadro ile aynÄ± desen.
+// Gerçek maç verisi bootstrap'ı (hazırlık maçları / fikstür). Kadro ile aynı desen.
 let matchesBootstrapPromise: Promise<void> | null = null;
 export const bootstrapMatchesFromLocalFile = (): Promise<void> => {
   if (!matchesBootstrapPromise) {
@@ -159,17 +159,17 @@ export const bootstrapMatchesFromLocalFile = (): Promise<void> => {
         if (isEmpty || isStale) {
           localStorage.setItem('cms_matches', JSON.stringify(data.matches));
           localStorage.setItem('cms_matches_version', fileVersion);
-          // MaÃ§ raporlarÄ±nÄ± da (varsa) senkronla
+          // Maç raporlarını da (varsa) senkronla
           if (Array.isArray(data.reports)) {
             const repEdited = localStorage.getItem('cms_matchReports_userEdited') === 'true';
             if (!repEdited) {
               localStorage.setItem('cms_matchReports', JSON.stringify(data.reports));
             }
           }
-          console.log(`MaÃ§ verisi yÃ¼klendi: ${data.matches.length} maÃ§, ${(data.reports || []).length} rapor (${data.season})`);
+          console.log(`Maç verisi yüklendi: ${data.matches.length} maç, ${(data.reports || []).length} rapor (${data.season})`);
         }
       } catch (err) {
-        console.warn('Yerel maÃ§ dosyasÄ± yÃ¼klenemedi:', err);
+        console.warn('Yerel maç dosyası yüklenemedi:', err);
       }
     })();
   }
@@ -177,7 +177,7 @@ export const bootstrapMatchesFromLocalFile = (): Promise<void> => {
 };
 
 
-// Editoryal makale bootstrap'Ä± (gerÃ§ek maÃ§/fikstÃ¼r verisine dayalÄ± yazÄ±lar). AynÄ± desen.
+// Editoryal makale bootstrap'ı (gerçek maç/fikstür verisine dayalı yazılar). Aynı desen.
 let articlesBootstrapPromise: Promise<void> | null = null;
 export const bootstrapArticlesFromLocalFile = (): Promise<void> => {
   if (!articlesBootstrapPromise) {
@@ -196,10 +196,10 @@ export const bootstrapArticlesFromLocalFile = (): Promise<void> => {
         if (isEmpty || isStale) {
           localStorage.setItem('cms_articles', JSON.stringify(data.articles));
           localStorage.setItem('cms_articles_version', fileVersion);
-          console.log(`Makaleler yÃ¼klendi: ${data.articles.length} yazÄ±`);
+          console.log(`Makaleler yüklendi: ${data.articles.length} yazı`);
         }
       } catch (err) {
-        console.warn('Yerel makale dosyasÄ± yÃ¼klenemedi:', err);
+        console.warn('Yerel makale dosyası yüklenemedi:', err);
       }
     })();
   }
@@ -207,7 +207,7 @@ export const bootstrapArticlesFromLocalFile = (): Promise<void> => {
 };
 
 
-// GerÃ§ek puan durumu bootstrap'Ä± (Transfermarkt scrape â†’ standings.json). AynÄ± desen.
+// Gerçek puan durumu bootstrap'ı (Transfermarkt scrape → standings.json). Aynı desen.
 let standingsBootstrapPromise: Promise<void> | null = null;
 export const bootstrapStandingsFromLocalFile = (): Promise<void> => {
   if (!standingsBootstrapPromise) {
@@ -233,10 +233,10 @@ export const bootstrapStandingsFromLocalFile = (): Promise<void> => {
             standingsList: data.standingsList
           }]));
           localStorage.setItem('cms_standings_version', fileVersion);
-          console.log(`Puan durumu yÃ¼klendi: ${data.standingsList.length} takÄ±m (${data.season}, kaynak: ${data.source})`);
+          console.log(`Puan durumu yüklendi: ${data.standingsList.length} takım (${data.season}, kaynak: ${data.source})`);
         }
       } catch (err) {
-        console.warn('Yerel puan durumu dosyasÄ± yÃ¼klenemedi:', err);
+        console.warn('Yerel puan durumu dosyası yüklenemedi:', err);
       }
     })();
   }
@@ -365,7 +365,7 @@ export const dbGetCollection = async (rawCollectionName: string): Promise<any[]>
     if (!dataStr) return [];
     const parsed = JSON.parse(dataStr);
     if (Array.isArray(parsed)) return parsed;
-    // Singleton documents (homeSettings, siteSettings) are stored as objects â€”
+    // Singleton documents (homeSettings, siteSettings) are stored as objects —
     // expose them consistently as a one-element collection with id 'main'.
     if (parsed && typeof parsed === 'object') return [{ id: 'main', ...parsed }];
     return [];
@@ -603,7 +603,7 @@ export const dbGetDataSyncRuns = async (
 };
 export async function castPollVote(pollId: string, optionId: string, userId: string): Promise<void> {
   if (!isFirebaseConfigured || !db) {
-    throw new Error('Firebase oy sistemi hazır değil.');
+    throw new Error('Firebase oy sistemi hazir degil.');
   }
 
   await runTransaction(db, async (transaction) => {
@@ -614,9 +614,9 @@ export async function castPollVote(pollId: string, optionId: string, userId: str
       transaction.get(voteRef)
     ]);
 
-    if (!pollSnap.exists()) throw new Error('Anket bulunamadı.');
+    if (!pollSnap.exists()) throw new Error('Anket bulunamadi.');
     const poll = pollSnap.data() as any;
-    if (poll.status !== 'active') throw new Error('Bu anket artık aktif değil.');
+    if (poll.status !== 'active') throw new Error('Bu anket artik aktif degil.');
     if (!Array.isArray(poll.options) || !poll.options.includes(optionId)) {
       throw new Error('Geçersiz anket seçeneği.');
     }
@@ -640,5 +640,6 @@ export async function castPollVote(pollId: string, optionId: string, userId: str
     });
   });
 }
+
 
 
