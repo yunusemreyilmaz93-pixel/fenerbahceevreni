@@ -164,3 +164,24 @@
 button, a, [role='button'] {
   touch-action: manipulation;
 }
+
+/* Typography scale: preserve hierarchy without forcing readers to zoom. */
+body {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+:where([class~="text-[9px]"]) {
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+
+:where([class~="text-[10px]"]) {
+  font-size: 0.8125rem !important;
+  line-height: 1.125rem !important;
+}
+
+:where([class~="text-[11px]"]) {
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+}
