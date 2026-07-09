@@ -328,21 +328,20 @@ const GALAXY_DATA = `
 - Zeki Murat Göleciler
 `;
 
-import MatchCenter from './components/Home/MatchCenter';
-import MacMerkeziPage from './components/Home/MacMerkeziPage';
 const PredictorPage = React.lazy(() => import('./components/Predictor/PredictorPage'));
-import { AnalysisPage } from './components/Home/AnalysisPage';
-import { TransferRadarPage } from './components/Home/TransferRadarPage';
-import { PlayersPage } from './components/Home/PlayersPage';
-import { FanRoomPage } from './components/Home/FanRoomPage';
-import { AboutPage } from './components/Home/AboutPage';
-import { ContactPage } from './components/Home/ContactPage';
-import BultenPage from './components/Home/BultenPage';
-import PrivacyPage from './components/Home/PrivacyPage';
-import TermsPage from './components/Home/TermsPage';
-import CookiesPage from './components/Home/CookiesPage';
-import KvkkPage from './components/Home/KvkkPage';
-import NotFoundPage from './components/Home/NotFoundPage';
+const MacMerkeziPage = React.lazy(() => import('./components/Home/MacMerkeziPage'));
+const AnalysisPage = React.lazy(() => import('./components/Home/AnalysisPage').then((module) => ({ default: module.AnalysisPage })));
+const TransferRadarPage = React.lazy(() => import('./components/Home/TransferRadarPage').then((module) => ({ default: module.TransferRadarPage })));
+const PlayersPage = React.lazy(() => import('./components/Home/PlayersPage').then((module) => ({ default: module.PlayersPage })));
+const FanRoomPage = React.lazy(() => import('./components/Home/FanRoomPage').then((module) => ({ default: module.FanRoomPage })));
+const AboutPage = React.lazy(() => import('./components/Home/AboutPage').then((module) => ({ default: module.AboutPage })));
+const ContactPage = React.lazy(() => import('./components/Home/ContactPage').then((module) => ({ default: module.ContactPage })));
+const BultenPage = React.lazy(() => import('./components/Home/BultenPage'));
+const PrivacyPage = React.lazy(() => import('./components/Home/PrivacyPage'));
+const TermsPage = React.lazy(() => import('./components/Home/TermsPage'));
+const CookiesPage = React.lazy(() => import('./components/Home/CookiesPage'));
+const KvkkPage = React.lazy(() => import('./components/Home/KvkkPage'));
+const NotFoundPage = React.lazy(() => import('./components/Home/NotFoundPage'));
 import CookieConsentBanner from './components/Home/CookieConsentBanner';
 import { ShieldCheck, HelpCircle, Star, MessagesSquare, Send, Info, Calendar, BarChart3, AlertTriangle } from 'lucide-react';
 
@@ -902,6 +901,8 @@ export default function App() {
     </div>
   );
 }
+
+
 
 
 
