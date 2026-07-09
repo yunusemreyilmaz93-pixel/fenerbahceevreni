@@ -58,31 +58,30 @@ const HomePage: React.FC<HomePageProps> = ({
       {/* 1. Hero banner */}
       <HeroSection onNavigate={onNavigate} onEnterUniverse={onEnterUniverse} homeSettings={homeSettings} />
 
-      {/* 2. Quick Access Navigation Bar */}
-      <div className="bg-[#0B0F19] py-5 border-b border-white/[0.04] select-none relative z-20">
+      {/* Quick access: primary tasks only */}
+      <nav aria-label="Hızlı erişim" className="bg-[#0B0F19] py-4 border-b border-white/[0.04] relative z-20">
         <div className="container mx-auto px-6">
-          <div className="flex items-center justify-start md:justify-center gap-3 overflow-x-auto pb-2 scrollbar-none scroll-smooth">
+          <div className="flex items-center justify-start md:justify-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             {[
               { label: 'Maç Merkezi', view: 'match-center', icon: Calendar },
-              { label: 'Analizler', view: 'analysis', icon: BookOpen },
-              { label: 'Transfer Radar', view: 'transfer-radar', icon: Search },
-              { label: 'Oyuncular', view: 'players', icon: Users },
-              { label: 'Taraftar Odası', view: 'fan-room', icon: MessageSquare },
-              { label: 'Bülten', view: 'bulten', icon: Mail }
-            ].map((item, idx) => (
+              { label: 'Son Analiz', view: 'analysis', icon: BookOpen },
+              { label: 'Kadro', view: 'players', icon: Users },
+              { label: 'Taraftarın Sesi', view: 'fan-room', icon: MessageSquare }
+            ].map((item) => (
               <button
-                key={idx}
+                key={item.view}
+                type="button"
                 onClick={() => onNavigate(item.view)}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl bg-[#111625] border border-white/[0.05] hover:border-[#FFD21F]/30 hover:bg-[#151C30] text-slate-300 hover:text-[#FFD21F] font-black text-xs uppercase tracking-wider shrink-0 transition-all cursor-pointer shadow-sm hover:scale-[1.01]"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#111625] border border-white/[0.05] hover:border-[#FFD21F]/30 hover:bg-[#151C30] text-slate-300 hover:text-[#FFD21F] font-black text-[11px] uppercase tracking-wider shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
               >
-                <item.icon className="w-4 h-4 text-[#FFD21F]" />
+                <item.icon aria-hidden="true" className="w-4 h-4 text-[#FFD21F]" />
                 <span>{item.label}</span>
               </button>
             ))}
           </div>
         </div>
-      </div>
-      
+      </nav>
+
       {/* 2. Featured Match center */}
       {homeSettings?.showMatchCenter !== false && (
         <motion.div
