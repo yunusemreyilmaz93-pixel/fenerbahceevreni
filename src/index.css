@@ -185,3 +185,45 @@ body {
   font-size: 0.875rem !important;
   line-height: 1.25rem !important;
 }
+
+/* Shared component language. */
+.ui-card {
+  background: var(--color-fb-card);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 1rem;
+  box-shadow: 0 18px 45px rgb(0 0 0 / 0.22);
+}
+
+.ui-card-interactive {
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.ui-card-interactive:hover {
+  border-color: rgb(255 210 31 / 0.3);
+  background-color: color-mix(in srgb, var(--color-fb-card) 94%, white);
+}
+
+.ui-button {
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.ui-button-primary {
+  background: var(--color-fb-yellow);
+  color: var(--color-fb-dark);
+}
+
+.ui-button-secondary {
+  background: rgb(255 255 255 / 0.04);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  color: var(--color-fb-text);
+}
+
+.ui-section-heading {
+  text-wrap: balance;
+  letter-spacing: -0.02em;
+}
