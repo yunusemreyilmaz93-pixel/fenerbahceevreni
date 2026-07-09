@@ -1078,7 +1078,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                           >
                             {hasPlayer ? (
                               <div className="w-full h-full rounded-full overflow-hidden relative">
-                                <img 
+                                <img loading="lazy"
                                   src={avatarUrl} 
                                   alt={currentPlayer}
                                   className="w-full h-full object-cover bg-slate-900"
@@ -1241,7 +1241,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                     </p>
                   </div>
                 )}
-                <div className="space-y-4">
+                <div className="content-auto space-y-4">
                   {rumors.map((rum) => {
                     const myVote = votedRumors[rum.id];
                     const totalVec = rum.hotVotes + rum.coldVotes;
@@ -1322,7 +1322,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                   SKOR TAHMİN AKLI
                 </div>
 
-                <div className="space-y-4">
+                <div className="content-auto space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-[10px] uppercase font-black tracking-widest text-[#FFD21F]">
@@ -1542,7 +1542,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                   })()
                 ) : (
                   /* TOPIC TILES LIST */
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="content-auto grid grid-cols-1 md:grid-cols-2 gap-4">
                     {topics.map((top) => (
                       <motion.div
                         key={top.id}

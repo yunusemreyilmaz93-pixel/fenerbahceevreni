@@ -275,7 +275,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                     {/* Home Team */}
                     <div className="flex flex-col items-center flex-1">
                       <div className="w-16 h-16 rounded-2xl bg-[#0B0F19] border border-white/[0.06] flex items-center justify-center p-2 mb-2 shadow-inner">
-                        <img 
+                        <img loading="lazy"
                           src="/logos/fenerbahce.png" 
                           alt="Fenerbahçe" 
                           className="w-12 h-12 object-contain"
@@ -313,7 +313,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                     <div className="flex flex-col items-center flex-1">
                       <div className="w-16 h-16 rounded-2xl bg-[#0B0F19] border border-white/[0.06] flex items-center justify-center p-2 mb-2 shadow-inner">
                         {opponentLogo ? (
-                          <img 
+                          <img loading="lazy"
                             src={opponentLogo} 
                             alt={match.awayTeam === 'Fenerbahçe' ? match.homeTeam : match.awayTeam} 
                             className="w-12 h-12 object-contain" 

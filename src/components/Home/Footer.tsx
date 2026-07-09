@@ -18,7 +18,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div className="lg:col-span-2 space-y-6 text-left">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,210,31,0.25)] overflow-hidden p-0.5">
-                <img 
+                <img loading="lazy"
                   src="/fb-evreni-logo.png" 
                   alt="FE Logo" 
                   className="w-full h-full object-contain"
@@ -154,7 +154,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
             <div className="flex items-center gap-2.5 shrink-0 justify-center md:justify-start">
               <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-0.5 shadow-[0_0_15px_rgba(255,210,31,0.2)] overflow-hidden">
-                <img 
+                <img loading="lazy"
                   src="/fb-evreni-logo.png" 
                   alt="FE Logo" 
                   className="w-full h-full object-contain"

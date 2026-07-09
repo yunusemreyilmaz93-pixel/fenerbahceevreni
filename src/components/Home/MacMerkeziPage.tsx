@@ -713,7 +713,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
               <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FFD21F]/10 border border-[#FFD21F]/20 flex items-center justify-center">
                 <Calendar className="w-8 h-8 text-[#FFD21F]" />
               </div>
-              <div className="space-y-3">
+              <div className="content-auto space-y-3">
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FFD21F] font-mono block">Maç Merkezi</span>
                 <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tight">Henüz maç verisi yüklenmedi</h2>
                 <p className="text-sm text-slate-400 leading-relaxed font-medium">
@@ -939,7 +939,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                                   <span className={`relative block transition-transform duration-300 ${sel ? 'scale-110' : 'group-hover:scale-105'}`}>
                                     <span className={`block w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border-2 transition-all duration-300 ${sel ? 'border-[#FFD21F] shadow-[0_0_30px_rgba(255,210,31,0.55)]' : 'border-white/30 shadow-[0_10px_24px_rgba(0,0,0,0.55)] group-hover:border-[#FFD21F]/70'}`}>
                                       {db?.photo ? (
-                                        <img src={db.photo} alt={p.name} className="w-full h-full object-cover object-top bg-[#0a1322]" loading="lazy" />
+                                        <img src={db.photo} alt={p.name} className="w-full h-full object-cover object-top bg-[#0a1322]" loading="lazy"/>
                                       ) : (
                                         <span className="w-full h-full flex items-center justify-center bg-gradient-to-b from-[#132340] to-[#0a1322] text-[10px] font-black font-mono text-slate-300">{getInitials(p.name)}</span>
                                       )}
@@ -1507,7 +1507,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                           <div className="text-xxs text-emerald-400 font-bold flex items-center gap-2 uppercase font-mono">
                             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Kayıt Edildi: <span className="text-white font-black">"{pollVotes.selectedOption}"</span>
                           </div>
-                          <div className="space-y-3">
+                          <div className="content-auto space-y-3">
                             {[
                               { label: `${resolvedActiveMatch.homeTeam} Galibiyeti`, pct: homePct, color: 'bg-fb-yellow' },
                               { label: 'Beraberlik', pct: drawPct, color: 'bg-slate-400' },
@@ -1603,7 +1603,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
           </div>
 
           {visibleFixtures.length > 0 ? (
-            <div className="space-y-3">
+            <div className="content-auto space-y-3">
               {visibleFixtures.map((entry, idx) => {
                 if (entry.kind === 'league') {
                   const w = entry.week;
@@ -1732,7 +1732,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                 {standingsMeta?.source && <span className="text-[8px] text-slate-500 font-mono uppercase">Kaynak: {standingsMeta.source}</span>}
               </div>
               <div className="px-2 pb-3">
-                <div className="grid grid-cols-12 text-[9px] font-extrabold uppercase text-slate-500 font-mono tracking-wider border-b border-white/5 pb-1.5 px-2 text-center">
+                <div className="content-auto grid grid-cols-12 text-[9px] font-extrabold uppercase text-slate-500 font-mono tracking-wider border-b border-white/5 pb-1.5 px-2 text-center">
                   <div className="col-span-1">#</div>
                   <div className="col-span-5 text-left pl-1">Takım</div>
                   <div className="col-span-1">O</div>

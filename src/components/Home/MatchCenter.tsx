@@ -174,7 +174,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 text-left">
                       <div className="w-12 h-12 rounded-xl bg-[#0B0F19] flex items-center justify-center border border-white/[0.06] p-1.5">
-                        <img 
+                        <img loading="lazy"
                           src="/logos/fenerbahce.png" 
                           alt="Fenerbahçe" 
                           className="w-9 h-9 object-contain"
@@ -199,7 +199,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                     <div className="flex items-center gap-4 text-left">
                       <div className="w-12 h-12 rounded-xl bg-[#0B0F19] flex items-center justify-center border border-white/[0.06] p-1.5">
                         {opponentLogo ? (
-                          <img 
+                          <img loading="lazy"
                             src={opponentLogo} 
                             alt={matchData.awayTeam === 'Fenerbahçe' ? matchData.homeTeam : matchData.awayTeam} 
                             className="w-9 h-9 object-contain" 

@@ -27,7 +27,7 @@ const NewsFeed: React.FC = () => {
             whileHover={{ y: -5 }}
             className="lg:col-span-7 group relative rounded-[32px] overflow-hidden aspect-[16/9] cursor-pointer"
           >
-            <img src={featured.image} alt={featured.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <img loading="lazy"src={featured.image} alt={featured.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
             <div className="absolute inset-0 bg-gradient-to-t from-fb-dark via-fb-dark/40 to-transparent" />
             
             <div className="absolute bottom-0 left-0 p-8 md:p-12 w-full">
@@ -57,7 +57,7 @@ const NewsFeed: React.FC = () => {
                 className="group flex gap-6 items-center cursor-pointer"
               >
                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden flex-shrink-0 border border-white/5">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <img loading="lazy"src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">

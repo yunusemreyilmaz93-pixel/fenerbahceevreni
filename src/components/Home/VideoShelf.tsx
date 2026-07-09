@@ -32,7 +32,7 @@ const VideoShelf: React.FC = () => {
               className="group cursor-pointer"
             >
               <div className="relative aspect-video rounded-3xl overflow-hidden mb-4 border border-white/5">
-                <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <img loading="lazy"src={video.thumbnail} alt={video.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 <div className="absolute inset-0 bg-fb-dark/20 group-hover:bg-fb-dark/40 transition-colors" />
                 
                 {/* Play Button Overlay */}
