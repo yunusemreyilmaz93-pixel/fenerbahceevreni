@@ -66,6 +66,9 @@ const TransferRadar: React.FC<TransferRadarProps> = ({ onNavigate }) => {
     load();
   }, []);
 
+  // Ana sayfada içeriksiz bölüm gösterme: boş durumlar kendi sayfasında (Transfer Radar) yaşar.
+  if (!loading && targets.length === 0) return null;
+
   return (
     <section
       id="transfer-radar"

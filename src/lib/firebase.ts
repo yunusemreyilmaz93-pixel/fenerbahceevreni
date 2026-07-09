@@ -1,5 +1,5 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+﻿import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, signInAnonymously, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseInjectedConfig from '../../firebase-applet-config.json';
@@ -41,6 +41,13 @@ if (isFirebaseConfigured) {
 export { app, db, auth, storage, isFirebaseConfigured };
 export const googleProvider = auth ? new GoogleAuthProvider() : null;
 
+export const ensureAnonymousUser = async () => {
+  if (!auth) throw new Error('Firebase Auth yapılandırılmadı.');
+  if (auth.currentUser) return auth.currentUser;
+  const credential = await signInAnonymously(auth);
+  return credential.user;
+};
+
 // Graceful Auth Helper wrapping signInWithPopup
 export const loginWithGoogleAdmin = async () => {
   if (auth && googleProvider) {
@@ -56,8 +63,8 @@ export const loginWithGoogleAdmin = async () => {
     const mockUser = {
       uid: "mock-admin-uid-123",
       email: "yunusemreyilmaz93@gmail.com",
-      displayName: "Yunus Emre Yılmaz (Yönetici)",
-      photoURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
+      displayName: "Yunus Emre YÄ±lmaz (YÃ¶netici)",
+      photoURL: ""
     };
     localStorage.setItem("mock_admin_user", JSON.stringify(mockUser));
     return mockUser;
@@ -107,4 +114,5 @@ export const onAuthStateChangedAdmin = (callback: (user: any) => void) => {
     return () => clearInterval(interval);
   }
 };
+
 

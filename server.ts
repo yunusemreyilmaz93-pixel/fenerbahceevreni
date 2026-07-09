@@ -20,62 +20,99 @@ try {
   console.warn("Firebase Admin standard initialization failed (safe mode active):", error.message);
 }
 
+const getAdminEmailAllowlist = (): string[] => {
+  const fromEnv = (process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  // Bilinen operatör (rules ile uyumlu); env boşsa en az bu
+  if (!fromEnv.includes("yunusemreyilmaz93@gmail.com")) {
+    fromEnv.push("yunusemreyilmaz93@gmail.com");
+  }
+  return fromEnv;
+};
+
+/**
+ * Admin middleware:
+ * 1) Gerçek Firebase ID token (Admin SDK hazırsa)
+ * 2) Dev/mock: Bearer mock-admin-token-for-{email} — sadece allowlist + (dev veya ALLOW_MOCK_ADMIN=1)
+ */
 const checkAdmin = async (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
 ) => {
-  if (adminInitError || !adminApp) {
-    console.error("Firebase Admin initialization state error:", adminInitError);
-    return res.status(500).json({
-      success: false,
-      message: "Sunucu taraflı yetkilendirme sistemi (Firebase Admin) yapılandırılamadı."
-    });
-  }
-
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
       success: false,
-      message: "Yetkisiz erişim. Kimlik doğrulama token'ı sağlanmadı."
+      message: "Yetkisiz erişim. Kimlik doğrulama token'ı sağlanmadı.",
     });
   }
 
-  const token = authHeader.split("Bearer ")[1];
+  const token = authHeader.slice("Bearer ".length).trim();
+  const allowlist = getAdminEmailAllowlist();
+  const allowMock =
+    process.env.ALLOW_MOCK_ADMIN === "1" ||
+    process.env.NODE_ENV !== "production";
+
+  // Mock admin token (local / AI Studio)
+  if (token.startsWith("mock-admin-token-for-")) {
+    if (!allowMock) {
+      return res.status(401).json({
+        success: false,
+        message: "Mock admin token production'da kapalı. ALLOW_MOCK_ADMIN veya gerçek Firebase token kullanın.",
+      });
+    }
+    const email = token.replace("mock-admin-token-for-", "").trim().toLowerCase();
+    if (!email || !allowlist.includes(email)) {
+      return res.status(403).json({
+        success: false,
+        message: "Mock token e-postası admin listesinde değil.",
+      });
+    }
+    (req as any).user = { email, uid: "mock-admin", mock: true };
+    return next();
+  }
+
+  // Firebase Admin SDK
+  if (adminInitError || !adminApp) {
+    if (allowMock) {
+      return res.status(503).json({
+        success: false,
+        message:
+          "Firebase Admin yapılandırılmadı. Local mock için Authorization: Bearer mock-admin-token-for-{adminEmail}",
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      message: "Sunucu taraflı yetkilendirme sistemi (Firebase Admin) yapılandırılamadı.",
+    });
+  }
+
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    const email = decodedToken.email;
-
+    const email = (decodedToken.email || "").trim().toLowerCase();
     if (!email) {
       return res.status(403).json({
         success: false,
-        message: "Erişim engellendi. Geçerli bir e-posta adresi bulunamadı."
+        message: "Erişim engellendi. Geçerli bir e-posta adresi bulunamadı.",
       });
     }
-
-    const adminEmailsEnv = process.env.ADMIN_EMAILS || "";
-    const adminEmails = adminEmailsEnv
-      .split(",")
-      .map((e) => e.trim().toLowerCase())
-      .filter(Boolean);
-
-    const userEmailNormalized = email.trim().toLowerCase();
-
-    if (!adminEmails.includes(userEmailNormalized)) {
-      console.warn(`Admin yetkisi reddedildi: ${userEmailNormalized}`);
+    if (!allowlist.includes(email)) {
+      console.warn(`Admin yetkisi reddedildi: ${email}`);
       return res.status(403).json({
         success: false,
-        message: "Erişim reddedildi. Bu işlemi yapmaya yetkiniz yok."
+        message: "Erişim reddedildi. Bu işlemi yapmaya yetkiniz yok.",
       });
     }
-
     (req as any).user = decodedToken;
     next();
   } catch (error: any) {
     console.error("Firebase ID Token doğrulama hatası:", error.message);
     return res.status(401).json({
       success: false,
-      message: "Oturum geçersiz veya süresi dolmuş."
+      message: "Oturum geçersiz veya süresi dolmuş.",
     });
   }
 };
@@ -230,6 +267,126 @@ async function startServer() {
       success: true,
       message: "Backend çalışıyor."
     });
+  });
+
+  // ── Public API v1 (Faz A2) — local JSON fallback + Firestore Admin ──
+  const { createPublicV1Router } = await import("./server/v1/publicApi");
+  const getAdminDb = () => {
+    try {
+      if (!adminApp) return null;
+      return admin.firestore();
+    } catch {
+      return null;
+    }
+  };
+  const v1 = createPublicV1Router(getAdminDb);
+  app.get("/api/v1/health", (req, res) => v1.health(req, res));
+  app.get("/api/v1/standings", (req, res) => v1.standings(req, res));
+  app.get("/api/v1/players", (req, res) => v1.players(req, res));
+  app.get("/api/v1/players/:slug", (req, res) => v1.playerBySlug(req, res));
+  app.get("/api/v1/matches", (req, res) => v1.matches(req, res));
+  app.get("/api/v1/matches/:id/advanced", (req, res) => v1.matchAdvanced(req, res));
+  app.get("/api/v1/articles", (req, res) => v1.articles(req, res));
+
+  // ── Admin Jobs — checkAdmin zorunlu ──
+  const jobsDir = path.join(process.cwd(), "data-worker", "output", "scrapeJobs");
+  app.get("/api/admin/jobs", checkAdmin, async (req, res) => {
+    try {
+      const fs = await import("fs");
+      if (!fs.existsSync(jobsDir)) {
+        return res.json({ success: true, data: [] });
+      }
+      const files = fs
+        .readdirSync(jobsDir)
+        .filter((f) => f.endsWith(".json"))
+        .sort()
+        .reverse();
+      const data = files.slice(0, 40).map((f) => {
+        try {
+          const raw = JSON.parse(fs.readFileSync(path.join(jobsDir, f), "utf-8"));
+          return { id: f.replace(/\.json$/, ""), ...raw };
+        } catch {
+          return { id: f, status: "unknown" };
+        }
+      });
+      res.json({ success: true, data });
+    } catch (e: any) {
+      res.status(500).json({ success: false, message: e?.message || "Job listesi okunamadı" });
+    }
+  });
+
+  app.post("/api/admin/jobs/run", checkAdmin, async (req, res) => {
+    const type = req.body?.type as string;
+    const season = (req.body?.season as string) || "2025-26";
+    const allowed = [
+      "health_probe",
+      "sync_standings",
+      "sync_squad",
+      "sync_match_advanced",
+      "sync_player_season_stats",
+      "sync_entity_ids",
+      "sync_fixtures",
+    ];
+    if (!type || !allowed.includes(type)) {
+      return res.status(400).json({ success: false, message: "Geçersiz job type" });
+    }
+    try {
+      const { spawn } = await import("child_process");
+      const script = path.join(process.cwd(), "data-worker", "run_job.py");
+      const args = [script, "--type", type, "--season", String(season), "--trigger", "admin"];
+      const child = spawn("python", args, {
+        cwd: process.cwd(),
+        env: process.env,
+        windowsHide: true,
+      });
+      let stdout = "";
+      let stderr = "";
+      child.stdout?.on("data", (d) => {
+        stdout += d.toString();
+      });
+      child.stderr?.on("data", (d) => {
+        stderr += d.toString();
+      });
+      const exitCode: number = await new Promise((resolve) => {
+        child.on("close", (code) => resolve(code ?? 1));
+        setTimeout(() => {
+          try {
+            child.kill();
+          } catch {
+            /* ignore */
+          }
+          resolve(124);
+        }, 560000);
+      });
+      res.json({
+        success: exitCode === 0,
+        data: {
+          type,
+          season,
+          status: exitCode === 0 ? "success" : "failed",
+          exitCode,
+          stdout: stdout.slice(-4000),
+          stderr: stderr.slice(-2000),
+        },
+        message: exitCode === 0 ? "Job tamamlandı" : "Job hata ile bitti",
+      });
+    } catch (e: any) {
+      res.status(500).json({ success: false, message: e?.message || "Job spawn failed" });
+    }
+  });
+
+  app.get("/api/v1/entity-map", async (req, res) => {
+    try {
+      const fs = await import("fs");
+      const p = path.join(process.cwd(), "public", "data", "entity-map.json");
+      if (!fs.existsSync(p)) {
+        return res.status(404).json({ success: false, message: "entity-map yok; sync_entity_ids çalıştır" });
+      }
+      const data = JSON.parse(fs.readFileSync(p, "utf-8"));
+      res.json({ success: true, data });
+    } catch (e: any) {
+      res.status(500).json({ success: false, message: e?.message });
+    }
   });
 
   // API Proxy - Test Connection

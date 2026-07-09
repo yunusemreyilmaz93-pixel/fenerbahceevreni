@@ -6,7 +6,7 @@ import {
   Lock, 
   ArrowRight, 
   ChevronLeft, 
-  Sparkles, 
+ 
   CheckCircle, 
   User, 
   TrendingUp, 
@@ -24,6 +24,7 @@ import {
   Activity,
   Award as RibbonIcon,
   ShieldAlert,
+  ShieldCheck,
   Target
 } from 'lucide-react';
 import { dbGetCollection, dbAddDocument } from '../../lib/dbService';
@@ -45,7 +46,7 @@ interface Player {
   status: 'active' | 'loan' | 'target';
   shirtNumber?: number;
   secondaryPosition?: string;
-  height?: number;
+  height?: string;
   preferredFoot?: string;
   contractEndDate?: string;
   marketValue?: string;
@@ -53,14 +54,33 @@ interface Player {
   firstXI?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  // Gerçek profil + scout verisi (Transfermarkt + oyuncu profili analizi)
+  fullName?: string;
+  mainPosition?: string;
+  subPositions?: string[];
+  birthPlace?: string;
+  scout?: {
+    overview: string;
+    strengths: string[];
+    development: string[];
+    dataSource?: string;
+  } | null;
+  recentMatches?: { opponent: string; score: string; result: string; competition: string; date?: string; note?: string }[];
+  seasonStats?: {
+    season: string; scope: string; appearances: number; goals: number; assists: number;
+    yellowCards: number; secondYellows: number; redCards: number; subOn: number; subOff: number; minutes: number; source?: string;
+  } | null;
 }
 
 interface PlayersPageProps {
   onNavigate: (view: string) => void;
+  initialPlayerSlug?: string | null;
+  onPlayerRoute?: (slug: string | null) => void;
 }
 
-export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
+export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPlayerSlug = null, onPlayerRoute }) => {
   const [players, setPlayers] = useState<Player[]>([]);
+  const [playerArticles, setPlayerArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Search and filter state
@@ -85,158 +105,8 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
   };
 
   // High-fidelity fallback mock dataset matching requested descriptions
-  const fallbackPlayers: Player[] = [
-    {
-      id: "plyr-mock-1",
-      name: "Kaleci Profili(L. Dominik)",
-      slug: "kaleci-profili-dominik",
-      position: "Kaleci",
-      age: 28,
-      nationality: "Hırvatistan",
-      formRating: 7.8,
-      lastMatchRating: 8.1,
-      trend: "yükselişte",
-      strengths: ["Refleks", "Ayak kullanımı", "Pozisyon alma"],
-      weaknesses: ["Yan toplar", "Oyun sıkışınca uzun pas isabeti"],
-      analysis: "Son maçlarda özellikle çizgi refleksleri ve oyun kurulurken baskı altında ayak şut ve pas sakinliğiyle öne çıkıyor. Savunma arkası sarkan toplarda uyanık duruş sergiliyor.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-2",
-      name: "Lider Stoper (A. Djiku)",
-      slug: "lider-stoper-djiku",
-      position: "Defans",
-      age: 30,
-      nationality: "Gana",
-      formRating: 8.2,
-      lastMatchRating: 8.0,
-      trend: "stabil",
-      strengths: ["Hava topları", "Liderlik", "Pozisyon bilgisi"],
-      weaknesses: ["Açık alan hızı", "Yüksek pres altında dripling çıkışı"],
-      analysis: "Savunma hattının yerleşimini yönlendiren, pas istasyonlarında emniyet supabı olan ve özellikle duran toplarda kafayla tehlikeler eriten kusursuz bir stoper profili.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-3",
-      name: "Sol Bek (Ferdi K.)",
-      slug: "sol-bek-ferdi-kadioglu",
-      position: "Defans",
-      age: 25,
-      nationality: "Türkiye",
-      formRating: 7.1,
-      lastMatchRating: 6.8,
-      trend: "stabil",
-      strengths: ["Bindirme", "Orta", "Sonsuz Enerji"],
-      weaknesses: ["Savunma arkası kademesi", "Fiziksel omuz omuza presi"],
-      analysis: "Hücumda sol iç koridoru üçleyerek takıma muhteşem asimetrik genişlik sağlıyor ancak arkasına atılan ani uzun toplarda zaman zaman kademede açıklar oluşabiliyor.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-4",
-      name: "Merkez 6 (İsmail Y.)",
-      slug: "merkez-6-ismail",
-      position: "Orta Saha",
-      age: 26,
-      nationality: "Türkiye",
-      formRating: 8.4,
-      lastMatchRating: 8.3,
-      trend: "yükselişte",
-      strengths: ["Top kazanma", "İlk pas kalitesi", "Geçiş savunması önleyici"],
-      weaknesses: ["Uzaktan şut isabeti", "Agresyon sarı kart riski"],
-      analysis: "Takımın savunma emniyetini üst derecede sağlayan, rakibin kontra ataklarını ilk saniyede kesen ve ayağına gelen topu en temiz arkadaşına çıkaran ön alan savaşçısı.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-5",
-      name: "Box-to-box (Fred R.)",
-      slug: "box-to-box-fred",
-      position: "Orta Saha",
-      age: 24,
-      nationality: "Brezilya",
-      formRating: 7.6,
-      lastMatchRating: 7.4,
-      trend: "stabil",
-      strengths: ["Oyun içi Enerji", "Ön alan presi", "Top Taşıma hacmi"],
-      weaknesses: ["Son karar kalitesi", "Yay çevresinde gereksiz fauller"],
-      analysis: "Yüksek enerjisiyle merkezde tempo sağlıyor fakat üçüncü bölgeye girerken verdiği son pas kararlarında ve top kayıplarında gelişim alanı bulunmaktadır.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-6",
-      name: "Yaratıcı 10 (Szymański)",
-      slug: "yaratici-10-szymanski",
-      position: "Orta Saha",
-      age: 29,
-      nationality: "Polonya",
-      formRating: 7.9,
-      lastMatchRating: 8.0,
-      trend: "yükselişte",
-      strengths: ["Son bitirici pas", "Duran top üstünlüğü", "Oyun görüşü"],
-      weaknesses: ["Pres direnci zafiyeti", "Geri koşu sprint tekrarları"],
-      analysis: "Kapalı ve derinde bekleyen savunmalara karşı final pası, ince zeka ürünü ara koşular ve mükemmel duran top kalitesiyle fark yaratarak kilidi açabiliyor.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-7",
-      name: "Sağ Kanat (İrfan Can)",
-      slug: "sag-kanat-irfan-can",
-      position: "Kanat",
-      age: 23,
-      nationality: "Türkiye",
-      formRating: 7.5,
-      lastMatchRating: 7.8,
-      trend: "yükselişte",
-      strengths: ["Hız", "Bire bir çalım", "İçe sürpriz kat"],
-      weaknesses: ["Savunma geri dönüş katkısı", "Dar alanda fiziksel temas kaybı"],
-      analysis: "Bire bir izole tehdidiyle rakip sol bekleri sürekli geriye iterek Kadıköy bütününde üstünlük kuruyor ancak topsuz oyundaki savunma koşularında devamlılığı değişmeli.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-8",
-      name: "Sol Kanat (D. Tadić)",
-      slug: "sol-kanat-tadic-analiz",
-      position: "Kanat",
-      age: 27,
-      nationality: "Sırbistan",
-      formRating: 6.9,
-      lastMatchRating: 6.4,
-      trend: "düşüşte",
-      strengths: ["Şut isabeti", "Küratör Teknik", "Ceza sahası koşusu"],
-      weaknesses: ["Atletik hız eksiği", "Dar alan pres yorulması"],
-      analysis: "Teknik kalitesi tartışmasız son derece yüksek fakat yoğun maç trafiğinde son haftalarda fiziksel olarak oyun arası süreklilik ve hücum karar keskinliği düştü.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-9",
-      name: "Bitirici Forvet (E. Džeko)",
-      slug: "bitirici-forvet-edin-dzeko",
-      position: "Forvet",
-      age: 31,
-      nationality: "Bosna Hersek",
-      formRating: 7.7,
-      lastMatchRating: 7.2,
-      trend: "stabil",
-      strengths: ["Klinik Bitiricilik", "Ceza sahası pozisyonu", "Sırtı dönük duvar"],
-      weaknesses: ["Pres yoğunluğu hızı", "Yüksek şiddetli sprint dayanıklılığı"],
-      analysis: "Ceza sahasında topla buluşunca öldürücü bir tehdittir ancak modern oyun planındaki önden başlatılan pres setlerine katkısı zaman zaman aksamaktadır.",
-      status: "active"
-    },
-    {
-      id: "plyr-mock-10",
-      name: "Genç Yetenek (Yunus Emre)",
-      slug: "genc-yetenek-yunus-emre",
-      position: "Orta Saha",
-      age: 19,
-      nationality: "Türkiye",
-      formRating: 7.2,
-      lastMatchRating: 7.0,
-      trend: "yükselişte",
-      strengths: ["Gelecek Potansiyeli", "Sert top tekniği", "Cesur top taşıma"],
-      weaknesses: ["Fiziksel gövde kuvveti", "Süper lig maç tecrübesi"],
-      analysis: "Son dakikalarda oyuna girip cesur oyunu, derin pas denemeleriyle dikkat çekiyor. Doğru fiziksel gelişim planıyla çok yakın zamanda adından söz ettirecektir.",
-      status: "active"
-    }
-  ];
+  // Product rule: no fabricated squad data. Empty DB -> premium empty state.
+  const fallbackPlayers: Player[] = [];
 
   // Fetch players from Firebase with Fallback
   useEffect(() => {
@@ -244,6 +114,15 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
       setLoading(true);
       try {
         const list = await dbGetCollection('players');
+        try {
+          const arts = await dbGetCollection('articles');
+          setPlayerArticles(
+            (arts || [])
+              .filter((a: any) => a.status === 'published')
+              .sort((a: any, b: any) => new Date(b.publishedAt || b.createdAt || 0).getTime() - new Date(a.publishedAt || a.createdAt || 0).getTime())
+              .slice(0, 3)
+          );
+        } catch { setPlayerArticles([]); }
         // Filter by active, loan, target status
         const validStatuses = ['active', 'loan', 'target'];
         const filtered = list.filter((p: any) => validStatuses.includes(p.status));
@@ -255,25 +134,36 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
             id: p.id,
             name: p.name,
             slug: p.slug || p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            position: p.position || 'Orta Saha',
-            age: parseInt(p.age) || 25,
-            nationality: p.nationality || 'Türkiye',
+            position: p.position || '',
+            age: parseInt(p.age) || 0,
+            nationality: p.nationality || '',
             photo: p.photoUrl || p.photo || '',
-            formRating: parseFloat(p.formRating) || 7.0,
-            lastMatchRating: parseFloat(p.lastMatchRating) || 7.0,
+            // 0 = "veri yok" — asla uydurma puan basılmaz, UI '—' gösterir.
+            formRating: parseFloat(p.formRating) || 0,
+            lastMatchRating: parseFloat(p.lastMatchRating) || 0,
             trend: (p.trend === 'yükselişte' || p.trend === 'düşüşte' || p.trend === 'stabil') ? p.trend : 'stabil',
-            strengths: Array.isArray(p.strengths) ? p.strengths : (typeof p.strengths === 'string' ? p.strengths.split(',').map((s: string) => s.trim()) : ["Kazanma Hırsı"]),
-            weaknesses: Array.isArray(p.weaknesses) ? p.weaknesses : (typeof p.weaknesses === 'string' ? p.weaknesses.split(',').map((w: string) => w.trim()) : ["Kondisyon"]),
-            analysis: p.analysis || p.shortAnalysis || 'Detaylı scout raporu yakında eklenecek.',
+            // Scout raporu varsa onu kullan (gerçek profil analizi); yoksa eski alanlara düş.
+            strengths: (p.scout?.strengths && p.scout.strengths.length) ? p.scout.strengths
+              : (Array.isArray(p.strengths) ? p.strengths : (typeof p.strengths === 'string' && p.strengths ? p.strengths.split(',').map((s: string) => s.trim()) : [])),
+            weaknesses: (p.scout?.development && p.scout.development.length) ? p.scout.development
+              : (Array.isArray(p.weaknesses) ? p.weaknesses : (typeof p.weaknesses === 'string' && p.weaknesses ? p.weaknesses.split(',').map((w: string) => w.trim()) : [])),
+            analysis: p.scout?.overview || p.analysis || p.shortAnalysis || '',
             status: p.status,
             shirtNumber: p.shirtNumber ? parseInt(p.shirtNumber) : undefined,
             secondaryPosition: p.secondaryPosition || '',
-            height: p.height ? parseInt(p.height) : undefined,
-            preferredFoot: p.preferredFoot || '',
+            height: p.height || '',
+            preferredFoot: p.foot || p.preferredFoot || '',
             contractEndDate: p.contractEndDate || '',
             marketValue: p.marketValue || '',
             season: p.season || '',
-            firstXI: !!p.firstXI
+            firstXI: !!p.firstXI,
+            fullName: p.fullName || p.name,
+            mainPosition: p.mainPosition || p.position || '',
+            subPositions: Array.isArray(p.subPositions) ? p.subPositions : [],
+            birthPlace: p.birthPlace || '',
+            scout: p.scout || null,
+            recentMatches: Array.isArray(p.recentMatches) ? p.recentMatches : [],
+            seasonStats: p.seasonStats || null,
           }));
           setPlayers(mapped);
         } else {
@@ -289,35 +179,31 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
     fetchPlayers();
   }, []);
 
-  // Sync hash routing for shareable URL
+  // Faz 3 routing: App'ten gelen URL slug'ını (derin link / geri-ileri) senkronla
   useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash;
-      if (hash.startsWith('#/oyuncular/')) {
-        const slug = hash.replace('#/oyuncular/', '');
-        if (slug) {
-          setSelectedPlayerSlug(slug);
-        } else {
-          setSelectedPlayerSlug(null);
-        }
-      } else {
-        setSelectedPlayerSlug(null);
-      }
-    };
-    window.addEventListener('hashchange', handleHash);
-    handleHash();
-    return () => window.removeEventListener('hashchange', handleHash);
+    setSelectedPlayerSlug(initialPlayerSlug);
+  }, [initialPlayerSlug]);
+
+  // Hard-reload fallback: prop henüz gelmediyse URL'den slug'ı doğrudan oku
+  useEffect(() => {
+    if (initialPlayerSlug) return;
+    const parts = window.location.pathname.replace(/^\/+/, '').split('/');
+    if (parts[0] === 'oyuncular' && parts[1]) {
+      setSelectedPlayerSlug(decodeURIComponent(parts[1]));
+    }
+    // yalnızca ilk mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelectPlayer = (slug: string) => {
-    window.location.hash = `#/oyuncular/${slug}`;
     setSelectedPlayerSlug(slug);
+    onPlayerRoute?.(slug);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackToList = () => {
-    window.location.hash = '#/oyuncular';
     setSelectedPlayerSlug(null);
+    onPlayerRoute?.(null);
     setComparePlayerSlug(null);
   };
 
@@ -361,57 +247,26 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
   }, [players]);
 
   const bestInLastMatch = useMemo(() => {
-    if (players.length === 0) return 'Yok';
-    // Find player with highest lastMatchRating
-    const sorted = [...players].sort((a, b) => b.lastMatchRating - a.lastMatchRating);
-    return sorted[0]?.name || 'Yok';
+    // Puan verisi yoksa isim uydurma — null döner, UI '—' gösterir.
+    const rated = players.filter(p => p.lastMatchRating > 0);
+    if (rated.length === 0) return null;
+    return [...rated].sort((a, b) => b.lastMatchRating - a.lastMatchRating)[0]?.name || null;
   }, [players]);
 
   const averageFormRating = useMemo(() => {
-    if (players.length === 0) return 0;
-    const total = players.reduce((acc, p) => acc + p.formRating, 0);
-    return parseFloat((total / players.length).toFixed(1));
+    const rated = players.filter(p => p.formRating > 0);
+    if (rated.length === 0) return null;
+    const total = rated.reduce((acc, p) => acc + p.formRating, 0);
+    return parseFloat((total / rated.length).toFixed(1));
   }, [players]);
 
-  // Featured Player calculation (highest form rating player)
+  // Featured Player: yalnızca GERÇEK form verisi varsa seçilir; yoksa modül gizlenir.
   const featuredPlayer = useMemo(() => {
-    if (players.length === 0) return null;
-    return [...players].sort((a, b) => b.formRating - a.formRating)[0];
+    const rated = players.filter(p => p.formRating > 0);
+    if (rated.length === 0) return null;
+    return [...rated].sort((a, b) => b.formRating - a.formRating)[0];
   }, [players]);
 
-  // Helper to get FM-style attributes dynamically
-  const getPlayerAttributes = (plyr: Player) => {
-    const seed = plyr.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const getVal = (base: number, offset: number) => {
-      return Math.min(99, Math.max(45, Math.floor(base + (seed % offset))));
-    };
-
-    const isFwd = plyr.position.toLowerCase().includes('forvet') || plyr.position.toLowerCase().includes('santrfor');
-    const isMid = plyr.position.toLowerCase().includes('orta saha') || plyr.position.toLowerCase().includes('10 numara') || plyr.position.toLowerCase().includes('libero');
-    const isDef = plyr.position.toLowerCase().includes('defans') || plyr.position.toLowerCase().includes('stoper') || plyr.position.toLowerCase().includes('bek');
-    const isGk = plyr.position.toLowerCase().includes('kaleci');
-
-    return {
-      technical: [
-        { name: isGk ? 'Çizgi Refleksleri' : (isFwd ? 'Klinik Bitiricilik' : (isDef ? 'Kayarak Müdahale' : 'Taktik Oyun Görüşü')), val: getVal(78, 12) },
-        { name: isGk ? 'Bire Bir Karşılaşma' : (isFwd ? 'Hava Hakimiyeti' : (isDef ? 'Pozisyon Alımı' : 'Kilit Pas İsabeti')), val: getVal(74, 15) },
-        { name: isGk ? 'Yan Top Kontrolü' : (isFwd ? 'İlk Dokunuş / Kontrol' : (isDef ? 'Güçlü Markaj' : 'Top Sürme / Dripling')), val: getVal(70, 18) },
-        { name: isGk ? 'Ayak Dağıtımı (Kısa)' : (isFwd ? 'Sırtı Dönük İstasyon' : (isDef ? 'Top Çalma Temizliği' : 'Duran Top Kullanımı')), val: getVal(68, 11) },
-      ],
-      mental: [
-        { name: 'Oyun Bilgisi & Karar', val: getVal(76, 14) },
-        { name: 'Pres Yoğunluğu / Kararlılık', val: getVal(80, 10) },
-        { name: 'Soğukkanlılık', val: getVal(72, 13) },
-        { name: 'Liderlik / Pozisyonel Disiplin', val: getVal(74, 16) },
-      ],
-      physical: [
-        { name: 'Sürat / Akselerasyon', val: getVal(70, 16) },
-        { name: 'Kondisyon / Dayanıklılık', val: getVal(82, 8) },
-        { name: 'Fiziksel Güç / Denge', val: getVal(75, 11) },
-        { name: 'Sıçrama / Çeviklik', val: getVal(72, 14) },
-      ]
-    };
-  };
 
   // Frontend filters application
   const filteredPlayers = useMemo(() => {
@@ -557,11 +412,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 
                 {[
-                  { label: "Toplam Kadro", val: `${totalPlayers} Aktif`, note: "Analiz Havuzu" },
-                  { label: "Formda Oyuncular (8.0+)", val: inFormPlayers, note: "Sınıf Üstü Form", highlight: true },
-                  { label: "Düşüş Trendinde", val: decliningPlayers, note: "Alarm Verenler", alert: decliningPlayers > 0 },
-                  { label: "Son Maçın En İyisi", val: bestInLastMatch, note: "Maçın Kahramanı", truncate: true },
-                  { label: "Kanal Ortalama Formu", val: `${averageFormRating} /10`, note: "Aritmetik Ortalama" }
+                  { label: "Toplam Kadro", val: totalPlayers > 0 ? `${totalPlayers} Aktif` : '—', note: "Analiz Havuzu" },
+                  { label: "Formda Oyuncular (8.0+)", val: averageFormRating !== null ? inFormPlayers : '—', note: "Sınıf Üstü Form", highlight: true },
+                  { label: "Düşüş Trendinde", val: averageFormRating !== null ? decliningPlayers : '—', note: "Alarm Verenler", alert: decliningPlayers > 0 },
+                  { label: "Son Maçın En İyisi", val: bestInLastMatch ?? '—', note: "Maçın Kahramanı", truncate: true },
+                  { label: "Kanal Ortalama Formu", val: averageFormRating !== null ? `${averageFormRating} /10` : '—', note: "Aritmetik Ortalama" }
                 ].map((stat, i) => (
                   <div key={i} className="p-4 rounded-xl bg-fb-card border border-white/[0.06] flex flex-col justify-between space-y-2">
                     <span className="text-[9px] font-extrabold uppercase tracking-wider text-fb-muted">{stat.label}</span>
@@ -623,11 +478,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                     <div className="flex gap-2 w-full justify-center">
                       <span className="px-3.5 py-1.5 rounded-xl bg-fb-dark border border-white/5 text-center flex-1">
                         <span className="text-[8px] font-black text-[#5C6F84] uppercase tracking-wider block">FORM FORMÜL</span>
-                        <span className="text-sm font-black text-white">{featuredPlayer.formRating}</span>
+                        <span className="text-sm font-black text-white">{featuredPlayer.formRating > 0 ? featuredPlayer.formRating : '—'}</span>
                       </span>
                       <span className="px-3.5 py-1.5 rounded-xl bg-fb-dark border border-white/5 text-center flex-1">
                         <span className="text-[8px] font-black text-[#5C6F84] uppercase tracking-wider block">SON MAÇ</span>
-                        <span className="text-xs font-black text-[#FFB020]">{featuredPlayer.lastMatchRating}</span>
+                        <span className="text-xs font-black text-[#FFD21F]">{featuredPlayer.lastMatchRating > 0 ? featuredPlayer.lastMatchRating : '—'}</span>
                       </span>
                     </div>
                   </div>
@@ -646,7 +501,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                       </div>
 
                       <div className="space-y-2">
-                        <span className="text-[10px] font-black text-[#FFB020] tracking-widest uppercase flex items-center gap-1.5"><Sparkles size={11} /> TAKTİKSEL MAÇ ANALİZ DOSYASI</span>
+                        <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase flex items-center gap-1.5"> TAKTİKSEL MAÇ ANALİZ DOSYASI</span>
                         <p className="text-sm text-slate-300 leading-relaxed font-semibold">
                           {featuredPlayer.analysis}
                         </p>
@@ -812,18 +667,24 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                         <div className="grid grid-cols-2 gap-2 py-2 border-t border-b border-white/[0.04] text-center bg-fb-dark/25 rounded-lg">
                           <div className="border-r border-white/5 py-1">
                             <span className="text-[8px] text-[#5C6F84] font-extrabold uppercase block mb-0.5">FORM PUANI</span>
-                            <span className="text-sm font-black text-white">{player.formRating} <span className="text-[10px] text-slate-400">/10</span></span>
+                            <span className="text-sm font-black text-white">{player.formRating > 0 ? player.formRating : '—'} <span className="text-[10px] text-slate-400">/10</span></span>
                           </div>
                           <div className="py-1">
                             <span className="text-[8px] text-[#5C6F84] font-extrabold uppercase block mb-0.5">SON MAÇ PUANI</span>
-                            <span className="text-sm font-black text-[#FFB020]">{player.lastMatchRating} <span className="text-[10px] text-[#FFB020]/70">/10</span></span>
+                            <span className="text-sm font-black text-[#FFD21F]">{player.lastMatchRating > 0 ? player.lastMatchRating : '—'} <span className="text-[10px] text-[#FFD21F]/70">/10</span></span>
                           </div>
                         </div>
 
                         {/* Short Analysis */}
-                        <p className="text-xs text-fb-muted leading-relaxed line-clamp-3 italic">
-                          "{player.analysis}"
-                        </p>
+                        {player.analysis ? (
+                          <p className="text-xs text-fb-muted leading-relaxed line-clamp-3 italic">
+                            "{player.analysis}"
+                          </p>
+                        ) : (
+                          <p className="text-[10px] text-slate-500 leading-relaxed italic">
+                            Scout raporu henüz yayınlanmadı.
+                          </p>
+                        )}
 
                         {/* Strengths tags */}
                         {player.strengths && player.strengths.length > 0 && (
@@ -882,8 +743,8 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                           <span className="text-[9px] text-[#A1B0CB] uppercase font-bold block">{p.position}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs font-black text-emerald-400 block">Form: {p.formRating}</span>
-                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating}</span>
+                          <span className="text-xs font-black text-emerald-400 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
+                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
                         </div>
                       </div>
                     ))}
@@ -914,8 +775,8 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                           <span className="text-[9px] text-[#A1B0CB] uppercase font-bold block">{p.position}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs font-black text-slate-300 block">Form: {p.formRating}</span>
-                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating}</span>
+                          <span className="text-xs font-black text-slate-300 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
+                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
                         </div>
                       </div>
                     ))}
@@ -946,8 +807,8 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                           <span className="text-[9px] text-[#A1B0CB] uppercase font-bold block">{p.position}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs font-black text-rose-400 block">Form: {p.formRating}</span>
-                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating}</span>
+                          <span className="text-xs font-black text-rose-400 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
+                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
                         </div>
                       </div>
                     ))}
@@ -994,60 +855,40 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                 <h2 className="text-xl font-display font-black text-white uppercase italic">Son Oyuncu Analizleri</h2>
               </div>
 
+              {playerArticles.length === 0 ? (
+                <div className="p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
+                  <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                    Yayınlanmış oyuncu analizi henüz yok
+                  </p>
+                  <p className="text-[10px] text-slate-500 italic">
+                    Taktik kurul raporları yayınlandıkça en güncel üç analiz burada listelenir.
+                  </p>
+                </div>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-                {[
-                  { title: "Orta Saha Dengesini Kim Sağlıyor?", excerpt: "İsmail Yüksek ile Fred'in yan yana oynadığı maçlardaki ortalama top kazanma bütçesi ve geçiş reaksiyon haritalarının kapsamlı taktiksel masaya yatırılışı.", date: "28 Mayıs 2026" },
-                  { title: "Kanat Rotasyonunda Doğru Tercih Hangisi?", excerpt: "İrfan Can Kahveci'nin sağda yarattığı dar koridor yaratıcılığı ile sol kanattaki Tadic asimetrisinin Kadıköy maçlarındaki kırılma analizi.", date: "25 Mayıs 2026" },
-                  { title: "Savunma Hattında Liderlik Problemi Var mı?", excerpt: "Süper ligin sert fizik savunma şemalarına karşı Djiku'nun önderliğindeki stoper hattının önde baskı yaparken bıraktığı tehlikeli gölgelik alanlar.", date: "22 Mayıs 2026" }
-                ].map((art, i) => (
+                {playerArticles.map((art: any, i: number) => (
                   <div 
-                    key={i} 
+                    key={art.id || i} 
                     onClick={() => onNavigate('analysis')}
                     className="p-6 rounded-2xl bg-[#121724]/90 border border-white/[0.05] hover:border-fb-yellow/20 transition-all cursor-pointer space-y-3 flex flex-col justify-between"
                   >
                     <div className="space-y-2">
-                      <span className="text-[8.5px] font-black text-fb-yellow tracking-widest uppercase block">{art.date} • Oyuncu Analizi</span>
+                      <span className="text-[8.5px] font-black text-fb-yellow tracking-widest uppercase block">{art.category || 'Analiz'}</span>
                       <h4 className="text-sm font-black text-white hover:text-fb-yellow transition-colors">{art.title}</h4>
                       <p className="text-xs text-fb-muted leading-relaxed line-clamp-3">
                         {art.excerpt}
                       </p>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#FFB020] flex items-center gap-1 pt-2 border-t border-white/5 mt-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#FFD21F] flex items-center gap-1 pt-2 border-t border-white/5 mt-3">
                       Detayları Oku <ChevronRight size={11} />
                     </span>
                   </div>
                 ))}
               </div>
+              )}
             </section>
 
-            {/* PREMIUM TEASER */}
-            <section className="container mx-auto px-6 max-w-6xl py-4">
-              <div className="p-8 md:p-12 rounded-3xl bg-fb-card border border-white/[0.06] relative overflow-hidden flex flex-col md:flex-row gap-8 items-center justify-between text-left shadow-xl bg-gradient-to-br from-fb-card to-[#121826]">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-fb-yellow/[0.015] rounded-full blur-[100px] pointer-events-none"></div>
-                
-                <div className="space-y-3 max-w-lg text-left">
-                  <div className="flex items-center gap-1.5 text-fb-yellow font-black text-[10px] tracking-widest uppercase">
-                    <Sparkles size={11} className="animate-pulse" /> Sınıfının En İyisi Analiz İndeksi
-                  </div>
-                  <h3 className="text-2xl md:text-3xl font-display font-black text-white italic uppercase tracking-tight">
-                    Detaylı Oyuncu Performans Raporları Premium'da!
-                  </h3>
-                  <p className="text-xs text-fb-muted leading-relaxed font-semibold">
-                    Maç maç oyuncu puanları, form dalgalanma grafikleri, rakiplere özel taktik rol analizleri ve profesyonel düzeyde hazırlanmış sezon gelişim raporlarına bültenimize katılarak erken erişim kazanın.
-                  </p>
-                </div>
-
-                <div className="w-full md:w-auto shrink-0 min-w-[300px]">
-                  <button 
-                    onClick={() => onNavigate('premium')}
-                    className="w-full py-4 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2"
-                  >
-                    Premium Listesine Katıl
-                  </button>
-                </div>
-
-              </div>
-            </section>
+            {/* Premium teaser kaldırıldı — sadece bülten (NewsletterSection) kaldı. */}
 
           </motion.div>
         ) : (
@@ -1178,7 +1019,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                   <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
                     <span className="text-[9px] font-black text-fb-muted block mb-1">ROLU / SEZON</span>
                     <span className="text-[11px] font-black text-[#5C6F84]">
-                      {currentPlayer.status === 'active' ? (currentPlayer.firstXI ? 'AS (İLK XI)' : 'ROTASYON') : 'KİRALIK'} ({currentPlayer.season || '2025/26'})
+                      {currentPlayer.status === 'active' ? (currentPlayer.firstXI ? 'AS (İLK XI)' : 'A TAKIM') : 'KİRALIK'} ({currentPlayer.season || '2026-27'})
                     </span>
                   </div>
                 </div>
@@ -1198,99 +1039,49 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.04]">
                       <div className="space-y-1">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-[9px] uppercase font-black tracking-wider">
-                          <Sliders size={11} /> ATLETİK & TEKNİK ÖN GÖZLEM MATRİSİ
+                          <Sliders size={11} /> FİZİKSEL & TEKNİK KÜNYE
                         </span>
                         <h3 className="text-lg font-display font-black text-white italic uppercase tracking-tight leading-none">
                           Detaylı Scout Özellikleri (Veri Tabanlı)
                         </h3>
                       </div>
-                      
-                      {/* Overall attribute score display */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black text-fb-muted uppercase tracking-widest">KADRO ENDEKSİ:</span>
-                        <span className="font-mono text-base font-black px-2.5 py-1 rounded bg-[#FFD21F]/10 border border-[#FFD21F]/20 text-[#FFD21F]">
-                          {Math.floor((currentPlayer.formRating * 10) + 12)}
-                        </span>
-                      </div>
+                      {currentPlayer.marketValue && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-fb-muted uppercase tracking-widest">PİYASA DEĞERİ:</span>
+                          <span className="font-mono text-base font-black px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                            {currentPlayer.marketValue}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Attributes 3 Columns layout */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                      {/* Technical Specs */}
-                      <div className="space-y-3.5">
-                        <span className="text-[10px] font-black text-fb-yellow tracking-widest uppercase flex items-center gap-1">
-                          <Zap size={12} /> TEKNİK / TAKTİK
-                        </span>
-                        <div className="space-y-3">
-                          {getPlayerAttributes(currentPlayer).technical.map((attr, i) => (
-                            <div key={i} className="space-y-1">
-                              <div className="flex justify-between text-[11px] font-bold text-slate-300">
-                                <span className="truncate max-w-[150px]">{attr.name}</span>
-                                <span className="font-mono text-fb-yellow font-black">{attr.val}</span>
-                              </div>
-                              <div className="h-1 bg-slate-950 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full rounded-full ${
-                                    attr.val >= 80 ? 'bg-emerald-500' : (attr.val >= 70 ? 'bg-fb-yellow' : 'bg-slate-400')
-                                  }`} 
-                                  style={{ width: `${attr.val}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          ))}
+                    {/* Gerçek fiziksel künye — Transfermarkt profil verisi */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { label: 'Boy', val: currentPlayer.height },
+                        { label: 'Ayak', val: currentPlayer.preferredFoot },
+                        { label: 'Yaş', val: currentPlayer.age > 0 ? `${currentPlayer.age}` : '' },
+                        { label: 'Uyruk', val: currentPlayer.nationality },
+                        { label: 'Ana Mevki', val: currentPlayer.mainPosition },
+                        { label: 'Forma No', val: currentPlayer.shirtNumber ? `#${currentPlayer.shirtNumber}` : '' },
+                        { label: 'Doğum Yeri', val: currentPlayer.birthPlace },
+                        { label: 'Sözleşme', val: currentPlayer.contractEndDate },
+                      ].filter(f => f.val).map((f, i) => (
+                        <div key={i} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                          <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-500 font-mono block mb-1">{f.label}</span>
+                          <span className="text-xs font-black text-white leading-tight block truncate">{f.val}</span>
                         </div>
-                      </div>
-
-                      {/* Mental Specs */}
-                      <div className="space-y-3.5">
-                        <span className="text-[10px] font-black text-fb-yellow tracking-widest uppercase flex items-center gap-1">
-                          <Star size={12} /> MENTAL BÜTÇE
-                        </span>
-                        <div className="space-y-3">
-                          {getPlayerAttributes(currentPlayer).mental.map((attr, i) => (
-                            <div key={i} className="space-y-1">
-                              <div className="flex justify-between text-[11px] font-bold text-slate-300">
-                                <span className="truncate max-w-[150px]">{attr.name}</span>
-                                <span className="font-mono text-fb-yellow font-black">{attr.val}</span>
-                              </div>
-                              <div className="h-1 bg-slate-950 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full rounded-full ${
-                                    attr.val >= 80 ? 'bg-emerald-500' : (attr.val >= 70 ? 'bg-fb-yellow' : 'bg-slate-400')
-                                  }`} 
-                                  style={{ width: `${attr.val}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Physical Specs */}
-                      <div className="space-y-3.5">
-                        <span className="text-[10px] font-black text-fb-yellow tracking-widest uppercase flex items-center gap-1">
-                          <Flame size={12} /> FİZİK / ATLETİZM
-                        </span>
-                        <div className="space-y-3">
-                          {getPlayerAttributes(currentPlayer).physical.map((attr, i) => (
-                            <div key={i} className="space-y-1">
-                              <div className="flex justify-between text-[11px] font-bold text-slate-300">
-                                <span className="truncate max-w-[150px]">{attr.name}</span>
-                                <span className="font-mono text-fb-yellow font-black">{attr.val}</span>
-                              </div>
-                              <div className="h-1 bg-slate-950 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full rounded-full ${
-                                    attr.val >= 80 ? 'bg-emerald-500' : (attr.val >= 70 ? 'bg-fb-yellow' : 'bg-slate-400')
-                                  }`} 
-                                  style={{ width: `${attr.val}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      ))}
                     </div>
+
+                    {currentPlayer.subPositions && currentPlayer.subPositions.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-fb-muted font-mono">Oynayabildiği Mevkiler:</span>
+                        {currentPlayer.subPositions.map((sp, i) => (
+                          <span key={i} className="text-[9px] font-bold px-2 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow">{sp}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* INTERACTIVE COMPARISON WIDGET (SÜPER KADRO KARŞILAŞTIRMA SİSTEMİ) */}
@@ -1408,7 +1199,9 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
 
                             {/* Summary Scouting Conclusion */}
                             <div className="p-4 rounded-xl bg-slate-950/50 border border-white/5 text-[11px] text-fb-muted font-semibold leading-relaxed text-left">
-                              <strong>Taktik Karar:</strong> {currentPlayer.name} form puanı baz alındığında {companion.name} isimli alternatife göre <strong>%{Math.round(Math.abs(currentPlayer.formRating - companion.formRating) * 10)} daha verimli</strong> bir grafik çiziyor. Pres yoğunluğuna paralel asimetrik geçiş şemalarında as kadro seçimi olarak sahaya girmesi tescillenebilir.
+                              <strong>Karşılaştırma:</strong> {currentPlayer.formRating > 0 && companion.formRating > 0
+                                ? `${currentPlayer.name} ile ${companion.name} arasındaki form indeksi farkı ${Math.abs(currentPlayer.formRating - companion.formRating).toFixed(1)} puan.`
+                                : 'Form indeksi verisi yayınlandığında bu iki oyuncunun sayısal karşılaştırması burada görünecek.'}
                             </div>
                           </div>
                         );
@@ -1425,12 +1218,15 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                     <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
                       <FileText size={16} className="text-fb-yellow" /> A. Genel Bakış Raporu
                     </h3>
-                    <p className="text-xs text-slate-300 leading-relaxed font-semibold">
-                      {currentPlayer.analysis}
-                    </p>
-                    <div className="p-4 rounded-xl bg-fb-navy/35 border border-white/5 text-xs text-fb-muted leading-relaxed font-semibold">
-                      <strong>Scout Gözlem Notu:</strong> Oyuncunun taktik disiplinine olan saygısı ve antrenman dayanıklılığı teknik heyetin listesine girmesindeki en büyük tetikleyici olmuştur. Süper ligin sert futbol anatomisinde ayakta kalabilecek sertliğe sahiptir.
-                    </div>
+                    {currentPlayer.analysis ? (
+                      <p className="text-xs text-slate-300 leading-relaxed font-semibold">
+                        {currentPlayer.analysis}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic leading-relaxed">
+                        Bu oyuncu için genel bakış raporu henüz hazırlanmadı.
+                      </p>
+                    )}
                   </div>
 
                   {/* B & C. GÜÇLÜ VE GELİŞİM ALANLARI */}
@@ -1439,7 +1235,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                     {/* B. Güçlü yönler */}
                     <div className="p-6 rounded-2xl bg-emerald-950/10 border border-emerald-500/10 space-y-3">
                       <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
-                        ✓ Güçlü Yönler (Analiz)
+                        ✓ Güçlü Yönler
                       </h4>
                       <ul className="space-y-2">
                         {currentPlayer.strengths.map((str, i) => (
@@ -1468,62 +1264,88 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
 
                   </div>
 
-                  {/* RECENT MATCH FORM HISTORY MATRIX (RECENT 5 MATCH LOG) */}
+                  {/* Maç bazlı performans kaydı: gerçek maç verisi entegre edilene kadar boş durum.
+                      (Önceki sürüm her oyuncuda aynı uydurma 5 maçı gösteriyordu — kaldırıldı.) */}
                   <div className="p-6 rounded-3xl bg-fb-card/50 border border-white/[0.04] space-y-5 shadow-inner">
                     <div className="flex items-center justify-between">
                       <h3 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-fb-yellow" /> Son 5 Resmi Karşılaşma İndeksi
+                        <Activity className="w-4 h-4 text-fb-yellow" /> Son Maçlar
                       </h3>
-                      <span className="text-[10px] text-fb-muted font-bold">Resmi Performans Takibi</span>
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-3.5 text-center">
-                      {[
-                        { op: 'Trabzonspor (D)', sc: '3-2', r: '8.2', st: 'EM', dt: 'As' },
-                        { op: 'Galatasaray (H)', sc: '2-1', r: '7.8', st: 'EM', dt: 'Yek' },
-                        { op: 'Hatayspor (D)', sc: '1-0', r: '7.1', st: 'ROT', dt: 'Yek' },
-                        { op: 'Kayserispor (H)', sc: '4-1', r: '8.4', st: 'EM', dt: 'Gol+As' },
-                        { op: 'Bodrum FK (D)', sc: '2-0', r: '7.5', st: 'EM', dt: 'Yek' }
-                      ].map((mch, i) => (
-                        <div key={i} className="p-3 rounded-2xl bg-slate-950/80 border border-white/5 space-y-1.5 text-left sm:text-center relative">
-                          <span className="absolute top-1 right-2 text-[8px] font-mono text-[#5C6F84]">{mch.st}</span>
-                          <span className="text-[9px] font-black text-fb-muted block uppercase truncate">{mch.op}</span>
-                          <span className="text-[10px] text-slate-300 font-extrabold block">{mch.sc}</span>
-                          <div className="pt-1 flex items-center justify-between sm:justify-center sm:flex-col sm:gap-1">
-                            <span className="font-mono text-xs font-black px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">
-                              {mch.r}
-                            </span>
-                            <span className="text-[9px] text-fb-yellow font-black uppercase tracking-wider block sm:mt-1">
-                              {currentPlayer.position.includes('Kaleci') ? 'Yemedi' : mch.dt}
-                            </span>
+                    {currentPlayer.recentMatches && currentPlayer.recentMatches.length > 0 ? (
+                      <div className="space-y-2.5">
+                        {currentPlayer.recentMatches.map((m, i) => (
+                          <div key={i} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#0b101c] border border-white/[0.04]">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className={`w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-[10px] font-black font-mono ${m.result === 'G' ? 'bg-emerald-500/15 text-emerald-400' : m.result === 'M' ? 'bg-rose-500/15 text-rose-400' : 'bg-white/10 text-slate-300'}`}>{m.result}</span>
+                              <div className="min-w-0">
+                                <div className="text-[11px] font-black text-white truncate">vs {m.opponent} <span className="font-mono text-fb-yellow">{m.score}</span></div>
+                                <div className="text-[9px] text-slate-500 font-mono uppercase truncate">{m.competition}</div>
+                              </div>
+                            </div>
+                            {m.note && (
+                              <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-fb-yellow bg-fb-yellow/10 border border-fb-yellow/20 rounded px-2 py-0.5">{m.note}</span>
+                            )}
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
+                        <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                          Bu oyuncu için maç kaydı henüz yok
+                        </p>
+                        <p className="text-[10px] text-slate-500 italic">
+                          Oyuncu forma giydikçe son karşılaşmaları burada listelenecek.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  {/* D & E. SON MAÇ PERFORMANSI & TAKTİK ROL */}
+                  {/* SEZON İSTATİSTİKLERİ — gerçek Transfermarkt verisi */}
                   <div className="p-6 rounded-2xl bg-fb-card/50 border border-white/[0.04] space-y-4">
-                    <h3 className="text-sm font-black text-white uppercase tracking-widest">
-                      D & E. Son Maç Performansı & Taktik Rolü
-                    </h3>
-                    
-                    <div className="space-y-2 text-xs text-fb-muted leading-relaxed">
-                      <p>
-                        Oyuncu, son resmi lig müsabakasında asimetrik olarak hücum hatlarını ikiye yarmada son derece başarılı oldu. Rakip orta sahanın yaptığı daraltılmış prese karşı teknik bütçesini doğru kullanarak topu oyunda tutmayı hep başardı.
-                      </p>
-                      
-                      <div className="p-3.5 rounded-xl bg-slate-950 border border-white/5 grid grid-cols-2 gap-4">
-                        <div>
-                          <strong className="text-slate-200 block mb-0.5">Taktik Rol Ataması:</strong>
-                          <span>Geçiş asistanı ve prese dönük tampon elemanı.</span>
-                        </div>
-                        <div>
-                          <strong className="text-slate-200 block mb-0.5">Sezon Sonu Değerlendirmesi:</strong>
-                          <span>Yüksek potansiyelli değerini koruyor.</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                        {currentPlayer.seasonStats ? `${currentPlayer.seasonStats.season} Sezon İstatistikleri` : 'Sezon İstatistikleri'}
+                      </h3>
+                      {currentPlayer.seasonStats && (
+                        <span className="text-[9px] text-slate-400 font-mono uppercase tracking-wider">{currentPlayer.seasonStats.scope}</span>
+                      )}
                     </div>
+
+                    {currentPlayer.seasonStats && currentPlayer.seasonStats.appearances > 0 ? (
+                      <>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {[
+                            { label: 'Maç', value: currentPlayer.seasonStats.appearances, accent: 'text-white' },
+                            { label: 'Gol', value: currentPlayer.seasonStats.goals, accent: 'text-fb-yellow' },
+                            { label: 'Asist', value: currentPlayer.seasonStats.assists, accent: 'text-emerald-400' },
+                            { label: 'Dakika', value: currentPlayer.seasonStats.minutes.toLocaleString('tr-TR'), accent: 'text-white' }
+                          ].map(s => (
+                            <div key={s.label} className="p-4 rounded-xl bg-[#0b101c] border border-white/[0.05] text-center">
+                              <div className={`text-2xl font-display font-black italic ${s.accent}`}>{s.value}</div>
+                              <div className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-1 font-mono">{s.label}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-x-6 gap-y-1.5 pt-3 border-t border-white/[0.04] text-[11px] font-bold text-slate-300">
+                          <span>🟨 Sarı Kart: <strong className="text-white">{currentPlayer.seasonStats.yellowCards}</strong></span>
+                          {currentPlayer.seasonStats.secondYellows > 0 && <span>🟨🟥 Çift Sarı: <strong className="text-white">{currentPlayer.seasonStats.secondYellows}</strong></span>}
+                          {currentPlayer.seasonStats.redCards > 0 && <span>🟥 Kırmızı: <strong className="text-white">{currentPlayer.seasonStats.redCards}</strong></span>}
+                          <span>Oyuna Girdi: <strong className="text-white">{currentPlayer.seasonStats.subOn}</strong></span>
+                          <span>Oyundan Çıktı: <strong className="text-white">{currentPlayer.seasonStats.subOff}</strong></span>
+                        </div>
+                        <p className="text-[9px] text-slate-500 font-mono">Kaynak: {currentPlayer.seasonStats.source || 'Transfermarkt'} • {currentPlayer.seasonStats.season} sezonu, tüm resmi maçlar</p>
+                      </>
+                    ) : (
+                      <div className="p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
+                        <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                          Geçmiş sezon istatistiği bulunmuyor
+                        </p>
+                        <p className="text-[10px] text-slate-500 italic">
+                          Oyuncu geçen sezon kulüpte forma giymedi ya da veri kaynağında kaydı yok. Yeni sezon verileri maçlar oynandıkça eklenecek.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                 </div>
@@ -1533,7 +1355,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                   
                   {/* Premium Rapor dosyası list join */}
                   <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.08] text-center space-y-4">
-                    <Sparkles className="w-8 h-8 text-fb-yellow mx-auto animate-bounce" />
+                    
                     <h3 className="text-base font-black text-white uppercase italic">Premium Oyuncu Maç Isı Raporları</h3>
                     <p className="text-xs text-fb-muted leading-relaxed">
                       Oyuncunun detaylı ısı haritaları, pas dağıtım hızı, ikili mücadele başarı yüzdeleri ve sezon içi gelişim şemalarına ulaşın.

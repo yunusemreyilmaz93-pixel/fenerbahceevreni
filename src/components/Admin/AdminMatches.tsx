@@ -14,7 +14,7 @@ import {
   Clock,
   Briefcase,
   Sliders,
-  Sparkles,
+
   Star,
   Tv,
   Users2,
@@ -725,7 +725,7 @@ export const AdminMatches: React.FC<AdminMatchesProps> = ({ showToast, initiateC
                   onChange={(e) => handleFormChange('formation', e.target.value)}
                   className="px-3 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white focus:outline-none"
                 >
-                  <option value="4-2-3-1">4-2-3-1 (Jose Mourinho Klasik)</option>
+                  <option value="4-2-3-1">4-2-3-1 (Klasik)</option>
                   <option value="4-3-3">4-3-3 (Ofansif Pres)</option>
                   <option value="3-5-2">3-5-2 (Çift Forvetli Kanat Baskısı)</option>
                   <option value="4-4-2">4-4-2 (Klasik Dengeli Yapı)</option>

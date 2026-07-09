@@ -5,7 +5,7 @@ import {
   Calendar, 
   BarChart3, 
   Mail, 
-  Sparkles, 
+ 
   Sparkle,
   Image,
   Award,

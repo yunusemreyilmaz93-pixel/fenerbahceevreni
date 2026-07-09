@@ -1,0 +1,95 @@
+{
+  "updatedAt": "2026-07-09T18:22:35.000Z",
+  "source": "Transfermarkt",
+  "sourceUrl": "https://www.transfermarkt.com/fenerbahce-istanbul/geruechte/verein/36",
+  "rumors": [
+    {
+      "id": "rum-alexander-s-rloth",
+      "player": "Alexander Sørloth",
+      "role": "Santrafor • 30 yaş",
+      "source": "Transfermarkt Söylenti Değirmeni",
+      "excerpt": "Alexander Sørloth (Atlético de Madrid) için Fenerbahçe bağlantılı transfer iddiası Transfermarkt söylenti değirmeninde listeleniyor.",
+      "currentClub": "Atlético de Madrid",
+      "marketValue": "",
+      "hotVotes": 0,
+      "coldVotes": 0
+    },
+    {
+      "id": "rum-mason-greenwood",
+      "player": "Mason Greenwood",
+      "role": "Sağ Kanat • 24 yaş",
+      "source": "Transfermarkt Söylenti Değirmeni",
+      "excerpt": "Mason Greenwood (Olympique Marseille) için Fenerbahçe bağlantılı transfer iddiası Transfermarkt söylenti değirmeninde listeleniyor.",
+      "currentClub": "Olympique Marseille",
+      "marketValue": "",
+      "hotVotes": 0,
+      "coldVotes": 0
+    },
+    {
+      "id": "rum-malcom",
+      "player": "Malcom",
+      "role": "Sağ Kanat • 29 yaş",
+      "source": "Transfermarkt Söylenti Değirmeni",
+      "excerpt": "Malcom (Al-Hilal SFC) için Fenerbahçe bağlantılı transfer iddiası Transfermarkt söylenti değirmeninde listeleniyor.",
+      "currentClub": "Al-Hilal SFC",
+      "marketValue": "",
+      "hotVotes": 0,
+      "coldVotes": 0
+    },
+    {
+      "id": "rum-mauro-j-nior",
+      "player": "Mauro Júnior",
+      "role": "Sol Bek • 27 yaş",
+      "source": "Transfermarkt Söylenti Değirmeni",
+      "excerpt": "Mauro Júnior (PSV Eindhoven) için Fenerbahçe bağlantılı transfer iddiası Transfermarkt söylenti değirmeninde listeleniyor.",
+      "currentClub": "PSV Eindhoven",
+      "marketValue": "",
+      "hotVotes": 0,
+      "coldVotes": 0
+    },
+    {
+      "id": "rum-serhou-guirassy",
+      "player": "Serhou Guirassy",
+      "role": "Santrafor • 30 yaş",
+      "source": "Transfermarkt Söylenti Değirmeni",
+      "excerpt": "Serhou Guirassy (Borussia Dortmund) için Fenerbahçe bağlantılı transfer iddiası Transfermarkt söylenti değirmeninde listeleniyor.",
+      "currentClub": "Borussia Dortmund",
+      "marketValue": "",
+      "hotVotes": 0,
+      "coldVotes": 0
+    },
+    {
+      "id": "rum-richarlison",
+      "player": "Richarlison",
+      "role": "Santrafor • 29 yaş",
+      "source": "Transfermarkt Söylenti Değirmeni",
+      "excerpt": "Richarlison (Tottenham Hotspur) için Fenerbahçe bağlantılı transfer iddiası Transfermarkt söylenti değirmeninde listeleniyor.",
+      "currentClub": "Tottenham Hotspur",
+      "marketValue": "",
+      "hotVotes": 0,
+      "coldVotes": 0
+    },
+    {
+      "id": "rum-armand-laurient",
+      "player": "Armand Laurienté",
+      "role": "Sol Kanat • 27 yaş",
+      "source": "Transfermarkt Söylenti Değirmeni",
+      "excerpt": "Armand Laurienté (US Sassuolo) için Fenerbahçe bağlantılı transfer iddiası Transfermarkt söylenti değirmeninde listeleniyor.",
+      "currentClub": "US Sassuolo",
+      "marketValue": "",
+      "hotVotes": 0,
+      "coldVotes": 0
+    },
+    {
+      "id": "rum-bright-osayi-samuel",
+      "player": "Bright Osayi-Samuel",
+      "role": "Sağ Bek • 28 yaş",
+      "source": "Transfermarkt Söylenti Değirmeni",
+      "excerpt": "Bright Osayi-Samuel (Birmingham City) için Fenerbahçe bağlantılı transfer iddiası Transfermarkt söylenti değirmeninde listeleniyor.",
+      "currentClub": "Birmingham City",
+      "marketValue": "",
+      "hotVotes": 0,
+      "coldVotes": 0
+    }
+  ]
+}

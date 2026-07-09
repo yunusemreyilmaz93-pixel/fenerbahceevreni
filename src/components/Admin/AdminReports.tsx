@@ -555,7 +555,7 @@ export const AdminReports: React.FC<AdminReportsProps> = ({ showToast, initiateC
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] text-slate-400 font-bold">Mourinho Kararları</label>
+                  <label className="text-[10px] text-slate-400 font-bold">İsmail Kartal Kararları</label>
                   <textarea
                     value={form.coachDecisions}
                     onChange={(e) => handleFormValueChange('coachDecisions', e.target.value)}

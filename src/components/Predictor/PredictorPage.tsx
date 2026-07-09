@@ -31,12 +31,9 @@ const TEAM_COLORS: Record<TeamName, string> = {
 };
 
 const TEAM_LOGOS: Record<TeamName, string> = {
-  GALATASARAY:
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Galatasaray_SK_football_logo.png/960px-Galatasaray_SK_football_logo.png',
-  'FENERBAHÇE':
-    'https://media.printables.com/media/prints/239640/images/2166922_092646c7-3c55-46a7-a1c1-2434ba8988af/thumbs/inside/1280x960/png/fenerbahce-5-star-yildiz-logo-arma-compartman.webp',
-  TRABZONSPOR:
-    'https://upload.wikimedia.org/wikipedia/tr/a/ab/TrabzonsporAmblemi.png',
+  GALATASARAY: '/logos/galatasaray.svg',
+  'FENERBAHÇE': '/logos/fenerbahce.png',
+  TRABZONSPOR: '/logos/trabzonspor.png',
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -215,6 +212,10 @@ const PredictorPage: React.FC = () => {
               <p className="text-sm mt-3 font-medium" style={{ color: MUTED }}>
                 Kalan maçların sonuçlarını tahmin et, puan durumunu şekillendir.
               </p>
+              <span className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: MUTED }}>
+                ⚗️ Kurgusal senaryo simülasyonu — canlı lig verisi değildir
+              </span>
             </div>
 
             <div className="flex items-center gap-3">

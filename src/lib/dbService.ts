@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   collection, 
   doc, 
   getDoc, 
@@ -9,10 +9,10 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy
+  orderBy,
+  runTransaction
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from './firebase';
-import { latestArticles, transferTargets, playerPerformances } from '../constants/mockData';
 import { DataProvider, AdvancedPlayerStats, AdvancedMatchStats, ExternalPlayerMapping, DataSyncRun } from '../types/soccerdata';
 
 // Firestore Error Handler requested by Section 3 of Firebase-Integration Skill
@@ -52,283 +52,47 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Default Seed Data Generator helper if localStorage/database is blank
+// Local-first bootstrap: legacy key migrations + real configuration defaults only.
+// Content collections (articles, matches, players, transfers, polls, ...) are NEVER
+// seeded with fabricated data â€” they start empty and are filled via the admin panel,
+// JSON import or future API integrations. UI must render premium empty states.
 const seedDatabaseLocal = () => {
-  // Articles seed
-  if (!localStorage.getItem("cms_articles")) {
-    const formattedArticles = latestArticles.map(a => ({
-      id: a.id,
-      title: a.title,
-      slug: a.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-      excerpt: a.excerpt,
-      content: `Fenerbahçe camiasının son dönemde yaşadığı taktiksel değişimler mercek altında. Bu yazıda, özellikle teknik heyetin oyuncu tercihleri ve üçüncü bölgede üretilen hücum varyasyonlarının kalitesi irdelenmektedir.\n\n${a.excerpt}\n\nDetaylı pas bağlantı şemaları, geçiş grafikleri ve her bölgeden kazanılan top yüzdelerini incelediğimizde, Fenerbahçe'nin oyunu özellikle orta sahasının dinamizmine dayanmaktadır. Fred'in sahada olduğu anlardaki hücum verimliliği ile olmadığı anlardaki durağanlık, Mourinho'nun sisteminin en büyük kilit noktalarından biridir.\n\nFenerbahçe taraftarının beklentisi her zaman dominant oynamak olduğundan, bu verimli setleri daha sık tekrarlamak zorundayız.`,
-      category: a.category,
-      tags: ["Mourinho", "Taktik", "Sanal Kurul"],
-      coverImage: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop",
-      author: a.author,
-      status: "published",
-      isPremium: true,
-      featured: true,
-      readingTime: a.readingTime,
-      publishedAt: new Date(2026, 4, 25).toISOString(),
-      createdAt: new Date(2026, 4, 25).toISOString(),
-      updatedAt: new Date(2026, 4, 25).toISOString(),
-      seoTitle: a.title,
-      seoDescription: a.excerpt
-    }));
-    localStorage.setItem("cms_articles", JSON.stringify(formattedArticles));
-  }
-
-  // Matches seed
-  if (!localStorage.getItem("cms_matches")) {
-    const initialMatches = [
-      {
-        id: "match-1",
-        homeTeam: "Fenerbahçe",
-        awayTeam: "Beşiktaş",
-        competition: "Trendyol Süper Lig • 36. Hafta",
-        matchDate: "2026-05-30T20:00:00",
-        venue: "Ülker Stadyumu Şükrü Saracoğlu Spor Kompleksi / Kadıköy",
-        status: "upcoming",
-        scoreHome: 0,
-        scoreAway: 0,
-        matchPreview: "Fenerbahçe bu karşılaşmada yüksek yoğunluklu ön alan baskısı yaparak oyun temposunu erkenden eline almak, merkez orta sahada geçiş savunmasını dengede tutmak ve kanat bindirmeleriyle ceza sahasını beslemek zorundadır.",
-        tacticalNotes: [
-          { title: "Merkezde Denge", text: "Fenerbahçe’nin topa sahip olduğu anlarda iki merkez oyuncusundan birinin mutlaka savunma emniyetini alması gerekiyor." },
-          { title: "Kanat Bağlantıları", text: "Sağ ve sol kanatta bek-kanat uyumu maçın hücum kalitesini belirleyebilir." },
-          { title: "Ön Alan Baskısı", text: "Rakibin geriden oyun kurmasına izin verilirse merkez blok geriye yaslanıp tempo kaybedebilir." }
-        ],
-        probableXI: {
-          formation: "4-2-3-1",
-          GK: "Dominik Livaković",
-          RB: "Bright Osayi-Samuel",
-          CB1: "Alexander Djiku",
-          CB2: "Çağlar Söyüncü",
-          LB: "Ferdi Kadıoğlu",
-          DM1: "İsmail Yüksek",
-          DM2: "Fred",
-          RW: "İrfan Can Kahveci",
-          AM: "Sebastian Szymański",
-          LW: "Dušan Tadić",
-          CF: "Edin Džeko"
-        },
-        keyPlayers: [
-          { name: "Sebastian Szymański", role: "Pres Lideri", score: "9.3", reason: "Hücum hattındaki pres dinamizmini yönetiyor." },
-          { name: "Ferdi Kadıoğlu", role: "Kreatif Sol Bek", score: "9.1", reason: "İçe kat ederek oyunu üçleyen yapısı en büyük kozumuz." }
-        ],
-        featured: true,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: "match-2",
-        homeTeam: "Fenerbahçe",
-        awayTeam: "Kasımpaşa",
-        competition: "Trendyol Süper Lig • 35. Hafta",
-        matchDate: "2026-05-25T19:00:00",
-        venue: "Ülker Stadyumu Kadıköy",
-        status: "finished",
-        scoreHome: 2,
-        scoreAway: 1,
-        matchPreview: "Liderlik mücadelesinde evimizde hata yapmamamız gereken kritik mücadele.",
-        tacticalNotes: [],
-        probableXI: {},
-        keyPlayers: [],
-        featured: false,
-        reportId: "rep-1",
-        createdAt: new Date(2026, 4, 25).toISOString()
-      }
-    ];
-    localStorage.setItem("cms_matches", JSON.stringify(initialMatches));
-  }
-
-  // Match Reports seed / migration
+  // --- Legacy localStorage key migrations (snake_case -> camelCase) ---
   if (localStorage.getItem("cms_match_reports") && !localStorage.getItem("cms_matchReports")) {
     localStorage.setItem("cms_matchReports", localStorage.getItem("cms_match_reports")!);
   }
-  if (!localStorage.getItem("cms_matchReports")) {
-    const initialReports = [
-      {
-        id: "rep-1",
-        matchId: "match-2",
-        title: "Fenerbahçe 2-1 Kasımpaşa | Taktik Maç Raporu",
-        slug: "fenerbahce-2-1-kasimpasa-taktik-mac-raporu",
-        summary: "Fenerbahçe oyunun bazı bölümlerinde kontrolü kaybetse de Fred'in oyuna girişiyle bireysel kalite ve doğru alan organizasyonuyla geriden gelerek kazanmayı bildirdi.",
-        matchStory: "Karşılaşmaya baskılı başlayan sarı-lacivertliler 15. dakikada şok bir kontra golüyle geriye düştü. İkinci yarıda Mourinho'nun çift forvetli baskı sistemine geçmesiyle goller peş peşe geldi.",
-        turningPoint: "Fred'in 60. dakikada orta sahayı toparlamak üzere oyuna girmesi maçın kaderini değiştirdi.",
-        tacticalPositives: "Hücumda kanatların daha etkin kullanılması ve merkez pres başarısı.",
-        tacticalNegatives: "Savunma arkasına atılan ani toplardaki kademe paylaşım sorunları.",
-        coachDecisions: "Mourinho maça Szymanski-Tadic hattıyla yerleşik başladı, son çeyrekte ise çift santrafora dönerek Kasımpaşa stoperlerini hataya zorladı.",
-        playerRatings: [
-          { name: "Dominik Livakovic", position: "GK", rating: 7.5, comment: "Kontra golde çaresizdi ama devrede kritik kurtarışlarla takımı oyunda tuttu." },
-          { name: "Fred", position: "CM", rating: 9.0, comment: "Maçın çehresini değiştirdi, sahada basmadık yer bırakmadı." },
-          { name: "Edin Dzeko", position: "CF", rating: 8.0, comment: "Geri dönüş golünün mimarı ve hava toplarında mutlak hakim." }
-        ],
-        fanMotm: "Fred (#35)",
-        nextMatchNotes: "Derbi öncesi bek kart limitlerine dikkat edilmesi büyük kazanç oldu.",
-        isPremium: true,
-        pdfUrl: "",
-        status: "published",
-        createdAt: new Date(2026, 4, 25).toISOString()
-      }
-    ];
-    localStorage.setItem("cms_matchReports", JSON.stringify(initialReports));
-  }
-
-  // Players seed
-  if (!localStorage.getItem("cms_players")) {
-    const initialPlayers = playerPerformances.map(p => ({
-      id: p.id,
-      name: p.name,
-      position: p.position,
-      age: p.id === 'plyr-1' ? 24 : p.id === 'plyr-2' ? 37 : 31,
-      nationality: p.id === 'plyr-2' ? "Sırbistan" : "Türkiye",
-      photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop",
-      formRating: p.formRating.toString(),
-      lastMatchRating: p.lastMatchRating.toString(),
-      trend: p.trend,
-      strengths: ["Hücum Bindirmeleri", "Kıvrak Top Taşıma", "Sağlam Fizik Kondisyon"],
-      weaknesses: ["Derin Defans Kademesi", "Hava Topları"],
-      analysis: p.shortAnalysis,
-      status: "active",
-      createdAt: new Date().toISOString()
-    }));
-    localStorage.setItem("cms_players", JSON.stringify(initialPlayers));
-  }
-
-  // Transfer Radar seed / migration
   if (localStorage.getItem("cms_transfer_reports") && !localStorage.getItem("cms_transferReports")) {
     localStorage.setItem("cms_transferReports", localStorage.getItem("cms_transfer_reports")!);
   }
-  if (!localStorage.getItem("cms_transferReports")) {
-    const initialTransfers = transferTargets.map(t => ({
-      id: t.id,
-      playerName: t.name,
-      position: t.position,
-      age: t.age,
-      nationality: "Belçika",
-      currentClub: t.currentClub,
-      estimatedCost: "€12M - €15M",
-      fitScore: t.fitScore,
-      strengths: t.strengths,
-      concerns: t.concerns,
-      tacticalFit: t.reportExcerpt + " Bu oyuncunun sistem içerisindeki hareket kabiliyeti özellikle bek rotasyonuna inanılmaz bir seviye atlatacaktır.",
-      summary: t.reportExcerpt,
-      isPremium: true,
-      status: "published",
-      createdAt: new Date().toISOString()
-    }));
-    localStorage.setItem("cms_transferReports", JSON.stringify(initialTransfers));
-  }
-
-  // Polls seed
-  if (!localStorage.getItem("cms_polls")) {
-    const initialPolls = [
-      {
-        id: "poll-1",
-        question: "Beşiktaş derbisinde kim gol atar?",
-        options: ["Edin Džeko", "Sebastian Szymański", "İrfan Can Kahveci", "Kendi kalesine / Diğer"],
-        votes: { "Edin Džeko": 154, "Sebastian Szymański": 82, "İrfan Can Kahveci": 112, "Kendi kalesine / Diğer": 34 },
-        relatedMatchId: "match-1",
-        status: "active",
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: "poll-2",
-        question: "Şampiyonluk Predictor tahminine göre şansımız kaç?",
-        options: ["%90 ve üzeri", "%75 - %89", "%50 - %74", "%50 altı"],
-        votes: { "%90 ve üzeri": 451, "%75 - %89": 312, "%50 - %74": 119, "%50 altı": 25 },
-        status: "active",
-        createdAt: new Date().toISOString()
-      }
-    ];
-    localStorage.setItem("cms_polls", JSON.stringify(initialPolls));
-  }
-
-  // newsletter
-  if (!localStorage.getItem("cms_newsletter")) {
-    const initialSubs = [
-      { id: "sub-1", email: "ahmetyilmaz@gmail.com", source: "homepage", subscribedAt: new Date().toISOString(), status: "active" },
-      { id: "sub-2", email: "fenerli98@mynet.com", source: "match-center", subscribedAt: new Date().toISOString(), status: "active" }
-    ];
-    localStorage.setItem("cms_newsletter", JSON.stringify(initialSubs));
-  }
-
-  // PremiumContent seed
-  if (!localStorage.getItem("cms_premium")) {
-    const initialPrem = [
-      {
-        id: "prem-1",
-        title: "Modern Sol Bek Hücum Isı Haritası & PDF",
-        contentType: "pdf",
-        description: "Ferdi Kadıoğlu'nun 25.04.2026 itibarıyla son 10 iç saha maçında çizdiği içe kat etme koridoru ve gelişmiş analitik verileri.",
-        content: "Bu özel araştırmada sol kanat bekimizin sahadaki tüm aksiyonları ve pas varyasyon kilitleri yer almaktadır.",
-        pdfUrl: "#",
-        accessLevel: "premium_member",
-        status: "published",
-        createdAt: new Date().toISOString()
-      }
-    ];
-    localStorage.setItem("cms_premium", JSON.stringify(initialPrem));
-  }
-
-  // Premium Waitlist seed
-  if (!localStorage.getItem("cms_premiumWaitlist")) {
-    const initialWaitlist = [
-      { id: "wt-1", name: "Alp Gürsoy", email: "alp_gursoy91@hotmail.com", planInterest: "Analiz", interestDetail: "Maç raporları", source: "premium-page", createdAt: new Date(2026, 4, 28, 14, 20).toISOString(), status: "contacted" },
-      { id: "wt-2", name: "Cem Tanrıverdi", email: "cem.tanriverdi@outlook.com", planInterest: "Evren", interestDetail: "Hepsi", source: "premium-page", createdAt: new Date(2026, 4, 29, 10, 15).toISOString(), status: "pending" },
-      { id: "wt-3", name: "Merve Şen", email: "merve_fb_1907@gmail.com", planInterest: "Destekçi", interestDetail: "Oyuncu analizleri", source: "premium-page", createdAt: new Date(2026, 4, 30, 0, 5).toISOString(), status: "pending" }
-    ];
-    localStorage.setItem("cms_premiumWaitlist", JSON.stringify(initialWaitlist));
-  }
-
-  // Sponsors
-  if (!localStorage.getItem("cms_sponsors")) {
-    const initialSponsors = [
-      {
-        id: "spon-1",
-        brandName: "Acıbadem Health Group",
-        logo: "https://upload.wikimedia.org/wikipedia/commons/d/df/Ac%C4%B1badem_Logo.png",
-        websiteUrl: "https://www.acibadem.com.tr",
-        placement: "global",
-        active: true,
-        startDate: "2026-01-01",
-        endDate: "2026-12-31",
-        notes: "Resmi sağlık ve analiz data sponsoru işbirliği vizyonu.",
-        createdAt: new Date().toISOString()
-      }
-    ];
-    localStorage.setItem("cms_sponsors", JSON.stringify(initialSponsors));
-  }
-
-  // Homepage Settings / migration
   if (localStorage.getItem("cms_homepage_settings") && !localStorage.getItem("cms_homeSettings")) {
     localStorage.setItem("cms_homeSettings", localStorage.getItem("cms_homepage_settings")!);
   }
+  if (localStorage.getItem("cms_site_settings") && !localStorage.getItem("cms_siteSettings")) {
+    localStorage.setItem("cms_siteSettings", localStorage.getItem("cms_site_settings")!);
+  }
+
+  // --- Real configuration defaults (product copy, not fake content) ---
   if (!localStorage.getItem("cms_homeSettings")) {
     const initialHps = {
-      featuredArticleIds: ["art-1", "art-2"],
-      featuredMatchId: "match-1",
-      featuredTransferReportIds: ["tgt-1"],
-      heroTitle: "BAĞIMSIZ FENERBAHÇE ANALİZ ATLASI",
-      heroSubtitle: "Camianın taktik rüzgarlarını tarafsız analiz dosyaları, scout haritaları ve interaktif fraksiyon şemalarıyla analiz eden bağımsız futbol bülteni.",
-      heroPrimaryButtonText: "Taktik Haritayı Aç",
-      heroSecondaryButtonText: "Maç Merkezi",
+      featuredArticleIds: [],
+      featuredMatchId: null,
+      featuredTransferReportIds: [],
+      heroTitle: "BAÄIMSIZ FENERBAHÃ‡E ANALÄ°Z ATLASI",
+      heroSubtitle: "CamianÄ±n taktik rÃ¼zgarlarÄ±nÄ± tarafsÄ±z analiz dosyalarÄ±, scout haritalarÄ± ve interaktif fraksiyon ÅŸemalarÄ±yla analiz eden baÄŸÄ±msÄ±z futbol bÃ¼lteni.",
+      heroPrimaryButtonText: "Taktik HaritayÄ± AÃ§",
+      heroSecondaryButtonText: "MaÃ§ Merkezi",
       updatedAt: new Date().toISOString()
     };
     localStorage.setItem("cms_homeSettings", JSON.stringify(initialHps));
   }
 
-  // Site Settings / migration
-  if (localStorage.getItem("cms_site_settings") && !localStorage.getItem("cms_siteSettings")) {
-    localStorage.setItem("cms_siteSettings", localStorage.getItem("cms_site_settings")!);
-  }
   if (!localStorage.getItem("cms_siteSettings")) {
     const initialSettings = {
-      siteTitle: "Fenerbahçe Evreni - Bağımsız Analiz Portalı",
-      siteDescription: "Fenerbahçe taktik analiz, scout bülteni, taraftar fraksiyonları ve maç merkezi portalı.",
+      siteTitle: "FenerbahÃ§e Evreni - BaÄŸÄ±msÄ±z Analiz PortalÄ±",
+      siteDescription: "FenerbahÃ§e taktik analiz, scout bÃ¼lteni, taraftar fraksiyonlarÄ± ve maÃ§ merkezi portalÄ±.",
       contactEmail: "iletisim@fenerbahceevreni.com",
       socialLinks: { twitter: "@BasitBiOyun", instagram: "fenerbahceevreni", youtube: "@fenerbahcevreni" },
-      disclaimerText: "Fenerbahçe Evreni, bağımsız bir taraftar ve analiz platformudur. Ticari ya da hukuki olarak Fenerbahçe SK ya da bağlı şirketleri ile herhangi bir resmi organik bağı veya ortaklığı bulunmamaktadır.",
+      disclaimerText: "FenerbahÃ§e Evreni, baÄŸÄ±msÄ±z bir taraftar ve analiz platformudur. Ticari ya da hukuki olarak FenerbahÃ§e SK ya da baÄŸlÄ± ÅŸirketleri ile herhangi bir resmi organik baÄŸÄ± veya ortaklÄ±ÄŸÄ± bulunmamaktadÄ±r.",
       newsletterEnabled: true,
       premiumEnabled: true,
       updatedAt: new Date().toISOString()
@@ -339,6 +103,146 @@ const seedDatabaseLocal = () => {
 
 // Seed storage straight away
 seedDatabaseLocal();
+
+// Local-first real-data bootstrap: load the scraped squad file into the players
+// collection when it is empty. This is REAL club data (Transfermarkt snapshot),
+// not fabricated content â€” and it is replaced automatically once admin/API data exists.
+let squadBootstrapPromise: Promise<void> | null = null;
+export const bootstrapSquadFromLocalFile = (): Promise<void> => {
+  if (!squadBootstrapPromise) {
+    squadBootstrapPromise = (async () => {
+      try {
+        const res = await fetch('/data/squad.json');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data?.players) || data.players.length === 0) return;
+
+        // Versiyon-farkÄ±nda yÃ¼kleme: dosya gÃ¼ncellendiÄŸinde (updatedAt deÄŸiÅŸince)
+        // localStorage tazelensin. KullanÄ±cÄ± admin'den dÃ¼zenlediyse (manuel iÅŸaret) dokunma.
+        const fileVersion: string = data.updatedAt || data.scrapedAt || '';
+        const storedVersion = localStorage.getItem('cms_players_version');
+        const existing = localStorage.getItem('cms_players');
+        const userEdited = localStorage.getItem('cms_players_userEdited') === 'true';
+
+        const isEmpty = !existing || JSON.parse(existing).length === 0;
+        const isStale = !userEdited && storedVersion !== fileVersion;
+
+        if (isEmpty || isStale) {
+          localStorage.setItem('cms_players', JSON.stringify(data.players));
+          localStorage.setItem('cms_players_version', fileVersion);
+          console.log(`Kadro yÃ¼klendi: ${data.players.length} oyuncu (${data.season}, kaynak: ${data.source})`);
+        }
+      } catch (err) {
+        console.warn('Yerel kadro dosyasÄ± yÃ¼klenemedi:', err);
+      }
+    })();
+  }
+  return squadBootstrapPromise;
+};
+
+
+// GerÃ§ek maÃ§ verisi bootstrap'Ä± (hazÄ±rlÄ±k maÃ§larÄ± / fikstÃ¼r). Kadro ile aynÄ± desen.
+let matchesBootstrapPromise: Promise<void> | null = null;
+export const bootstrapMatchesFromLocalFile = (): Promise<void> => {
+  if (!matchesBootstrapPromise) {
+    matchesBootstrapPromise = (async () => {
+      try {
+        const res = await fetch('/data/matches.json');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data?.matches) || data.matches.length === 0) return;
+        const fileVersion: string = data.updatedAt || '';
+        const storedVersion = localStorage.getItem('cms_matches_version');
+        const existing = localStorage.getItem('cms_matches');
+        const userEdited = localStorage.getItem('cms_matches_userEdited') === 'true';
+        const isEmpty = !existing || JSON.parse(existing).length === 0;
+        const isStale = !userEdited && storedVersion !== fileVersion;
+        if (isEmpty || isStale) {
+          localStorage.setItem('cms_matches', JSON.stringify(data.matches));
+          localStorage.setItem('cms_matches_version', fileVersion);
+          // MaÃ§ raporlarÄ±nÄ± da (varsa) senkronla
+          if (Array.isArray(data.reports)) {
+            const repEdited = localStorage.getItem('cms_matchReports_userEdited') === 'true';
+            if (!repEdited) {
+              localStorage.setItem('cms_matchReports', JSON.stringify(data.reports));
+            }
+          }
+          console.log(`MaÃ§ verisi yÃ¼klendi: ${data.matches.length} maÃ§, ${(data.reports || []).length} rapor (${data.season})`);
+        }
+      } catch (err) {
+        console.warn('Yerel maÃ§ dosyasÄ± yÃ¼klenemedi:', err);
+      }
+    })();
+  }
+  return matchesBootstrapPromise;
+};
+
+
+// Editoryal makale bootstrap'Ä± (gerÃ§ek maÃ§/fikstÃ¼r verisine dayalÄ± yazÄ±lar). AynÄ± desen.
+let articlesBootstrapPromise: Promise<void> | null = null;
+export const bootstrapArticlesFromLocalFile = (): Promise<void> => {
+  if (!articlesBootstrapPromise) {
+    articlesBootstrapPromise = (async () => {
+      try {
+        const res = await fetch('/data/articles.json');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data?.articles) || data.articles.length === 0) return;
+        const fileVersion: string = data.updatedAt || '';
+        const storedVersion = localStorage.getItem('cms_articles_version');
+        const existing = localStorage.getItem('cms_articles');
+        const userEdited = localStorage.getItem('cms_articles_userEdited') === 'true';
+        const isEmpty = !existing || JSON.parse(existing).length === 0;
+        const isStale = !userEdited && storedVersion !== fileVersion;
+        if (isEmpty || isStale) {
+          localStorage.setItem('cms_articles', JSON.stringify(data.articles));
+          localStorage.setItem('cms_articles_version', fileVersion);
+          console.log(`Makaleler yÃ¼klendi: ${data.articles.length} yazÄ±`);
+        }
+      } catch (err) {
+        console.warn('Yerel makale dosyasÄ± yÃ¼klenemedi:', err);
+      }
+    })();
+  }
+  return articlesBootstrapPromise;
+};
+
+
+// GerÃ§ek puan durumu bootstrap'Ä± (Transfermarkt scrape â†’ standings.json). AynÄ± desen.
+let standingsBootstrapPromise: Promise<void> | null = null;
+export const bootstrapStandingsFromLocalFile = (): Promise<void> => {
+  if (!standingsBootstrapPromise) {
+    standingsBootstrapPromise = (async () => {
+      try {
+        const res = await fetch('/data/standings.json');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data?.standingsList) || data.standingsList.length === 0) return;
+        const fileVersion: string = data.updatedAt || '';
+        const storedVersion = localStorage.getItem('cms_standings_version');
+        const existing = localStorage.getItem('cms_standings');
+        const userEdited = localStorage.getItem('cms_standings_userEdited') === 'true';
+        const isEmpty = !existing || JSON.parse(existing).length === 0;
+        const isStale = !userEdited && storedVersion !== fileVersion;
+        if (isEmpty || isStale) {
+          localStorage.setItem('cms_standings', JSON.stringify([{
+            id: 'superlig',
+            season: data.season,
+            isFinal: data.isFinal === true,
+            source: data.source,
+            updatedAt: data.updatedAt,
+            standingsList: data.standingsList
+          }]));
+          localStorage.setItem('cms_standings_version', fileVersion);
+          console.log(`Puan durumu yÃ¼klendi: ${data.standingsList.length} takÄ±m (${data.season}, kaynak: ${data.source})`);
+        }
+      } catch (err) {
+        console.warn('Yerel puan durumu dosyasÄ± yÃ¼klenemedi:', err);
+      }
+    })();
+  }
+  return standingsBootstrapPromise;
+};
 
 
 let firebaseSeedingPromise: Promise<void> | null = null;
@@ -445,8 +349,27 @@ export const dbGetCollection = async (rawCollectionName: string): Promise<any[]>
       return [];
     }
   } else {
+    // Real-data bootstrap: fill players/matches collections from local files once.
+    if (collectionName === 'players') {
+      await bootstrapSquadFromLocalFile();
+    }
+    if (collectionName === 'matches') {
+      await bootstrapMatchesFromLocalFile();
+    }
+    if (collectionName === 'standings') {
+      await bootstrapStandingsFromLocalFile();
+    }
+    if (collectionName === 'articles') {
+      await bootstrapArticlesFromLocalFile();
+    }
     const dataStr = localStorage.getItem(`cms_${collectionName}`);
-    return dataStr ? JSON.parse(dataStr) : [];
+    if (!dataStr) return [];
+    const parsed = JSON.parse(dataStr);
+    if (Array.isArray(parsed)) return parsed;
+    // Singleton documents (homeSettings, siteSettings) are stored as objects â€”
+    // expose them consistently as a one-element collection with id 'main'.
+    if (parsed && typeof parsed === 'object') return [{ id: 'main', ...parsed }];
+    return [];
   }
 };
 
@@ -519,8 +442,14 @@ export const dbDeleteDocument = async (rawCollectionName: string, id: string): P
 // --- SOCCERDATA ADVANCED STATS COLLECTIONS HELPERS ---
 export const COLL_ADV_PLAYER_STATS = 'advancedPlayerStats';
 export const COLL_ADV_MATCH_STATS = 'advancedMatchStats';
+/** @deprecated Use COLL_PROVIDER_IDS */
 export const COLL_EXT_PLAYER_MAPPINGS = 'externalPlayerMappings';
+/** @deprecated Use COLL_SCRAPE_JOBS */
 export const COLL_DATA_SYNC_RUNS = 'dataSyncRuns';
+/** Kanonik entity map (Faz A1) */
+export const COLL_PROVIDER_IDS = 'providerIds';
+/** Kanonik job log (Faz A1) */
+export const COLL_SCRAPE_JOBS = 'scrapeJobs';
 
 export const dbGetAdvancedPlayerStats = async (
   playerDocumentId: string,
@@ -673,3 +602,42 @@ export const dbGetDataSyncRuns = async (
     return list;
   }
 };
+export async function castPollVote(pollId: string, optionId: string, userId: string): Promise<void> {
+  if (!isFirebaseConfigured || !db) {
+    throw new Error('Firebase oy sistemi hazır değil.');
+  }
+
+  await runTransaction(db, async (transaction) => {
+    const pollRef = doc(db, 'polls', pollId);
+    const voteRef = doc(db, 'polls', pollId, 'votes', userId);
+    const [pollSnap, voteSnap] = await Promise.all([
+      transaction.get(pollRef),
+      transaction.get(voteRef)
+    ]);
+
+    if (!pollSnap.exists()) throw new Error('Anket bulunamadı.');
+    const poll = pollSnap.data() as any;
+    if (poll.status !== 'active') throw new Error('Bu anket artık aktif değil.');
+    if (!Array.isArray(poll.options) || !poll.options.includes(optionId)) {
+      throw new Error('Geçersiz anket seçeneği.');
+    }
+    if (voteSnap.exists()) throw new Error('Bu ankette daha önce oy kullandınız.');
+
+    const options = poll.options as string[];
+    const votes = Array.isArray(poll.votes) ? [...poll.votes] : options.map(() => 0);
+    const optionIndex = options.indexOf(optionId);
+    while (votes.length < options.length) votes.push(0);
+    votes[optionIndex] = (Number(votes[optionIndex]) || 0) + 1;
+
+    transaction.set(voteRef, {
+      optionId,
+      userId,
+      createdAt: new Date().toISOString()
+    });
+    transaction.update(pollRef, {
+      votes,
+      totalVotes: votes.reduce((sum, value) => sum + (Number(value) || 0), 0),
+      updatedAt: new Date().toISOString()
+    });
+  });
+}

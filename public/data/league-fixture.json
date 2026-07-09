@@ -1,0 +1,26 @@
+{
+  "season": "2026-27",
+  "competition": "Trendyol Süper Lig",
+  "half": "İlk Yarı",
+  "source": "TFF fikstür çekimi",
+  "updatedAt": "2026-07-09T13:30:00.000Z",
+  "weeks": [
+    { "week": 1,  "opponent": "Gençlerbirliği",       "logo": "/logos/genclerbirligi.png",   "home": false },
+    { "week": 2,  "opponent": "Konyaspor",             "logo": "/logos/konyaspor.png",        "home": true },
+    { "week": 3,  "opponent": "Samsunspor",            "logo": "/logos/samsunspor.png",       "home": false },
+    { "week": 4,  "opponent": "Beşiktaş",              "logo": "/logos/besiktas.svg",         "home": true,  "derby": true },
+    { "week": 5,  "opponent": "Gaziantep FK",          "logo": "/logos/gaziantep-fk.png",     "home": false },
+    { "week": 6,  "opponent": "Eyüpspor",              "logo": "/logos/eyupspor.png",         "home": true },
+    { "week": 7,  "opponent": "Çaykur Rizespor",       "logo": "/logos/rizespor.png",         "home": false },
+    { "week": 8,  "opponent": "Alanyaspor",            "logo": "/logos/alanyaspor.png",       "home": true },
+    { "week": 9,  "opponent": "Galatasaray",           "logo": "/logos/galatasaray.svg",      "home": false, "derby": true },
+    { "week": 10, "opponent": "Göztepe",               "logo": "/logos/goztepe.png",          "home": true },
+    { "week": 11, "opponent": "Çorum FK",              "logo": "/logos/corum-fk.png",         "home": false },
+    { "week": 12, "opponent": "Kocaelispor",           "logo": "/logos/kocaelispor.png",      "home": false },
+    { "week": 13, "opponent": "Erzurumspor FK",        "logo": "/logos/erzurumspor.png",      "home": true },
+    { "week": 14, "opponent": "İstanbul Başakşehir",   "logo": "/logos/basaksehir.png",       "home": false },
+    { "week": 15, "opponent": "Trabzonspor",           "logo": "/logos/trabzonspor.png",      "home": true,  "derby": true },
+    { "week": 16, "opponent": "Kasımpaşa",             "logo": "/logos/kasimpasa.png",        "home": false },
+    { "week": 17, "opponent": "Amed SF",               "logo": "/logos/amedspor.png",         "home": true }
+  ]
+}

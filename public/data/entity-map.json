@@ -1,0 +1,775 @@
+{
+  "schemaVersion": 1,
+  "fetchedAt": "2026-07-09T19:08:11.000Z",
+  "matchMappings": [
+    {
+      "siteMatchId": "fb-admira-2026-07-08",
+      "provider": "fotmob",
+      "providerMatchId": "5901131",
+      "advancedDocId": "fotmob-5901131__fotmob",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Admira Wacker",
+      "confidence": 0.9,
+      "mappingStatus": "confirmed"
+    },
+    {
+      "siteMatchId": "fb-eyupspor-2026-lig",
+      "provider": "fotmob",
+      "providerMatchId": "4842613",
+      "advancedDocId": "fotmob-4842613__fotmob",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Eyüpspor",
+      "confidence": 1.0,
+      "mappingStatus": "confirmed"
+    }
+  ],
+  "playerMappingsCount": 31,
+  "playerMappings": [
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "irfan-can-egribayat",
+      "canonicalName": "İrfan Can Eğribayat",
+      "slug": "irfan-can-egribayat",
+      "aliases": [
+        "İrfan Can Eğribayat",
+        "İrfan Can Eğribayat"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-irfan-can-egribayat",
+          "name": "İrfan Can Eğribayat"
+        },
+        "manual": {
+          "id": "irfan-can-egribayat",
+          "name": "İrfan Can Eğribayat"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "tarik-cetin",
+      "canonicalName": "Tarık Çetin",
+      "slug": "tarik-cetin",
+      "aliases": [
+        "Tarık Çetin",
+        "Tarık Çetin"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-tarik-cetin",
+          "name": "Tarık Çetin"
+        },
+        "manual": {
+          "id": "tarik-cetin",
+          "name": "Tarık Çetin"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "engin-can-biterge",
+      "canonicalName": "Engin Can Biterge",
+      "slug": "engin-can-biterge",
+      "aliases": [
+        "Engin Can Biterge",
+        "Engin Can Biterge"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-engin-can-biterge",
+          "name": "Engin Can Biterge"
+        },
+        "manual": {
+          "id": "engin-can-biterge",
+          "name": "Engin Can Biterge"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "jayden-oosterwolde",
+      "canonicalName": "Jayden Oosterwolde",
+      "slug": "jayden-oosterwolde",
+      "aliases": [
+        "Jayden Oosterwolde",
+        "Jayden Oosterwolde"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-jayden-oosterwolde",
+          "name": "Jayden Oosterwolde"
+        },
+        "manual": {
+          "id": "jayden-oosterwolde",
+          "name": "Jayden Oosterwolde"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "milan-kriniar",
+      "canonicalName": "Milan Škriniar",
+      "slug": "milan-kriniar",
+      "aliases": [
+        "Milan Škriniar",
+        "Milan Škriniar"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-milan-kriniar",
+          "name": "Milan Škriniar"
+        },
+        "manual": {
+          "id": "milan-kriniar",
+          "name": "Milan Škriniar"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "yigit-efe-demir",
+      "canonicalName": "Yiğit Efe Demir",
+      "slug": "yigit-efe-demir",
+      "aliases": [
+        "Yiğit Efe Demir",
+        "Yiğit Efe Demir"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-yigit-efe-demir",
+          "name": "Yiğit Efe Demir"
+        },
+        "manual": {
+          "id": "yigit-efe-demir",
+          "name": "Yiğit Efe Demir"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "diego-carlos",
+      "canonicalName": "Diego Carlos",
+      "slug": "diego-carlos",
+      "aliases": [
+        "Diego Carlos",
+        "Diego Carlos Santos Silva"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-diego-carlos",
+          "name": "Diego Carlos"
+        },
+        "manual": {
+          "id": "diego-carlos",
+          "name": "Diego Carlos"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "rodrigo-becao",
+      "canonicalName": "Rodrigo Becão",
+      "slug": "rodrigo-becao",
+      "aliases": [
+        "Rodrigo Becão",
+        "Rodrigo Nascimento França"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-rodrigo-becao",
+          "name": "Rodrigo Becão"
+        },
+        "manual": {
+          "id": "rodrigo-becao",
+          "name": "Rodrigo Becão"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "yigit-fidan",
+      "canonicalName": "Yiğit Fidan",
+      "slug": "yigit-fidan",
+      "aliases": [
+        "Yiğit Fidan",
+        "Yiğit Fidan"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-yigit-fidan",
+          "name": "Yiğit Fidan"
+        },
+        "manual": {
+          "id": "yigit-fidan",
+          "name": "Yiğit Fidan"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "omar-fayed",
+      "canonicalName": "Omar Fayed",
+      "slug": "omar-fayed",
+      "aliases": [
+        "Omar Fayed",
+        "Omar Fayed Abdelwahab Elrakhawy"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-omar-fayed",
+          "name": "Omar Fayed"
+        },
+        "manual": {
+          "id": "omar-fayed",
+          "name": "Omar Fayed"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "archie-brown",
+      "canonicalName": "Archie Brown",
+      "slug": "archie-brown",
+      "aliases": [
+        "Archie Brown",
+        "Archie Brown"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-archie-brown",
+          "name": "Archie Brown"
+        },
+        "manual": {
+          "id": "archie-brown",
+          "name": "Archie Brown"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "levent-mercan",
+      "canonicalName": "Levent Mercan",
+      "slug": "levent-mercan",
+      "aliases": [
+        "Levent Mercan",
+        "Levent Mercan"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-levent-mercan",
+          "name": "Levent Mercan"
+        },
+        "manual": {
+          "id": "levent-mercan",
+          "name": "Levent Mercan"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "ognjen-mimovi",
+      "canonicalName": "Ognjen Mimović",
+      "slug": "ognjen-mimovi",
+      "aliases": [
+        "Ognjen Mimović",
+        "Ognjen Mimović"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-ognjen-mimovi",
+          "name": "Ognjen Mimović"
+        },
+        "manual": {
+          "id": "ognjen-mimovi",
+          "name": "Ognjen Mimović"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "bartug-elmaz",
+      "canonicalName": "Bartuğ Elmaz",
+      "slug": "bartug-elmaz",
+      "aliases": [
+        "Bartuğ Elmaz",
+        "Bartuğ Elmaz"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-bartug-elmaz",
+          "name": "Bartuğ Elmaz"
+        },
+        "manual": {
+          "id": "bartug-elmaz",
+          "name": "Bartuğ Elmaz"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "matteo-guendouzi",
+      "canonicalName": "Mattéo Guendouzi",
+      "slug": "matteo-guendouzi",
+      "aliases": [
+        "Mattéo Guendouzi",
+        "Mattéo Guendouzi"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-matteo-guendouzi",
+          "name": "Mattéo Guendouzi"
+        },
+        "manual": {
+          "id": "matteo-guendouzi",
+          "name": "Mattéo Guendouzi"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "fred",
+      "canonicalName": "Fred",
+      "slug": "fred",
+      "aliases": [
+        "Fred",
+        "Frederico Rodrigues de Paula Santos"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-fred",
+          "name": "Fred"
+        },
+        "manual": {
+          "id": "fred",
+          "name": "Fred"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "abdou-aziz-fall",
+      "canonicalName": "Abdou Aziz Fall",
+      "slug": "abdou-aziz-fall",
+      "aliases": [
+        "Abdou Aziz Fall",
+        "Abdou Aziz Fall"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-abdou-aziz-fall",
+          "name": "Abdou Aziz Fall"
+        },
+        "manual": {
+          "id": "abdou-aziz-fall",
+          "name": "Abdou Aziz Fall"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "marco-asensio",
+      "canonicalName": "Marco Asensio",
+      "slug": "marco-asensio",
+      "aliases": [
+        "Marco Asensio",
+        "Marco Asensio"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-marco-asensio",
+          "name": "Marco Asensio"
+        },
+        "manual": {
+          "id": "marco-asensio",
+          "name": "Marco Asensio"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "talisca",
+      "canonicalName": "Talisca",
+      "slug": "talisca",
+      "aliases": [
+        "Talisca",
+        "Anderson Souza Conceição"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-talisca",
+          "name": "Talisca"
+        },
+        "manual": {
+          "id": "talisca",
+          "name": "Talisca"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "emre-demir",
+      "canonicalName": "Emre Demir",
+      "slug": "emre-demir",
+      "aliases": [
+        "Emre Demir",
+        "Emre Demir"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-emre-demir",
+          "name": "Emre Demir"
+        },
+        "manual": {
+          "id": "emre-demir",
+          "name": "Emre Demir"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "mert-hakan-yandas",
+      "canonicalName": "Mert Hakan Yandaş",
+      "slug": "mert-hakan-yandas",
+      "aliases": [
+        "Mert Hakan Yandaş",
+        "Mert Hakan Yandaş"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-mert-hakan-yandas",
+          "name": "Mert Hakan Yandaş"
+        },
+        "manual": {
+          "id": "mert-hakan-yandas",
+          "name": "Mert Hakan Yandaş"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "anthony-musaba",
+      "canonicalName": "Anthony Musaba",
+      "slug": "anthony-musaba",
+      "aliases": [
+        "Anthony Musaba",
+        "Anthony Musaba"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-anthony-musaba",
+          "name": "Anthony Musaba"
+        },
+        "manual": {
+          "id": "anthony-musaba",
+          "name": "Anthony Musaba"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "amara-diouf",
+      "canonicalName": "Amara Diouf",
+      "slug": "amara-diouf",
+      "aliases": [
+        "Amara Diouf",
+        "Amara Diouf"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-amara-diouf",
+          "name": "Amara Diouf"
+        },
+        "manual": {
+          "id": "amara-diouf",
+          "name": "Amara Diouf"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "alaettin-ekici",
+      "canonicalName": "Alaettin Ekici",
+      "slug": "alaettin-ekici",
+      "aliases": [
+        "Alaettin Ekici",
+        "Alaettin Ekici"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-alaettin-ekici",
+          "name": "Alaettin Ekici"
+        },
+        "manual": {
+          "id": "alaettin-ekici",
+          "name": "Alaettin Ekici"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "dorgeles-nene",
+      "canonicalName": "Dorgeles Nene",
+      "slug": "dorgeles-nene",
+      "aliases": [
+        "Dorgeles Nene",
+        "Dorgeles Nene"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-dorgeles-nene",
+          "name": "Dorgeles Nene"
+        },
+        "manual": {
+          "id": "dorgeles-nene",
+          "name": "Dorgeles Nene"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "cengiz-under",
+      "canonicalName": "Cengiz Ünder",
+      "slug": "cengiz-under",
+      "aliases": [
+        "Cengiz Ünder",
+        "Cengiz Ünder"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-cengiz-under",
+          "name": "Cengiz Ünder"
+        },
+        "manual": {
+          "id": "cengiz-under",
+          "name": "Cengiz Ünder"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "adem-yesilyurt",
+      "canonicalName": "Adem Yeşilyurt",
+      "slug": "adem-yesilyurt",
+      "aliases": [
+        "Adem Yeşilyurt",
+        "Adem Yeşilyurt"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-adem-yesilyurt",
+          "name": "Adem Yeşilyurt"
+        },
+        "manual": {
+          "id": "adem-yesilyurt",
+          "name": "Adem Yeşilyurt"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "sidiki-cherif",
+      "canonicalName": "Sidiki Chérif",
+      "slug": "sidiki-cherif",
+      "aliases": [
+        "Sidiki Chérif",
+        "Sidiki Chérif"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-sidiki-cherif",
+          "name": "Sidiki Chérif"
+        },
+        "manual": {
+          "id": "sidiki-cherif",
+          "name": "Sidiki Chérif"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "vedat-muriqi",
+      "canonicalName": "Vedat Muriqi",
+      "slug": "vedat-muriqi",
+      "aliases": [
+        "Vedat Muriqi",
+        "Vedat Muriqi"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-vedat-muriqi",
+          "name": "Vedat Muriqi"
+        },
+        "manual": {
+          "id": "vedat-muriqi",
+          "name": "Vedat Muriqi"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "cagri-fedai",
+      "canonicalName": "Çağrı Fedai",
+      "slug": "cagri-fedai",
+      "aliases": [
+        "Çağrı Fedai",
+        "Çağrı Fedai"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-cagri-fedai",
+          "name": "Çağrı Fedai"
+        },
+        "manual": {
+          "id": "cagri-fedai",
+          "name": "Çağrı Fedai"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    },
+    {
+      "schemaVersion": 1,
+      "playerDocumentId": "cagri-balta",
+      "canonicalName": "Çağrı Balta",
+      "slug": "cagri-balta",
+      "aliases": [
+        "Çağrı Balta",
+        "Çağrı Balta"
+      ],
+      "providers": {
+        "transfermarkt": {
+          "id": "fb-2627-cagri-balta",
+          "name": "Çağrı Balta"
+        },
+        "manual": {
+          "id": "cagri-balta",
+          "name": "Çağrı Balta"
+        }
+      },
+      "mappingStatus": "review",
+      "confidence": 0.5,
+      "createdAt": "2026-07-09T19:04:10.308Z",
+      "updatedAt": "2026-07-09T19:04:10.308Z"
+    }
+  ],
+  "fotmobAdvancedAvailable": 5,
+  "matchesEnriched": 1
+}

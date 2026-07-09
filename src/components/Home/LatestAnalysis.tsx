@@ -49,6 +49,9 @@ const LatestAnalysis: React.FC<LatestAnalysisProps> = ({ onNavigate }) => {
   const featuredArticle = articles[0] || null;
   const secondaryArticles = articles.slice(1, 4);
 
+  // Ana sayfada içeriksiz bölüm gösterme: boş durumlar kendi sayfasında (Analizler) yaşar.
+  if (!loading && articles.length === 0) return null;
+
   return (
     <section id="latest-analysis" className="py-24 bg-[#0B0F19] relative overflow-hidden">
       

@@ -23,7 +23,7 @@ export const AdminSponsors: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
-    logo: 'https://images.unsplash.com/photo-1549421263-d18b302db1d8?w=300&auto=format&fit=crop',
+    logo: '',
     link: '',
     position: 'footer',
     active: true
@@ -72,7 +72,7 @@ export const AdminSponsors: React.FC = () => {
     setEditingId(s.id);
     setForm({
       name: s.name || '',
-      logo: s.logo || 'https://images.unsplash.com/photo-1549421263-d18b302db1d8?w=300&auto=format&fit=crop',
+      logo: s.logo || '',
       link: s.link || '',
       position: s.position || 'footer',
       active: !!s.active
@@ -84,7 +84,7 @@ export const AdminSponsors: React.FC = () => {
     setEditingId(null);
     setForm({
       name: '',
-      logo: 'https://images.unsplash.com/photo-1549421263-d18b302db1d8?w=300&auto=format&fit=crop',
+      logo: '',
       link: 'https://',
       position: 'footer',
       active: true

@@ -1,0 +1,212 @@
+{
+  "season": "2026-27",
+  "updatedAt": "2026-07-09T19:12:00.000Z",
+  "source": "Kamp + FotMob advanced (xG/shotmap)",
+  "matches": [
+    {
+      "id": "fb-admira-2026-07-08",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Admira Wacker",
+      "homeLogo": "/logos/fenerbahce.png",
+      "awayLogo": "/logos/admira-wacker.png",
+      "competition": "Hazırlık Maçı • Avusturya Kampı",
+      "matchDate": "2026-07-08T20:30:00",
+      "venue": "Raiffeisen Arena / Linz (Avusturya)",
+      "broadcasterTarget": "TV100",
+      "status": "finished",
+      "scoreHome": 5,
+      "scoreAway": 0,
+      "featured": true,
+      "referee": "-",
+      "scorerDetailsHome": "9' Cengiz Ünder · 42' Milan Škriniar · 60' Fred · 70' (k.k. Glitia) · 74' Rodrigo Becão",
+      "scorerDetailsAway": "-",
+      "goals": [
+        {
+          "minute": 9,
+          "team": "home",
+          "scorer": "Cengiz Ünder"
+        },
+        {
+          "minute": 42,
+          "team": "home",
+          "scorer": "Milan Škriniar"
+        },
+        {
+          "minute": 60,
+          "team": "home",
+          "scorer": "Fred"
+        },
+        {
+          "minute": 70,
+          "team": "home",
+          "scorer": "Benjamin Glitia (kendi kalesine)"
+        },
+        {
+          "minute": 74,
+          "team": "home",
+          "scorer": "Rodrigo Becão"
+        }
+      ],
+      "lineupHome": [
+        "Tarık Çetin",
+        "Ognjen Mimović",
+        "Milan Škriniar",
+        "Jayden Oosterwolde",
+        "Levent Mercan",
+        "Bartuğ Elmaz",
+        "Mattéo Guendouzi",
+        "Fred",
+        "Anthony Musaba",
+        "Cengiz Ünder",
+        "Çağrı Balta"
+      ],
+      "lineupAway": [
+        "Steinbauer",
+        "Weberbauer",
+        "Savic",
+        "Feiner",
+        "Tscheppe",
+        "Holzhacker",
+        "Turgay Gemicibaşı",
+        "Steiner",
+        "Lorint",
+        "Ajanovic",
+        "Forst"
+      ],
+      "probableXI": {
+        "formation": "4-2-3-1",
+        "GK": "Tarık Çetin",
+        "RB": "Ognjen Mimović",
+        "CB1": "Milan Škriniar",
+        "CB2": "Jayden Oosterwolde",
+        "LB": "Levent Mercan",
+        "DM1": "Bartuğ Elmaz",
+        "DM2": "Fred",
+        "AM": "Mattéo Guendouzi",
+        "RW": "Cengiz Ünder",
+        "LW": "Anthony Musaba",
+        "CF": "Çağrı Balta"
+      },
+      "matchPreview": "Fenerbahçe, İsmail Kartal yönetimindeki yeni sezon hazırlıklarının açılış maçında Avusturya ikinci ligi ekibi Admira Wacker'ı 5-0 mağlup etti.",
+      "tacticalNotes": [
+        {
+          "title": "Erken Kontrol",
+          "text": "9. dakikada Cengiz Ünder'in golüyle öne geçen Fenerbahçe, ilk yarıyı Škriniar'ın katkısıyla 2-0 önde kapattı."
+        },
+        {
+          "title": "İkinci Yarı Rotasyonu",
+          "text": "İsmail Kartal geniş rotasyon uygularken Fred ve Becão'nun katkılarıyla fark açıldı; genç Çağrı Balta ile Bartuğ Elmaz ilk 11'de forma buldu."
+        },
+        {
+          "title": "Gol Yemeden",
+          "text": "Savunma hattı, hazırlık maçı temposunda da kalesini gole kapatarak 5-0'lık net bir skor elde etti."
+        }
+      ],
+      "analysisNote": "Hazırlık maçı — skor sezon formunu yansıtmaz; değerlendirmeler kamp dönemi bağlamındadır.",
+      "createdAt": "2026-07-08T09:00:00.000Z",
+      "providerIds": {
+        "fotmob": "5901131"
+      },
+      "advancedMatchDocumentId": "fotmob-5901131",
+      "statsProvider": "fotmob",
+      "statsFetchedAt": "2026-07-09T18:59:02.150Z",
+      "possessionHome": 72,
+      "possessionAway": 28,
+      "shotsHome": 23,
+      "shotsAway": 3,
+      "shotsOnTargetHome": 11,
+      "shotsOnTargetAway": 1,
+      "cornersHome": 5,
+      "cornersAway": 0,
+      "foulsHome": 13,
+      "foulsAway": 10,
+      "shotmapCount": 0,
+      "statsFlippedFromProvider": true
+    },
+    {
+      "id": "fb-eyupspor-2026-lig",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Eyüpspor",
+      "homeLogo": "/logos/fenerbahce.png",
+      "awayLogo": "/logos/eyupspor.png",
+      "competition": "Trendyol Süper Lig",
+      "matchDate": "2026-04-01T17:00:00",
+      "status": "finished",
+      "scoreHome": 3,
+      "scoreAway": 3,
+      "featured": false,
+      "providerIds": {
+        "fotmob": "4842613"
+      },
+      "advancedMatchDocumentId": "fotmob-4842613",
+      "statsProvider": "fotmob",
+      "statsFlippedFromProvider": false,
+      "matchPreview": "FotMob advanced (xG + shotmap) bağlı demo maç kaydı — UI testi.",
+      "createdAt": "2026-07-09T19:08:11.000Z",
+      "possessionHome": 78,
+      "possessionAway": 22,
+      "shotsHome": 19,
+      "shotsAway": 6,
+      "shotsOnTargetHome": 7,
+      "shotsOnTargetAway": 3,
+      "xGHome": 1.33,
+      "xGAway": 0.52,
+      "shotmapCount": 25,
+      "xG": "1.33 – 0.52"
+    },
+    {
+      "id": "fb-pogon-2026-07-11",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "Pogoń Szczecin",
+      "homeLogo": "/logos/fenerbahce.png",
+      "awayLogo": "/logos/pogon-szczecin.png",
+      "competition": "Hazırlık Maçı • Avusturya Kampı",
+      "matchDate": "2026-07-11T20:30:00",
+      "venue": "Avusturya Kampı",
+      "broadcasterTarget": "TV100",
+      "status": "upcoming",
+      "scoreHome": null,
+      "scoreAway": null,
+      "featured": false,
+      "matchPreview": "Avusturya kampının ikinci hazırlık maçında rakip, Polonya Ekstraklasa ekibi Pogoń Szczecin. Maç TV100'den şifresiz yayınlanacak.",
+      "tacticalNotes": [],
+      "createdAt": "2026-07-08T09:00:00.000Z"
+    },
+    {
+      "id": "fb-lask-2026-07-14",
+      "homeTeam": "Fenerbahçe",
+      "awayTeam": "LASK",
+      "homeLogo": "/logos/fenerbahce.png",
+      "awayLogo": "/logos/lask.png",
+      "competition": "Hazırlık Maçı • Avusturya Kampı",
+      "matchDate": "2026-07-14T20:30:00",
+      "venue": "Raiffeisen Arena / Linz (Avusturya)",
+      "broadcasterTarget": "TV100",
+      "status": "upcoming",
+      "scoreHome": null,
+      "scoreAway": null,
+      "featured": false,
+      "matchPreview": "Kampın kapanış maçında rakip, Avusturya Bundesliga ekibi LASK. Raiffeisen Arena'da oynanacak karşılaşma TV100'den yayınlanacak.",
+      "tacticalNotes": [],
+      "createdAt": "2026-07-08T09:00:00.000Z"
+    }
+  ],
+  "reports": [
+    {
+      "id": "rep-fb-admira-2026-07-08",
+      "matchId": "fb-admira-2026-07-08",
+      "title": "Fenerbahçe 5-0 Admira Wacker | Hazırlık Maçı Raporu",
+      "slug": "fenerbahce-5-0-admira-wacker-hazirlik-raporu",
+      "summary": "Fenerbahçe, İsmail Kartal döneminin açılış hazırlık maçında Admira Wacker'ı 5-0 geçti. Cengiz Ünder, Škriniar, Fred ve Becão'nun golleri ile bir de kendi kalesine golle fark net oldu.",
+      "matchStory": "Sarı-lacivertliler karşılaşmaya hızlı başladı ve 9. dakikada Cengiz Ünder'in golüyle öne geçti. İlk yarının sonlarında Milan Škriniar'ın katkısıyla fark ikiye çıktı. İkinci yarıda geniş rotasyona giden İsmail Kartal'ın ekibinde Fred skoru 3-0 yaptı; 70. dakikada rakipten gelen kendi kalesine golün ardından Rodrigo Becão da 74'te fileleri havalandırarak skoru 5-0'a taşıdı. Genç oyunculardan Çağrı Balta ve Bartuğ Elmaz'ın ilk 11'de başladığı maçta savunma kalesini gole kapattı.",
+      "tacticalPositives": "Erken skor bulma, yüksek pas hakimiyeti ve ilk yarıda kurulan baskı düzeni. Genç oyuncuların üst düzey ritme uyum sağlaması.",
+      "tacticalNegatives": "Hazırlık maçı olması sebebiyle rakip direncinin sınırlı olması; gerçek rekabet testinin sonraki maçlara kalması.",
+      "turningPoint": "9. dakikada Cengiz Ünder'in erken golü, maçın kontrolünü baştan Fenerbahçe'ye verdi.",
+      "fanMotm": "",
+      "isPremium": false,
+      "status": "published",
+      "createdAt": "2026-07-08T22:45:00.000Z"
+    }
+  ],
+  "entityMapSyncedAt": "2026-07-09T19:04:10.308Z"
+}

@@ -50,8 +50,8 @@ export const AdminArticles: React.FC<AdminArticlesProps> = ({ showToast, initiat
     excerpt: '',
     content: '',
     category: 'Taktik Analiz',
-    tags: 'Mourinho, Taktik',
-    coverImage: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop',
+    tags: 'İsmail Kartal, Taktik',
+    coverImage: '',
     author: 'Yunus Emre Yılmaz',
     status: 'draft',
     scheduledAt: '',
@@ -200,7 +200,7 @@ export const AdminArticles: React.FC<AdminArticlesProps> = ({ showToast, initiat
       content: art.content || '',
       category: art.category || 'Taktik Analiz',
       tags: Array.isArray(art.tags) ? art.tags.join(', ') : (art.tags || ''),
-      coverImage: art.coverImage || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop',
+      coverImage: art.coverImage || '',
       author: art.author || 'Yunus Emre Yılmaz',
       status: art.status || 'draft',
       scheduledAt: art.scheduledAt || '',
@@ -225,8 +225,8 @@ export const AdminArticles: React.FC<AdminArticlesProps> = ({ showToast, initiat
       excerpt: '',
       content: '',
       category: 'Taktik Analiz',
-      tags: 'Mourinho, Taktik',
-      coverImage: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600&auto=format&fit=crop',
+      tags: 'İsmail Kartal, Taktik',
+      coverImage: '',
       author: 'Yunus Emre Yılmaz',
       status: 'draft',
       scheduledAt: '',
@@ -403,7 +403,7 @@ export const AdminArticles: React.FC<AdminArticlesProps> = ({ showToast, initiat
                   type="text"
                   value={form.tags}
                   onChange={(e) => handleFormValueChange('tags', e.target.value)}
-                  placeholder="Mourinho, Fred, Orta Saha"
+                  placeholder="İsmail Kartal, Fred, Orta Saha"
                   className="px-4 py-3 bg-fb-dark border border-white/15 rounded-xl text-xs text-white focus:outline-none"
                 />
               </div>

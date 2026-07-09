@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import {
+  motion, AnimatePresence } from 'motion/react';
 import SEO from './SEO';
 import { 
   Mail, 
   CheckCircle2, 
-  Sparkles, 
+ 
   BookOpen, 
   TrendingUp, 
   UserCheck, 
@@ -16,7 +17,8 @@ import {
   Clock,
   Shield,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  Star,
 } from 'lucide-react';
 import { subscribeToNewsletter } from '../../lib/newsletterService';
 
@@ -326,7 +328,7 @@ const BultenPage: React.FC<BultenPageProps> = ({ onNavigate }) => {
                 text: 'Anket sonuçları, maç tahminleri ve haftanın tartışma başlıkları.'
               },
               {
-                icon: Sparkles,
+                icon: Star,
                 color: 'text-pink-400 bg-pink-400/10',
                 title: 'Premium ön izlemeler',
                 text: 'Detaylı raporların kısa özetleri ve premium duyuruları.'
@@ -388,7 +390,7 @@ const BultenPage: React.FC<BultenPageProps> = ({ onNavigate }) => {
               {/* Sample sections */}
               <div className="space-y-6">
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
-                  <h4 className="text-xs font-black text-[#FFB020] uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-black text-[#FFD21F] uppercase tracking-wider flex items-center gap-1.5">
                     <span className="flex h-1.5 w-1.5 rounded-full bg-fb-yellow" /> 1. HAFTANIN MAÇ NOTU
                   </h4>
                   <p className="text-xs text-slate-300">
@@ -397,7 +399,7 @@ const BultenPage: React.FC<BultenPageProps> = ({ onNavigate }) => {
                 </div>
 
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
-                  <h4 className="text-xs font-black text-[#FFB020] uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-black text-[#FFD21F] uppercase tracking-wider flex items-center gap-1.5">
                     <span className="flex h-1.5 w-1.5 rounded-full bg-fb-yellow" /> 2. TRANSFER RADAR
                   </h4>
                   <p className="text-xs text-slate-300">
@@ -406,7 +408,7 @@ const BultenPage: React.FC<BultenPageProps> = ({ onNavigate }) => {
                 </div>
 
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
-                  <h4 className="text-xs font-black text-[#FFB020] uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-black text-[#FFD21F] uppercase tracking-wider flex items-center gap-1.5">
                     <span className="flex h-1.5 w-1.5 rounded-full bg-fb-yellow" /> 3. OYUNCU FORMU
                   </h4>
                   <p className="text-xs text-slate-300">
@@ -415,7 +417,7 @@ const BultenPage: React.FC<BultenPageProps> = ({ onNavigate }) => {
                 </div>
 
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
-                  <h4 className="text-xs font-black text-[#FFB020] uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-black text-[#FFD21F] uppercase tracking-wider flex items-center gap-1.5">
                     <span className="flex h-1.5 w-1.5 rounded-full bg-fb-yellow" /> 4. TARAFTARIN NABZI
                   </h4>
                   <p className="text-xs text-slate-300">
@@ -424,7 +426,7 @@ const BultenPage: React.FC<BultenPageProps> = ({ onNavigate }) => {
                 </div>
 
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
-                  <h4 className="text-xs font-black text-[#FFB020] uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-black text-[#FFD21F] uppercase tracking-wider flex items-center gap-1.5">
                     <span className="flex h-1.5 w-1.5 rounded-full bg-fb-yellow" /> 5. PREMIUM NOT
                   </h4>
                   <p className="text-xs text-slate-300 flex-1">

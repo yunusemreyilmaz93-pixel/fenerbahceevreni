@@ -43,7 +43,7 @@ export const AdminSources: React.FC<AdminSourcesProps> = ({ showToast }) => {
       } else {
         // Seed default sources
         const defaultSources: AgencySource[] = [
-          { id: 'src-1', name: 'Yağız Sabuncuoğlu (Sports Digitale)', url: 'https://twitter.com/yagosabuncuoglu', tier: 1, logoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop', description: 'Fenerbahçe haberleri için en güvenilir yerel Tier 1 kaynak.' },
+          { id: 'src-1', name: 'Yağız Sabuncuoğlu (Sports Digitale)', url: 'https://twitter.com/yagosabuncuoglu', tier: 1, logoUrl: '', description: 'Fenerbahçe haberleri için en güvenilir yerel Tier 1 kaynak.' },
           { id: 'src-2', name: 'Sercan Hamzaoğlu (Haber Global)', url: 'https://twitter.com/sercanhamzaolu', tier: 1, logoUrl: '', description: 'Güvenilir Samandıra muhabiri. Tier 1.' },
           { id: 'src-3', name: 'Fabrizio Romano', url: 'https://twitter.com/FabrizioRomano', tier: 1, logoUrl: '', description: 'Uluslararası transfer gelişmeleri - Here We Go.' },
           { id: 'src-4', name: 'TRT Spor Duyumu', url: 'https://trtspor.com.tr', tier: 2, logoUrl: '', description: 'Geleneksel basın, resmi gelişmeler.' },

@@ -7,7 +7,7 @@ import {
   Clock, 
   ArrowRight, 
   ChevronLeft, 
-  Sparkles, 
+ 
   Mail, 
   FileText, 
   CheckCircle, 
@@ -80,168 +80,8 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
   };
 
   // High-fidelity fallback mock data matching specific prompt examples
-  const fallbackReports: TransferReport[] = [
-    {
-      id: "tgt-fallback-1",
-      playerName: "Merkez 6 Profili",
-      slug: "merkez-6-profili",
-      position: "Merkez Orta Saha (8 Numara)",
-      age: 24,
-      nationality: "Fransa",
-      currentClub: "Avrupa Kulübü",
-      estimatedCost: "8-10M €",
-      fitScore: 8.4,
-      strengths: ["İlk pas kalitesi", "Pozisyon bilgisi", "Geçiş savunması"],
-      concerns: ["Maaş beklentisi", "Maksimum tempo", "Lig adaptasyonu"],
-      tacticalFit: "Özellikle geriden üçlü oyun kurarken ya da topsuz geçiş prese dönerken stoperlerin önünde kusursuz bir kalkan oluşturuyor. Fred'in sol iç alanda kurduğu baskıyı, savunmada derinlik sağlayarak harika tolere edebilecek nitelikte.",
-      summary: "Fenerbahçe’nin savunma önü dengesini artırabilecek, topu ilk bölgede baskı altındayken bile daha temiz çıkarabilecek kusursuza yakın bir dinamik regülatör.",
-      isPremium: false,
-      status: "published",
-      featured: true,
-      createdAt: "2026-05-28T12:00:00.000Z",
-      updatedAt: "2026-05-28T12:00:00.000Z"
-    },
-    {
-      id: "tgt-fallback-2",
-      playerName: "Sol Ayaklı Stoper",
-      slug: "sol-ayakli-stoper-analizi",
-      position: "Stoper",
-      age: 26,
-      nationality: "Brezilya",
-      currentClub: "Güney Amerika Kulübü",
-      estimatedCost: "5-7M €",
-      fitScore: 7.9,
-      strengths: ["Sol ayak", "Uzun diyagonal pas", "Hava topları"],
-      concerns: ["Avrupa lig adaptasyonu", "Riskli derinlemesine paslar"],
-      tacticalFit: "Savunma çizgisini önde kurduğumuz sekanslarda sol kanat bek bindirmelerini doğrudan destekleyen diyagonal pas yeteneğine sahip. Sol stoper bölgesinde oyun kurmayı asimetrik olarak çeşitlendiriyor.",
-      summary: "Geriye yaslanan sert Anadolu rakiplerine karşı üçüncü bölgeye geçişteki pas kurulumunu dikine hızlandırabilecek kompakt bir sol stoper profili.",
-      isPremium: false,
-      status: "published",
-      featured: false,
-      createdAt: "2026-05-27T10:15:00.000Z",
-      updatedAt: "2026-05-27T10:15:00.000Z"
-    },
-    {
-      id: "tgt-fallback-3",
-      playerName: "Patlayıcı Kanat",
-      slug: "patlayici-kanat-forvet-raporu",
-      position: "Kanat",
-      age: 22,
-      nationality: "Fildişi Sahili",
-      currentClub: "Fransa Ligi Kulübü",
-      estimatedCost: "10-12M €",
-      fitScore: 8.1,
-      strengths: ["Can yakıcı bire bir", "Yüksek hız", "Ceza sahası koşusu"],
-      concerns: ["Son tercih karar kalitesi", "Müsabaka istikrarı"],
-      tacticalFit: "Kadıköy'de kapanan 5-4-1 bloklarını delmek için gereken 'bire bir izole delme' gücüne tam uymaktadır. Topu ayağına aldığında rakip savunma dengesini tamamen bozma karakterine sahip.",
-      summary: "Kapalı ve blok kurup bekleyen savunmaları açmak için bire bir tehdidi son derece yüksek, tavan potansiyeli muazzam ve yaş itibarıyla gelişim vadisi harika olan bir kanat oyuncusu.",
-      isPremium: false,
-      status: "published",
-      featured: false,
-      createdAt: "2026-05-26T18:00:00.000Z",
-      updatedAt: "2026-05-26T18:00:00.000Z"
-    },
-    {
-      id: "tgt-fallback-4",
-      playerName: "Bitirici Forvet",
-      slug: "bitirici-forvet-gol-makinesi",
-      position: "Forvet",
-      age: 27,
-      nationality: "Belçika",
-      currentClub: "Belçika Ligi",
-      estimatedCost: "6-8M €",
-      fitScore: 7.6,
-      strengths: ["Ceza sahası konumlanışı", "Tek vuruş kalitesi", "Ön alan presi"],
-      concerns: ["Sırtı dönük pas dağıtımı", "Sakatlık geçmişi"],
-      tacticalFit: "Kendi ceza sahasına gömülen rakipler karşısında merkezde bitirici rol oynayabilir. Ancak Mourinho'nun forvetten beklediği derine inip top dağıtma rolünde belli esneklik kısıtları mevcuttur.",
-      summary: "Ceza sahasında yüksek yüzdeli net bitiricilik sunabilir fakat Fenerbahçe'nin genel geçiş oyun kurulumuna katkısı taktiksel olarak ayrıca tartılmalı.",
-      isPremium: false,
-      status: "published",
-      featured: false,
-      createdAt: "2026-05-25T11:20:00.000Z",
-      updatedAt: "2026-05-25T11:20:00.000Z"
-    },
-    {
-      id: "tgt-fallback-5",
-      playerName: "Box-to-box Orta Saha",
-      slug: "box-to-box-orta-saha-enerjisi",
-      position: "Orta Saha",
-      age: 25,
-      nationality: "Hollanda",
-      currentClub: "Hollanda Ligi",
-      estimatedCost: "7-9M €",
-      fitScore: 8.0,
-      strengths: ["Tükenmez enerji bütçesi", "Merkez pres şiddeti", "Top taşıma hacmi"],
-      concerns: ["Pozisyon disiplini kaybı", "Yay çevresi son kilit pas"],
-      tacticalFit: "Oyun temposunu çift yönlü üst düzeye fırlatıyor. Fred'in sakatlık veya cezalı olduğu haftalardaki rotasyon zayıflığını tamamen emebilecek, koşu mesafeleri ve presi eşsiz bir kutudan kutuya aktör.",
-      summary: "Fenerbahçe'nin özellikle Avrupa kupası deplasmanlarında orta saha temposunu ve direncini üst seviyeye çıkartabilecek ancak sahada taktik disiplin ile kontrol edilmesi gereken bir isim.",
-      isPremium: false,
-      status: "published",
-      featured: false,
-      createdAt: "2026-05-23T14:40:00.000Z",
-      updatedAt: "2026-05-23T14:40:00.000Z"
-    },
-    {
-      id: "tgt-fallback-6",
-      playerName: "Modern Sağ Bek",
-      slug: "modern-sag-bek-hiz-makinesi",
-      position: "Defans",
-      age: 23,
-      nationality: "Portekiz",
-      currentClub: "Portekiz Ligi",
-      estimatedCost: "4-6M €",
-      fitScore: 7.8,
-      strengths: ["Çizgi bindirmeleri", "Milimetrik orta kalitesi", "Sprinter hız koridoru"],
-      concerns: ["Savunma yerleşim disiplini", "Fiziksel temas ikili mücadeleleri"],
-      tacticalFit: "Hücumda üçüncü bölgenin asimetrik çizgi genişliğini kusursuz açar. Tadic'in içe girdiği ve oyunu yönlendirdiği senaryolarda arka kulvarı olağanüstü yüksek süratle süpürebilir.",
-      summary: "Hücum katkısı takdire şayan, genişlik sağlayan ve atletizmiyle göz kamaştıran ama defansif disiplini Kadıköy'ün ağır faturalı derbilerinde test edilmesi gereken bir bek opsiyonu.",
-      isPremium: false,
-      status: "published",
-      featured: false,
-      createdAt: "2026-05-22T09:00:00.000Z",
-      updatedAt: "2026-05-22T09:00:00.000Z"
-    },
-    {
-      id: "tgt-fallback-7",
-      playerName: "Yaratıcı 10 Numara",
-      slug: "yaratici-10-numara-akli",
-      position: "Orta Saha",
-      age: 28,
-      nationality: "İspanya",
-      currentClub: "İspanya Ligi",
-      estimatedCost: "Serbest / düşük maliyet",
-      fitScore: 7.3,
-      strengths: ["Kilit anahtar ara paslar", "Duran top ustatlığı", "Maksimum sahne yaratıcılığı"],
-      concerns: ["Fiziksel ikili pres gücü", "Geri koşu direnci", "Kronikleşen yaş profili"],
-      tacticalFit: "Saha içi beynini ve pas estetiğini üst seviyeye çeker. Sıkışan kapalı savunma kilitlerini tek pasla açabilir fakat Mourinho'nun ön alan pres ve sert savunma felsefesinde eksi yazar.",
-      summary: "Kapalı ve sert kilitli Anadolu maçlarını açabilecek elit bir pas kalitesi sunar fakat Avrupa seviyesindeki yüksek ritimli maçlarda fiziksel direnç açısından dezavantaj oluşturur.",
-      isPremium: false,
-      status: "published",
-      featured: false,
-      createdAt: "2026-05-20T16:15:00.000Z",
-      updatedAt: "2026-05-20T16:15:00.000Z"
-    },
-    {
-      id: "tgt-fallback-8",
-      playerName: "Premium: Nordik Dinamosu Detaylı Analizi",
-      slug: "nordik-dinamosu-derin-scout-raporu",
-      position: "Orta Saha",
-      age: 23,
-      nationality: "Danimarka",
-      currentClub: "Hollanda Eredivisie",
-      estimatedCost: "12-14M €",
-      fitScore: 9.1,
-      strengths: ["Kapsamlı oyun aklı", "İkili mücadele üstünlüğü", "Asist beklentisi (xA)"],
-      concerns: ["Yüksek bonservis talebi", "Premier lig talipleriyle rekabet"],
-      tacticalFit: "Hem 6 hem 8 numarada kusursuz oynayan, ısı haritasında sahanın her santimetresine dokunan, geçişlerde pas hatası yapmayan elit bir modern orta saha lideri. Mourinho'nun taktiksel rüyası rolünde.",
-      summary: "Orta saha göbeğinde hem savunma sertliğini yükseltecek hem de hücum üretkenliğini en üst seviyeye çıkaracak, geleceği pırlanta gibi parlayan modern bir Nordik dinamosu.",
-      isPremium: true,
-      status: "published",
-      featured: false,
-      createdAt: "2026-05-18T14:00:00.000Z",
-      updatedAt: "2026-05-18T14:00:00.000Z"
-    }
-  ];
+  // Product rule: no fabricated transfer targets. Empty DB -> premium empty state.
+  const fallbackReports: TransferReport[] = [];
 
   // Retrieve data from Firebase
   useEffect(() => {
@@ -403,33 +243,18 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
     }
   };
 
-  // Priority needs board targets
-  const transferNeeds = [
-    {
-      position: '6 Numara (Ön Libero / Çapa)',
-      priority: 'Çok Yüksek',
-      color: 'border-rose-500/20 bg-rose-500/5 text-rose-400',
-      reason: 'Fred ve Szymanski\'nin orta alandaki baskısını geriden emniyete alacak ve ilk oyun kurma pas kalitesini yukarılara sırtlayacak üst kalibre bir çapa rolü elzem.'
-    },
-    {
-      position: 'Sol Stoper (Asimetrik Kurulumcu)',
-      priority: 'Yüksek',
-      color: 'border-amber-500/20 bg-amber-500/5 text-amber-400',
-      reason: 'Geri oyun kurulumlarında rakiplerin yoğun pres barikatını asimetrik sol ayak diyagonalleriyle bozacak, hava toplarında rakip santrforu eritecek nitelikte lider.'
-    },
-    {
-      position: 'Patlayıcı Çizgi Kanatı (Bire Bir Tehdidi)',
-      priority: 'Orta-Yüksek',
-      color: 'border-fb-yellow/20 bg-fb-yellow/5 text-fb-yellow',
-      reason: 'Kapalı ve 5\'li savunmalarda yaratıcılık tıkanması yaşandığı anlarda patlayıcı dribbling ivmelenmesiyle rakipleri gafil avlayacak, oyuna genişlik veren profil.'
-    },
-    {
-      position: 'Yırtıcı Alternatif Forvet',
-      priority: 'Duruma Bağlı',
-      color: 'border-slate-500/20 bg-slate-500/5 text-slate-400',
-      reason: 'Takımdaki olası taktik geçişlerde çift santrforlu sisteme uyacak ve hücum pres zenginliğini eksiltmeyecek sırtı dönük oynayabilen agresif bitirici.'
-    }
-  ];
+  // Mevki ihtiyaç panosu: yalnızca gerçek (admin/JSON) veriden beslenir — uydurma editoryal yok.
+  const [transferNeeds, setTransferNeeds] = useState<{
+    position: string; priority: string; color: string; reason: string; category?: string;
+  }[]>([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const needs = await dbGetCollection('transferNeeds');
+        setTransferNeeds(Array.isArray(needs) ? needs : []);
+      } catch { setTransferNeeds([]); }
+    })();
+  }, []);
 
   if (loading) {
     return (
@@ -524,7 +349,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
             {featuredReport && selectedCategory === 'Tümü' && !searchQuery && extraFilter === 'all' && (
               <section className="container mx-auto px-6 max-w-6xl py-12">
                 <div className="mb-6">
-                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-fb-yellow block">Mourinho Sistemine En Uyumlu Profil</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-fb-yellow block">İsmail Kartal Sistemine En Uyumlu Profil</span>
                   <h2 className="text-xl font-display font-black text-white uppercase italic">Öne Çıkan Scout Raporu</h2>
                 </div>
 
@@ -590,7 +415,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                       </div>
 
                       <div className="space-y-2">
-                        <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020] flex items-center gap-1"><Sparkles size={11} /> SCOUT DEĞERLENDİRME ÖZETİ</span>
+                        <span className="text-[10px] uppercase font-black tracking-widest text-[#FFD21F] flex items-center gap-1"> SCOUT DEĞERLENDİRME ÖZETİ</span>
                         <p className="text-sm text-slate-300 leading-relaxed font-semibold">
                           {featuredReport.summary}
                         </p>
@@ -798,7 +623,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {report.concerns.slice(0, 2).map((con, i) => (
-                              <span key={i} className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 bg-[#FFB020]/5 text-[#FFB020] border border-[#FFB020]/10 rounded">
+                              <span key={i} className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 bg-[#FFD21F]/5 text-[#FFD21F] border border-[#FFD21F]/10 rounded">
                                 - {con}
                               </span>
                             ))}
@@ -817,7 +642,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                           <span className="text-[10px] text-fb-muted font-bold">Kamuoyu Raporu</span>
                         )}
                         
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#FFB020] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#FFD21F] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                           İncele <ChevronRight size={13} />
                         </span>
                       </div>
@@ -835,6 +660,16 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                 <p className="text-xs text-fb-muted mt-1">Bu sezon için Fenerbahçe'nin saha içi omurgasını kuvvetlendirecek taktiksel öncelikli pozisyon hamle tablosu.</p>
               </div>
 
+              {transferNeeds.length === 0 && (
+                <div className="p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
+                  <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                    Mevki ihtiyaç şeması henüz yayınlanmadı
+                  </p>
+                  <p className="text-[10px] text-slate-500 italic">
+                    Taktik kurulun sezon içi ihtiyaç değerlendirmesi eklendiğinde bu pano aktifleşir.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {transferNeeds.map((need, i) => (
                   <div key={i} className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] flex flex-col justify-between relative overflow-hidden group">
@@ -870,7 +705,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                 {[
                   {
                     title: 'Taktiksel Uyumluluk',
-                    desc: 'Mourinho\'nun geçiş savunması, blok daraltma presi, dikey pas oyunu ve bek katılım senaryolarına oyuncunun ısı haritası ve pas hacmi açısının korelasyonu.'
+                    desc: 'İsmail Kartal\'nun geçiş savunması, blok daraltma presi, dikey pas oyunu ve bek katılım senaryolarına oyuncunun ısı haritası ve pas hacmi açısının korelasyonu.'
                   },
                   {
                     title: 'Kadro Şablonu İhtiyacı',
@@ -909,8 +744,8 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                 <div className="absolute top-0 right-0 w-80 h-80 bg-fb-yellow/[0.015] rounded-full blur-[100px] pointer-events-none"></div>
                 
                 <div className="space-y-3 max-w-xl">
-                  <div className="flex items-center gap-1.5 text-[#FFB020] font-black text-[10px] tracking-widest uppercase">
-                    <Sparkles size={11} className="animate-pulse" /> Premium Transfer Dosyaları
+                  <div className="flex items-center gap-1.5 text-[#FFD21F] font-black text-[10px] tracking-widest uppercase">
+                     Premium Transfer Dosyaları
                   </div>
                   <h3 className="text-2xl md:text-3xl font-display font-black text-white italic uppercase tracking-tight">
                     Detaylı Profesyonel Rapor Arşivine Katılın
@@ -975,7 +810,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                     </div>
 
                     <div className="space-y-2 text-center md:text-left">
-                      <span className="text-[10px] font-black bg-white/5 border border-white/5 text-[#FFB020] px-2.5 py-1 rounded">
+                      <span className="text-[10px] font-black bg-white/5 border border-white/5 text-[#FFD21F] px-2.5 py-1 rounded">
                         Mevki: {currentReport.position}
                       </span>
                       <h1 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase tracking-tight pt-1">
@@ -1015,13 +850,13 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
 
                   {/* Concerns list */}
                   <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] text-left space-y-4">
-                    <h3 className="text-xs font-black text-[#FFB020] uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-white/5">
-                      <AlertTriangle size={16} className="text-[#FFB020]" /> Tehditler & Limitasyonlar
+                    <h3 className="text-xs font-black text-[#FFD21F] uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-white/5">
+                      <AlertTriangle size={16} className="text-[#FFD21F]" /> Tehditler & Limitasyonlar
                     </h3>
                     <ul className="space-y-3">
                       {currentReport.concerns.map((con, i) => (
                         <li key={i} className="text-xs text-slate-200 flex items-start gap-2 font-semibold">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#FFB020] shrink-0 mt-2" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#FFD21F] shrink-0 mt-2" />
                           <span>{con}</span>
                         </li>
                       ))}
@@ -1083,7 +918,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                       {/* Tactical suitability box */}
                       {currentReport.tacticalFit && (
                         <div className="space-y-2">
-                          <h4 className="text-xs font-black text-[#FFB020] uppercase tracking-widest flex items-center gap-1.5 font-display italic">
+                          <h4 className="text-xs font-black text-[#FFD21F] uppercase tracking-widest flex items-center gap-1.5 font-display italic">
                             <TrendingUp size={14} /> Fenerbahçe Taktiksel Odak & Rol Uyumu
                           </h4>
                           <p className="text-xs text-slate-300 leading-relaxed font-semibold">

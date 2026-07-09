@@ -43,7 +43,7 @@ export const AdminPlayers: React.FC = () => {
     contractEndDate: '2027-06-30',
     marketValue: '€15M',
     nationality: 'Türkiye',
-    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
+    photo: '',
     formRating: '8.2',
     lastMatchRating: '8.5',
     trend: 'stabil',
@@ -127,7 +127,7 @@ export const AdminPlayers: React.FC = () => {
       contractEndDate: p.contractEndDate || '2027-06-30',
       marketValue: p.marketValue || '€15M',
       nationality: p.nationality || 'Türkiye',
-      photo: p.photo || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
+      photo: p.photo || '',
       formRating: p.formRating || '8.2',
       lastMatchRating: p.lastMatchRating || '8.5',
       trend: p.trend || 'stabil',
@@ -164,7 +164,7 @@ export const AdminPlayers: React.FC = () => {
       contractEndDate: '2027-06-30',
       marketValue: '€15M',
       nationality: 'Türkiye',
-      photo: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop',
+      photo: '',
       formRating: '8.2',
       lastMatchRating: '8.5',
       trend: 'stabil',
@@ -501,7 +501,7 @@ export const AdminPlayers: React.FC = () => {
                   value={form.analysis}
                   onChange={(e) => setForm(p => ({ ...p, analysis: e.target.value }))}
                   rows={5}
-                  placeholder="Sezon içindeki rol değişimi, Fred ile uyumu, Mourinho'nun verdiği şanslar..."
+                  placeholder="Sezon içindeki rol değişimi, Fred ile uyumu, İsmail Kartal'nun verdiği şanslar..."
                   className="px-4 py-3 bg-fb-dark border border-white/10 rounded-xl text-xs text-slate-300 leading-relaxed"
                 />
               </div>

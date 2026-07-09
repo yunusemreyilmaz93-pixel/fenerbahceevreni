@@ -12,6 +12,7 @@ interface HeroSectionProps {
 const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, homeSettings }) => {
   const [match, setMatch] = useState<any>(null);
   const [opponentLogo, setOpponentLogo] = useState<string>('');
+  const [topPlayers, setTopPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,8 +39,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
           if (oppTeam) {
             setOpponentLogo(oppTeam.logoUrl || oppTeam.logo || '');
           } else {
-            // Check if there is already an opponentLogo field on the match
-            setOpponentLogo(activeMatch.opponentLogo || 'https://upload.wikimedia.org/wikipedia/tr/f/ff/Fenerbah%C3%A7e_SK.png');
+            // Maç üzerindeki gerçek rakip logosu (varsa); yoksa initials'a bırakmak için boş
+            setOpponentLogo(activeMatch.awayLogo || activeMatch.opponentLogo || '');
           }
         }
       } catch (err) {
@@ -48,8 +49,30 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
         setLoading(false);
       }
     };
-    
+
+    const fetchTopSquad = async () => {
+      try {
+        const parseMv = (mv?: string | null): number => {
+          if (!mv) return 0;
+          const m = mv.replace(',', '.').match(/([\d.]+)/);
+          if (!m) return 0;
+          const n = parseFloat(m[1]);
+          if (Number.isNaN(n)) return 0;
+          if (/mil/i.test(mv)) return n * 1_000_000;
+          if (/bin/i.test(mv)) return n * 1_000;
+          return n;
+        };
+        const plist = await dbGetCollection('players');
+        const tops = (plist || [])
+          .filter((p: any) => p.status === 'active' && p.photo && parseMv(p.marketValue) > 0)
+          .sort((a: any, b: any) => parseMv(b.marketValue) - parseMv(a.marketValue))
+          .slice(0, 3);
+        setTopPlayers(tops);
+      } catch { setTopPlayers([]); }
+    };
+
     fetchHeroMatchAndTeams();
+    fetchTopSquad();
   }, []);
 
   return (
@@ -182,7 +205,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
               {/* Card top details */}
               <div className="flex justify-between items-center mb-6 border-b border-white/[0.05] pb-4">
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#FFD21F] bg-[#FFD21F]/10 px-2.5 py-1 rounded-md border border-[#FFD21F]/20 font-mono">
-                  🔥 {match?.status === 'live' ? 'CANLI MAÇ' : 'SIRADAKİ MAÇ'}
+                  {match
+                    ? (match.status === 'live'
+                        ? '🔴 CANLI MAÇ'
+                        : (match.status === 'finished' || match.status === 'completed')
+                          ? 'SON MAÇ'
+                          : 'SIRADAKİ MAÇ')
+                    : 'KADRO VİTRİNİ'}
                 </span>
                 <span className="text-xs text-slate-400 font-bold">
                   {match?.competition || 'Trendyol Süper Lig'}
@@ -194,13 +223,51 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                   Maç Bilgileri Yükleniyor...
                 </div>
               ) : !match ? (
-                // Beautiful Turkish empty state
-                <div className="py-12 px-4 text-center space-y-4">
-                  <Calendar className="w-10 h-10 text-slate-500 mx-auto opacity-70" />
-                  <p className="text-xs text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">
-                    Yaklaşan maç bilgisi henüz eklenmedi.
-                  </p>
-                </div>
+                topPlayers.length > 0 ? (
+                  // Maç verisi yokken gerçek kadro vitrini (Transfermarkt piyasa değeri liderleri)
+                  <div className="py-4 px-1 space-y-5">
+                    <div className="flex items-end justify-center gap-3">
+                      {topPlayers.map((p: any, i: number) => (
+                        <button
+                          key={p.id || i}
+                          onClick={() => onNavigate('players')}
+                          className={`group relative rounded-2xl overflow-hidden border border-white/[0.07] bg-gradient-to-b from-[#101A30] to-[#0B0F19] hover:border-fb-yellow/40 transition-all cursor-pointer ${
+                            i === 1 ? 'w-[38%] -translate-y-2' : 'w-[31%]'
+                          }`}
+                        >
+                          <div className="relative pt-3 flex items-end justify-center h-28 md:h-32 overflow-hidden">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(255,210,31,0.08),transparent_60%)]" />
+                            <img
+                              src={p.photo}
+                              alt={p.name}
+                              className="h-24 md:h-28 object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-500"
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                          <div className="p-2.5 text-center bg-black/30">
+                            <span className="text-[10px] font-black text-white uppercase block truncate leading-tight">
+                              {(p.name || '').split(' ').slice(-1)[0]}
+                            </span>
+                            <span className="text-[9px] font-mono font-black text-emerald-400">{p.marketValue}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => onNavigate('players')}
+                      className="w-full py-3 bg-white/[0.04] hover:bg-fb-yellow text-slate-300 hover:text-fb-dark text-[10px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer border border-white/[0.06]"
+                    >
+                      2026-27 Kadrosunu Keşfet →
+                    </button>
+                  </div>
+                ) : (
+                  <div className="py-12 px-4 text-center space-y-4">
+                    <Calendar className="w-10 h-10 text-slate-500 mx-auto opacity-70" />
+                    <p className="text-xs text-slate-400 font-bold max-w-sm mx-auto leading-relaxed">
+                      Yaklaşan maç bilgisi henüz eklenmedi.
+                    </p>
+                  </div>
+                )
               ) : (
                 <>
                   {/* Big Match matchup */}
@@ -209,7 +276,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                     <div className="flex flex-col items-center flex-1">
                       <div className="w-16 h-16 rounded-2xl bg-[#0B0F19] border border-white/[0.06] flex items-center justify-center p-2 mb-2 shadow-inner">
                         <img 
-                          src="https://upload.wikimedia.org/wikipedia/tr/f/ff/Fenerbah%C3%A7e_SK.png" 
+                          src="/logos/fenerbahce.png" 
                           alt="Fenerbahçe" 
                           className="w-12 h-12 object-contain"
                           referrerPolicy="no-referrer"
@@ -220,14 +287,25 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                       </span>
                     </div>
 
-                    {/* VS block */}
+                    {/* VS / skor block */}
                     <div className="px-4 flex flex-col items-center shrink-0">
-                      <span className="text-[11px] text-slate-500 font-black tracking-widest">VS</span>
-                      <div className="text-2xl font-black italic text-[#FFD21F] font-mono select-none my-1">
-                        {match.time || '20:00'}
-                      </div>
+                      {(match.status === 'finished' || match.status === 'completed') ? (
+                        <>
+                          <span className="text-[11px] text-slate-500 font-black tracking-widest">MS</span>
+                          <div className="text-2xl font-black italic text-[#FFD21F] font-mono select-none my-1">
+                            {match.scoreHome ?? 0} - {match.scoreAway ?? 0}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[11px] text-slate-500 font-black tracking-widest">VS</span>
+                          <div className="text-2xl font-black italic text-[#FFD21F] font-mono select-none my-1">
+                            {match.matchDate ? new Date(match.matchDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : (match.time || '—')}
+                          </div>
+                        </>
+                      )}
                       <span className="text-[10px] text-slate-400 font-bold font-mono">
-                        {match.matchDate ? new Date(match.matchDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : match.date || '30 May'}
+                        {match.matchDate ? new Date(match.matchDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : match.date || ''}
                       </span>
                     </div>
 
@@ -253,11 +331,23 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                     </div>
                   </div>
 
+                  {/* Golcüler — gerçek maç kaydından */}
+                  {(match.status === 'finished' || match.status === 'completed') && Array.isArray(match.goals) && match.goals.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-1.5 mt-1 mb-1">
+                      {[...match.goals].sort((a: any, b: any) => a.minute - b.minute).map((g: any, i: number) => (
+                        <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07] text-[10px] font-bold text-slate-300">
+                          <span className="font-mono font-black text-[#FFD21F]">{g.minute}'</span>
+                          {(g.scorer || '').replace(/\s*\(kendi kalesine\)/i, ' (k.k.)').split(' ').slice(-2).join(' ')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Match spec grid detail */}
                   <div className="bg-[#0B0F19]/60 border border-white/[0.03] rounded-xl p-3.5 my-5 text-xs text-slate-300 space-y-1">
                     <div className="flex justify-between">
                       <span className="text-slate-500 font-semibold">Stadyum:</span>
-                      <span className="font-bold text-white text-right truncate max-w-[200px]">{match.venue || 'Şükrü Saracoğlu Kompleksi'}</span>
+                      <span className="font-bold text-white text-right truncate max-w-[200px]">{match.venue || '—'}</span>
                     </div>
                     {match.referee && (
                       <div className="flex justify-between">
@@ -268,8 +358,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                   </div>
 
                   {/* Short match preview text */}
-                  <p className="text-xs text-slate-400 leading-relaxed italic border-t border-white/[0.04] pt-4 mb-5">
-                    "{match.matchPreview || 'Fenerbahçe derbi hazırlıkları devam ediyor. Analiz ekibimizin maç önü raporu yakında yayında.'}"
+                  <p className="text-sm text-slate-300 leading-relaxed italic border-t border-white/[0.04] pt-4 mb-5">
+                    "{match.matchPreview || 'Bu karşılaşma için analiz henüz yayınlanmadı.'}"
                   </p>
 
                   {/* Direct Dashboard actions */}
@@ -280,12 +370,21 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                     >
                       Maç Merkezine Git
                     </button>
-                    <button 
-                      onClick={() => onNavigate('fan-room')}
-                      className="py-3 px-5 text-center bg-white/[0.04] hover:bg-white/[0.08] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all border border-white/[0.08] cursor-pointer"
-                    >
-                      Tahmin Yap
-                    </button>
+                    {(match.status === 'finished' || match.status === 'completed') ? (
+                      <button
+                        onClick={() => onNavigate('match-center')}
+                        className="py-3 px-5 text-center bg-white/[0.04] hover:bg-white/[0.08] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all border border-white/[0.08] cursor-pointer"
+                      >
+                        Maç Raporu
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onNavigate('fan-room')}
+                        className="py-3 px-5 text-center bg-white/[0.04] hover:bg-white/[0.08] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all border border-white/[0.08] cursor-pointer"
+                      >
+                        Tahmin Yap
+                      </button>
+                    )}
                   </div>
                 </>
               )}

@@ -265,7 +265,7 @@ export const AdminPolls: React.FC<AdminPollsProps> = ({ showToast, initiateCreat
                   setIsDirty(true);
                   setQuestion(e.target.value);
                 }}
-                placeholder="Örn: Sizce Mourinho orta sahada kime şans vermeli?"
+                placeholder="Örn: Sizce İsmail Kartal orta sahada kime şans vermeli?"
                 className="px-4 py-3 bg-fb-dark border border-white/15 rounded-xl text-xs text-white placeholder-slate-500 font-bold"
               />
             </div>
