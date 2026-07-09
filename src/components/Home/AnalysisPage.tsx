@@ -397,7 +397,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                   {/* cover image */}
                   <div className="lg:col-span-7 relative h-64 lg:h-full min-h-[300px] overflow-hidden bg-fb-dark">
                     {featuredArticle.coverImage ? (
-                      <img 
+                      <img loading="lazy"
                         src={featuredArticle.coverImage} 
                         alt={featuredArticle.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -405,7 +405,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-[#0E1A36] via-[#0B0F19] to-[#132347] flex items-center justify-center">
-                        <img src="/logos/fenerbahce.png" alt="" className="w-24 h-24 object-contain opacity-20" />
+                        <img loading="lazy"src="/logos/fenerbahce.png" alt="" className="w-24 h-24 object-contain opacity-20" />
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-fb-dark via-fb-dark/40 to-transparent"></div>
@@ -520,7 +520,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                           {/* Card image container */}
                           <div className="relative h-44 overflow-hidden bg-fb-dark">
                             {art.coverImage ? (
-                              <img 
+                              <img loading="lazy"
                                 src={art.coverImage} 
                                 alt={art.title} 
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
@@ -528,7 +528,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                               />
                             ) : (
                               <div className="w-full h-full bg-gradient-to-br from-[#0E1A36] via-[#0B0F19] to-[#132347] flex items-center justify-center">
-                                <img src="/logos/fenerbahce.png" alt="" className="w-14 h-14 object-contain opacity-20" />
+                                <img loading="lazy"src="/logos/fenerbahce.png" alt="" className="w-14 h-14 object-contain opacity-20" />
                               </div>
                             )}
                             
@@ -783,7 +783,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                 {/* Big cover Image */}
                 <div className="h-64 md:h-96 rounded-2xl overflow-hidden bg-fb-dark border border-white/10 relative shadow-2xl">
                   {currentArticle.coverImage ? (
-                    <img 
+                    <img loading="lazy"
                       src={currentArticle.coverImage} 
                       alt={currentArticle.title} 
                       className="w-full h-full object-cover"
@@ -791,7 +791,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#0E1A36] via-[#0B0F19] to-[#132347] flex items-center justify-center">
-                      <img src="/logos/fenerbahce.png" alt="" className="w-20 h-20 object-contain opacity-20" />
+                      <img loading="lazy"src="/logos/fenerbahce.png" alt="" className="w-20 h-20 object-contain opacity-20" />
                     </div>
                   )}
                 </div>

@@ -141,3 +141,10 @@
   @apply font-display font-black tracking-tighter uppercase;
   text-shadow: 0 0 30px rgba(254, 221, 0, 0.2);
 }
+
+
+/* Defer rendering cost for long, below-the-fold collections. */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 420px;
+}
