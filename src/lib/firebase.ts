@@ -48,44 +48,20 @@ export const ensureAnonymousUser = async () => {
   return credential.user;
 };
 
-// Graceful Auth Helper wrapping signInWithPopup
+// Admin access always requires a real Firebase provider and ID token.
 export const loginWithGoogleAdmin = async () => {
-  if (auth && googleProvider) {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      return result.user;
-    } catch (err) {
-      console.error("Firebase Login Error:", err);
-      throw err;
-    }
-  } else {
-    // Return mock admin user
-    const mockUser = {
-      uid: "mock-admin-uid-123",
-      email: "yunusemreyilmaz93@gmail.com",
-      displayName: "Yunus Emre YÄ±lmaz (YÃ¶netici)",
-      photoURL: ""
-    };
-    localStorage.setItem("mock_admin_user", JSON.stringify(mockUser));
-    return mockUser;
+  if (!auth || !googleProvider) {
+    throw new Error('Firebase Admin girişi kullanılamıyor.');
   }
+  const result = await signInWithPopup(auth, googleProvider);
+  return result.user;
 };
 
 export const logoutAdmin = async () => {
-  if (auth) {
-    await signOut(auth);
-  } else {
-    localStorage.removeItem("mock_admin_user");
-  }
+  if (auth) await signOut(auth);
 };
 
-export const getCurrentAdminUser = () => {
-  if (auth && auth.currentUser) {
-    return auth.currentUser;
-  }
-  const saved = localStorage.getItem("mock_admin_user");
-  return saved ? JSON.parse(saved) : null;
-};
+export const getCurrentAdminUser = () => auth?.currentUser || null;
 
 export const getAdminUser = async () => {
   return getCurrentAdminUser();
@@ -96,23 +72,13 @@ export const isAdminUserLoggedIn = async () => {
 };
 
 export const onAuthStateChangedAdmin = (callback: (user: any) => void) => {
-  if (auth) {
-    return auth.onAuthStateChanged((user: any) => {
-      if (user && isAdminEmail(user.email)) {
-        callback(user);
-      } else {
-        callback(null);
-      }
-    });
-  } else {
-    const handleMockCheck = () => {
-      const user = getCurrentAdminUser();
-      callback(user);
-    };
-    const interval = setInterval(handleMockCheck, 1000);
-    handleMockCheck(); // Immediate check
-    return () => clearInterval(interval);
+  if (!auth) {
+    callback(null);
+    return () => {};
   }
-};
 
+  return auth.onAuthStateChanged((user: any) => {
+    callback(user && isAdminEmail(user.email) ? user : null);
+  });
+};
 
