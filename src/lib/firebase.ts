@@ -1,14 +1,11 @@
-﻿import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInAnonymously, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
 import firebaseInjectedConfig from '../../firebase-applet-config.json';
 import { isAdminEmail } from './envHelper';
 
 const injected = firebaseInjectedConfig as any;
-
 const metaEnv = (import.meta as any).env || {};
-
 const firebaseConfig = {
   apiKey: metaEnv.VITE_FIREBASE_API_KEY || (injected ? injected.apiKey : ''),
   authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN || (injected ? injected.authDomain : ''),
@@ -20,25 +17,32 @@ const firebaseConfig = {
 };
 
 const isFirebaseConfigured = !!(firebaseConfig.apiKey && firebaseConfig.projectId);
-
 let app: any = null;
 let db: any = null;
 let auth: any = null;
-let storage: any = null;
+let storagePromise: Promise<any> | null = null;
 
 if (isFirebaseConfigured) {
   try {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     db = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
     auth = getAuth(app);
-    storage = getStorage(app);
     console.log("Firebase successfully initialized with live dynamic configuration:", firebaseConfig.projectId);
   } catch (error) {
     console.error("Failed to initialize Live Firebase SDK:", error);
   }
 }
 
-export { app, db, auth, storage, isFirebaseConfigured };
+export { app, db, auth, isFirebaseConfigured };
+
+export const getFirebaseStorage = async () => {
+  if (!app) return null;
+  if (!storagePromise) {
+    storagePromise = import('firebase/storage').then(({ getStorage }) => getStorage(app));
+  }
+  return storagePromise;
+};
+
 export const googleProvider = auth ? new GoogleAuthProvider() : null;
 
 export const ensureAnonymousUser = async () => {
@@ -62,23 +66,15 @@ export const logoutAdmin = async () => {
 };
 
 export const getCurrentAdminUser = () => auth?.currentUser || null;
-
-export const getAdminUser = async () => {
-  return getCurrentAdminUser();
-};
-
-export const isAdminUserLoggedIn = async () => {
-  return !!getCurrentAdminUser();
-};
+export const getAdminUser = async () => getCurrentAdminUser();
+export const isAdminUserLoggedIn = async () => !!getCurrentAdminUser();
 
 export const onAuthStateChangedAdmin = (callback: (user: any) => void) => {
   if (!auth) {
     callback(null);
     return () => {};
   }
-
   return auth.onAuthStateChanged((user: any) => {
     callback(user && isAdminEmail(user.email) ? user : null);
   });
 };
-
