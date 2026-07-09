@@ -1,4 +1,4 @@
-node_modules/
+﻿node_modules/
 build/
 dist/
 coverage/
@@ -14,4 +14,12 @@ data-worker/soccerdata_home/data/
 data-worker/soccerdata_home/logs/
 data-worker/output/*.json
 data-worker/output/*.csv
+# Local agent state and generated scraper artifacts
+.claude/
+.grok/
+downloaded_files/
+data-worker/output/**
+!data-worker/output/.gitkeep
+data-worker/**/__pycache__/
+data-worker/soccerdata_home/logs/
 
