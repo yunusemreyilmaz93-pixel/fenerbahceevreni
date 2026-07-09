@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, AlertTriangle, ShieldCheck, Vote, Trophy, Clock, HelpCircle } from 'lucide-react';
+import { Calendar, AlertTriangle, Vote } from 'lucide-react';
 import { dbGetCollection } from '../../lib/dbService';
 
 interface MatchCenterProps {
@@ -13,11 +13,11 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
   const [opponentLogo, setOpponentLogo] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
-  // Poll votes logic
+  // Poll votes logic — gerçek katılımdan başlar, sahte seed yok
   const [pollVotes, setPollVotes] = useState({
-    home: 1845,
-    draw: 742,
-    away: 541,
+    home: 0,
+    draw: 0,
+    away: 0,
     voted: false
   });
 
@@ -45,15 +45,15 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
           if (oppTeam) {
             setOpponentLogo(oppTeam.logoUrl || oppTeam.logo || '');
           } else {
-            setOpponentLogo(activeMatch.opponentLogo || 'https://upload.wikimedia.org/wikipedia/tr/f/ff/Fenerbah%C3%A7e_SK.png');
+            setOpponentLogo(activeMatch.awayLogo || activeMatch.opponentLogo || '');
           }
 
           // Merge prediction data if present
           if (activeMatch.predictionPoll) {
             setPollVotes({
-              home: activeMatch.predictionPoll.homeWinPct || 1845,
-              draw: activeMatch.predictionPoll.drawPct || 742,
-              away: activeMatch.predictionPoll.awayWinPct || 541,
+              home: activeMatch.predictionPoll.homeWinPct || 0,
+              draw: activeMatch.predictionPoll.drawPct || 0,
+              away: activeMatch.predictionPoll.awayWinPct || 0,
               voted: false
             });
           }
@@ -78,6 +78,8 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
     });
   };
 
+  const isFinished = matchData?.status === 'finished' || matchData?.status === 'completed';
+
   const total = pollVotes.home + pollVotes.draw + pollVotes.away;
   const homePercent = Math.round((pollVotes.home / total) * 100) || 0;
   const drawPercent = Math.round((pollVotes.draw / total) * 100) || 0;
@@ -94,10 +96,8 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
         xiObj.DM1, xiObj.DM2, xiObj.RW, xiObj.AM, xiObj.LW, xiObj.CF
       ].filter(Boolean);
     }
-    return [
-      "Dominik Livaković", "Osayi-Samuel", "Alexander Djiku", "Çağlar Söyüncü", "Jayden Oosterwolde",
-      "İsmail Yüksek", "Fred", "Sebastian Szymański", "İrfan Can Kahveci", "Dušan Tadić", "Edin Džeko"
-    ];
+    // Gerçek kadro verisi yoksa uydurma liste basma — boş dön, UI boş durum gösterir
+    return [];
   };
 
   const xiList = renderProbableXI();
@@ -152,10 +152,20 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                   <div className="text-[11px] font-black text-slate-400 uppercase font-mono tracking-wider">
                     {matchData.competition || 'Trendyol Süper Lig'}
                   </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[9px] font-black text-red-400 font-mono">
-                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                    KRİTİK MAÇ
-                  </div>
+                  {matchData.status === 'live' ? (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[9px] font-black text-red-400 font-mono">
+                      <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                      CANLI
+                    </div>
+                  ) : isFinished ? (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-400 font-mono">
+                      MAÇ SONUCU
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFD21F]/10 border border-[#FFD21F]/20 text-[9px] font-black text-[#FFD21F] font-mono">
+                      YAKLAŞAN MAÇ
+                    </div>
+                  )}
                 </div>
 
                 {/* Matchup row */}
@@ -165,7 +175,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                     <div className="flex items-center gap-4 text-left">
                       <div className="w-12 h-12 rounded-xl bg-[#0B0F19] flex items-center justify-center border border-white/[0.06] p-1.5">
                         <img 
-                          src="https://upload.wikimedia.org/wikipedia/tr/f/ff/Fenerbah%C3%A7e_SK.png" 
+                          src="/logos/fenerbahce.png" 
                           alt="Fenerbahçe" 
                           className="w-9 h-9 object-contain"
                           referrerPolicy="no-referrer"
@@ -173,16 +183,15 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                       </div>
                       <div>
                         <div className="text-base font-black text-white uppercase italic">{matchData.homeTeam}</div>
-                        <span className="text-[10px] text-emerald-400 font-black uppercase font-mono tracking-wider">GÜÇLÜ FORM</span>
                       </div>
                     </div>
-                    {matchData.status === 'live' && (
+                    {(matchData.status === 'live' || isFinished) && (
                       <span className="text-xl font-mono font-black text-[#FFD21F]">{matchData.scoreHome}</span>
                     )}
                   </div>
 
                   <div className="h-px bg-white/[0.05] relative">
-                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#111625] px-2 text-[9px] text-slate-500 font-black tracking-widest uppercase font-mono">VS</span>
+                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#111625] px-2 text-[9px] text-slate-500 font-black tracking-widest uppercase font-mono">{isFinished ? 'MS' : 'VS'}</span>
                   </div>
 
                   {/* Away Team (Opponent) */}
@@ -206,11 +215,10 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                         <div className="text-base font-black text-white uppercase italic truncate max-w-[130px]">
                           {matchData.awayTeam === 'Fenerbahçe' ? matchData.homeTeam : matchData.awayTeam}
                         </div>
-                        <span className="text-[10px] text-amber-500 font-black uppercase font-mono tracking-wider">STABİL</span>
                       </div>
                     </div>
-                    {matchData.status === 'live' && (
-                      <span className="text-xl font-mono font-black text-[#FFD21F]">{matchData.scoreAway}</span>
+                    {(matchData.status === 'live' || isFinished) && (
+                      <span className="text-xl font-mono font-black text-white">{matchData.scoreAway}</span>
                     )}
                   </div>
                 </div>
@@ -222,10 +230,12 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                   <Calendar className="w-4 h-4 text-[#FFD21F] shrink-0" />
                   <div>
                     <div className="text-xs font-black text-white uppercase tracking-wider font-mono">
-                      {matchData.matchDate ? new Date(matchData.matchDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : matchData.date || '30 May 2026'} • {matchData.time || '20:00'}
+                      {matchData.matchDate
+                        ? `${new Date(matchData.matchDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} • ${new Date(matchData.matchDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`
+                        : '—'}
                     </div>
                     <span className="text-[10px] text-slate-400 font-bold leading-none">
-                      {matchData.venue || 'Şükrü Saracoğlu Kompleksi'}
+                      {matchData.venue || '—'}
                     </span>
                   </div>
                 </div>
@@ -236,11 +246,11 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
             <div className="lg:col-span-8 rounded-2xl bg-[#111625] border border-white/[0.08] flex flex-col overflow-hidden shadow-lg hover:border-white/[0.12] transition-colors">
               
               {/* Tab Header bar */}
-              <div className="grid grid-cols-3 border-b border-white/[0.06] bg-white/[0.01]">
+              <div className={`grid ${isFinished ? 'grid-cols-2' : 'grid-cols-3'} border-b border-white/[0.06] bg-white/[0.01]`}>
                 {[
-                  { id: 'preview' as const, label: 'Maç Önü Analizi' },
-                  { id: 'xi' as const, label: 'Muhtemel 11' },
-                  { id: 'poll' as const, label: 'Taraftar Tahmini' }
+                  { id: 'preview' as const, label: isFinished ? 'Maç Özeti' : 'Maç Önü Analizi' },
+                  { id: 'xi' as const, label: isFinished ? 'İlk 11' : 'Muhtemel 11' },
+                  ...(isFinished ? [] : [{ id: 'poll' as const, label: 'Taraftar Tahmini' }])
                 ].map((tab) => (
                   <button 
                     key={tab.id}
@@ -274,15 +284,19 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                       className="space-y-4 text-left"
                     >
                       <h3 className="text-xl font-black text-white italic tracking-tight uppercase">
-                        Saha İçi Stratejisi & Karşılaşma Dinamikleri
+                        {isFinished ? 'Maç Özeti' : 'Maç Önü Değerlendirmesi'}
                       </h3>
-                      <p className="text-slate-300 text-sm leading-relaxed">
-                        Fenerbahçe, kendi sahasında oynayacağı bu kritik mücadelede, oyunu birinci vitesten itibaren önde basan, agresif pas trafiğiyle rakip yerleşim kalıplarını bozan bir strateji kurgulayacaktır. Ortasahanın akışkanlığı geçiş direncini kırmada en önemli kozumuz olacaktır.
-                      </p>
-                      <p className="text-slate-300 text-sm leading-relaxed">
-                        Analiz ekibimiz; rakibin hatlar arası mesafe problemlerini cezalandırmak adına özellikle kanat deplaseleriyle oluşacak iç koridor boşluklarını hedefliyor.
-                      </p>
-                      
+                      {matchData.matchPreview ? (
+                        <p className="text-slate-300 text-sm leading-relaxed">
+                          {matchData.matchPreview}
+                        </p>
+                      ) : (
+                        <p className="text-slate-500 text-sm leading-relaxed italic">
+                          Bu karşılaşma için maç önü analizi henüz yayınlanmadı. Analiz ekibinin değerlendirmesi
+                          maç haftasında bu alanda yer alacak.
+                        </p>
+                      )}
+
                       {matchData.tacticalNotes && matchData.tacticalNotes.length > 0 && (
                         <div className="pt-4 border-t border-white/[0.05] space-y-2.5">
                           <span className="text-[10px] font-black uppercase text-[#FFD21F] tracking-widest font-mono">Taktik Direktifler:</span>
@@ -298,11 +312,11 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                       )}
 
                       <div className="pt-4 border-t border-white/[0.04]">
-                        <button 
-                          onClick={() => onNavigate('analysis')}
+                        <button
+                          onClick={() => onNavigate(isFinished ? 'match-center' : 'analysis')}
                           className="text-xs font-black text-[#FFD21F] hover:text-white uppercase tracking-wider cursor-pointer"
                         >
-                          Tüm Maç Önü Taktik Planını Oku →
+                          {isFinished ? 'Detaylı Maç Raporunu Oku →' : 'Tüm Maç Önü Analizini Oku →'}
                         </button>
                       </div>
                     </motion.div>
@@ -318,13 +332,15 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                     >
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-black text-white uppercase tracking-widest font-mono">
-                          Öngörülen Taktik Şablon ({matchData.probableXI?.formation || '4-2-3-1'})
+                          {isFinished ? 'İlk 11' : 'Muhtemel 11'}{matchData.probableXI?.formation ? ` (${matchData.probableXI.formation})` : ''}
                         </h3>
-                        <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1 font-mono">
-                          <ShieldCheck className="w-3.5 h-3.5" /> Analist Onaylı
-                        </span>
                       </div>
 
+                      {xiList.length === 0 ? (
+                        <div className="p-8 rounded-xl bg-[#0B0F19]/60 border border-white/[0.04] text-center text-sm text-slate-400 font-semibold">
+                          Kadro bilgisi henüz açıklanmadı.
+                        </div>
+                      ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="p-4 rounded-xl bg-[#0B0F19]/85 border border-white/[0.04] space-y-2">
                           <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase block mb-2 font-mono">Defansif & Omurga</span>
@@ -346,15 +362,18 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                           ))}
                         </div>
                       </div>
+                      )}
 
-                      <div className="pt-2 border-t border-white/[0.04] text-xs text-slate-400 flex items-center gap-2 italic">
-                        <AlertTriangle className="w-3.5 h-3.5 text-[#FFD21F] shrink-0" />
-                        Teknik heyetin son antrenman tercihleri doğrultusunda merkez kurgusunda değişiklikler gözlenebilir.
-                      </div>
+                      {!isFinished && xiList.length > 0 && (
+                        <div className="pt-2 border-t border-white/[0.04] text-xs text-slate-400 flex items-center gap-2 italic">
+                          <AlertTriangle className="w-3.5 h-3.5 text-[#FFD21F] shrink-0" />
+                          Teknik heyetin son antrenman tercihleri doğrultusunda kadroda değişiklik olabilir.
+                        </div>
+                      )}
                     </motion.div>
                   )}
 
-                  {activeTab === 'poll' && (
+                  {activeTab === 'poll' && !isFinished && (
                     <motion.div
                       key="poll"
                       initial={{ opacity: 0, y: 10 }}
@@ -371,8 +390,8 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
 
                       {!pollVotes.voted ? (
                         <div className="space-y-4">
-                          <p className="text-xs text-slate-300 leading-relaxed font-semibold">
-                            Bağımsız analiz topluluğunun beklenti matrisini ölçümlüyoruz. Oyunuzu vererek güncel grafiği hemen filtreleyebilirsiniz.
+                          <p className="text-sm text-slate-300 leading-relaxed font-semibold">
+                            Taraftar topluluğunun maç beklentisini ölçüyoruz. Oyunu ver, güncel dağılımı gör.
                           </p>
                           <div className="grid grid-cols-3 gap-3">
                             <button 
@@ -444,8 +463,8 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                               </div>
                             </div>
                           </div>
-                          <p className="text-[10px] text-slate-500 italic pt-1 text-right font-mono">
-                            Toplam Oy: {total} • Canlı Taraftar Dağılım Gözlemi
+                          <p className="text-[10px] text-slate-400 italic pt-1 text-right font-mono">
+                            Toplam Oy: {total}
                           </p>
                         </div>
                       )}
@@ -454,11 +473,8 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                 </AnimatePresence>
 
                 {/* Sub-navigation CTAs */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-6 mt-6 border-t border-white/[0.04] justify-between items-center">
-                  <span className="text-[10px] text-slate-500 font-mono font-black uppercase tracking-wider">
-                    FENERBAHÇE EVRENİ • ANALİZ SİMÜLATÖRÜ
-                  </span>
-                  <button 
+                <div className="flex flex-col sm:flex-row gap-3 pt-6 mt-6 border-t border-white/[0.04] justify-end items-center">
+                  <button
                     onClick={() => onNavigate('predictor')}
                     className="px-5 py-2.5 bg-[#FFD21F]/10 border border-[#FFD21F]/20 hover:border-[#FFD21F] text-[#FFD21F] text-xs font-black uppercase rounded-xl transition-all cursor-pointer shadow-sm hover:scale-[1.01]"
                   >

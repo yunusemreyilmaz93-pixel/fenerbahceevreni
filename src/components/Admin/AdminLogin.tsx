@@ -62,7 +62,7 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onLoginSuccess, onBackTo
         uid: "mock-admin-uid-123",
         email: trimmedEmail,
         displayName: "Fenerbahçe Evreni Admin (Yönetici)",
-        photoURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop"
+        photoURL: ''
       };
       localStorage.setItem("mock_admin_user", JSON.stringify(mockUser));
       setLoading(false);

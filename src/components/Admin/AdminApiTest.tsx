@@ -444,7 +444,7 @@ export const AdminApiTest: React.FC = () => {
           position: trPos,
           age: plyr.age || 25,
           nationality: plyr.nationality || 'Turkey',
-          photo: plyr.photo || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop',
+          photo: plyr.photo || '',
           number: plyr.number ? String(plyr.number) : '',
           formRating: "7.2",
           lastMatchRating: "7.0",

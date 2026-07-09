@@ -130,7 +130,7 @@ export const AdminMedia: React.FC = () => {
               <input
                 type="text"
                 required
-                placeholder="Örn: Mourinho Basın Toplantısı"
+                placeholder="Örn: İsmail Kartal Basın Toplantısı"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="px-4 py-2.5 bg-fb-dark border border-white/10 rounded-xl text-xs text-white"

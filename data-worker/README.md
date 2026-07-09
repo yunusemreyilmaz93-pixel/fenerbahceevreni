@@ -1,4 +1,31 @@
-# Fenerbahçe Spor Kulübü - Soccerdata Entegrasyon Worker'ı (SofaScore Test Probu)
+# Fenerbahçe Spor Kulübü - Veri Boru Hattı (data-worker)
+
+## Kadro Fetcher — `fetch_squad.py` (Scrapling, önerilen akış)
+
+Uygulamanın kullandığı `public/data/squad.json` dosyasını yeniden üreten, **yeniden
+çalıştırılabilir** kadro boru hattı. Transfermarkt'tan güncel kadroyu (numara, mevki,
+yaş, uyruk, piyasa değeri, sözleşme, fotoğraf) ve her oyuncunun fiziksel künyesini
+(boy, ayak, yan mevkiler, doğum yeri) çeker; fotoğrafları `public/players/` altına indirir.
+
+**Önemli:** El yazısı **scout raporları** (overview / güçlü yönler / gelişim alanları)
+`squad.json` içinde yaşar ve her çalıştırmada slug bazında **korunur** — yalnızca gerçek
+istatistikler tazelenir. Kadroya yeni katılan oyuncular otomatik yakalanır (scout'ları
+boş gelir, sonradan doldurulur).
+
+```bash
+pip install scrapling
+python data-worker/fetch_squad.py                 # 26/27 kadrosu
+python data-worker/fetch_squad.py --season 2027   # sonraki sezon
+```
+
+Çıktı: `public/data/squad.json` (updatedAt bump → uygulama açılışında otomatik yeniler).
+
+Fikstür / puan durumu için aşağıdaki SofaScore probu ve `public/data/matches.json`
+(elle/otomatik güncellenebilir) kullanılır.
+
+---
+
+# Soccerdata Entegrasyon Worker'ı (SofaScore Test Probu)
 
 Bu dizin, Fenerbahçe Spor Portalı için bağımsız Python veri entegrasyonu (`data-worker`) altyapısını kurmak ve doğrulamak için tasarlanmıştır. Bu aşamada, `soccerdata==1.9.0` kütüphanesi ve SofaScore kaynağı üzerinden Trendyol Süper Lig bağlantısının ve programatik akışların testi gerçekleştirilir.
 
@@ -102,3 +129,22 @@ Başarılı bir çalıştırma sonrasında çıktılanan rapor dosyası (`data-w
 
 ### Entegrasyon Kısıtlamaları (SofaScore Sınıfı Hakkında)
 Bu kurguda test edilen SofaScore sınıfı, `soccerdata` API yapısı gereği yalnızca lig, sezon, genel puan tablosu ve fikstür (schedule) verileri sunmaktadır. Ayrıntılı oyuncu bazlı bireysel maç içi istatistikler ve gelişmiş ısı haritaları (read_player_stats, read_match_stats) bu sınıfta yer almamaktadır.
+
+## fetch_standings.py — Süper Lig Puan Durumu
+
+Transfermarkt'tan puan durumunu çeker ve `public/data/standings.json`'a yazar.
+Takım adlarını Türkçeleştirir, yerel `public/logos/` dosyalarıyla eşler
+(dosya yoksa boş bırakır — UI baş harf rozetine düşer). Sezon bittiyse
+`isFinal: true` etiketler.
+
+```
+python data-worker/fetch_standings.py --season 2025   # 2025-26 sezonu
+python data-worker/fetch_standings.py --season 2026   # 2026-27 (sezon başlayınca)
+```
+
+Site tarafında `bootstrapStandingsFromLocalFile()` (dbService.ts) bu dosyayı
+versiyon-farkında olarak `cms_standings`'e yükler.
+
+Not: SofaScore API (403) ve FotMob API (boş gövde/token korumalı) maç
+istatistikleri için denendi ve şu an erişilemiyor — maç istatistik scraper'ı
+için ileride tekrar denenebilir.

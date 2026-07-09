@@ -1,0 +1,25 @@
+{
+  "season": "2026-2027",
+  "league": "Trendyol Süper Lig",
+  "count": 18,
+  "teams": [
+    { "slug": "galatasaray",    "name": "Galatasaray",           "logo": "galatasaray.svg" },
+    { "slug": "fenerbahce",     "name": "Fenerbahçe",            "logo": "fenerbahce.png" },
+    { "slug": "besiktas",       "name": "Beşiktaş",             "logo": "besiktas.svg" },
+    { "slug": "trabzonspor",    "name": "Trabzonspor",           "logo": "trabzonspor.png" },
+    { "slug": "basaksehir",     "name": "İstanbul Başakşehir",  "logo": "basaksehir.png" },
+    { "slug": "kasimpasa",      "name": "Kasımpaşa",            "logo": "kasimpasa.png" },
+    { "slug": "eyupspor",       "name": "Eyüpspor",             "logo": "eyupspor.png" },
+    { "slug": "goztepe",        "name": "Göztepe",              "logo": "goztepe.png" },
+    { "slug": "samsunspor",     "name": "Samsunspor",            "logo": "samsunspor.png" },
+    { "slug": "rizespor",       "name": "Çaykur Rizespor",      "logo": "rizespor.png" },
+    { "slug": "konyaspor",      "name": "Konyaspor",             "logo": "konyaspor.png" },
+    { "slug": "kocaelispor",    "name": "Kocaelispor",           "logo": "kocaelispor.png" },
+    { "slug": "alanyaspor",     "name": "Alanyaspor",            "logo": "alanyaspor.png" },
+    { "slug": "gaziantep-fk",   "name": "Gaziantep FK",          "logo": "gaziantep-fk.png" },
+    { "slug": "genclerbirligi", "name": "Gençlerbirliği",       "logo": "genclerbirligi.png" },
+    { "slug": "erzurumspor",    "name": "Erzurumspor FK",        "logo": "erzurumspor.png" },
+    { "slug": "amedspor",       "name": "Amedspor",              "logo": "amedspor.png" },
+    { "slug": "corum-fk",       "name": "Çorum FK",              "logo": "corum-fk.png" }
+  ]
+}

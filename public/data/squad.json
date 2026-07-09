@@ -1,0 +1,1921 @@
+{
+  "team": "Fenerbahçe",
+  "season": "2026-27",
+  "source": "https://www.transfermarkt.com.tr/fenerbahce-istanbul/kader/verein/36/saison_id/2026",
+  "scrapedAt": "2026-07-08T23:13:11.544257",
+  "updatedAt": "2026-07-09T18:06:59.000Z",
+  "count": 31,
+  "scoutCount": 31,
+  "players": [
+    {
+      "id": "fb-2627-irfan-can-egribayat",
+      "name": "İrfan Can Eğribayat",
+      "slug": "irfan-can-egribayat",
+      "position": "Kaleci",
+      "age": 28,
+      "nationality": "Türkiye",
+      "photo": "/players/irfan-can-egribayat.png",
+      "shirtNumber": 1,
+      "contractEndDate": "30 Haz 2027",
+      "marketValue": "1.20 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,93 m",
+      "foot": "Sağ ayak",
+      "fullName": "İrfan Can Eğribayat",
+      "mainPosition": "Kaleci",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "1,93 boyunda, ayak oyununa yatkın bir modern kaleci. Refleksleri ve çizgi üstü kurtarışlarıyla öne çıkan, geriden oyun kurmaya katkı verebilen bir file bekçisi.",
+        "strengths": [
+          "Çizgi refleksleri ve yakın mesafe kurtarış",
+          "Ayakla oyun kurma katkısı",
+          "Boy ve erişim avantajı",
+          "Penaltı kurtarma potansiyeli"
+        ],
+        "development": [
+          "Hava toplarında çıkış kararları",
+          "Yüksek toplarda ceza sahası hakimiyeti",
+          "Baskı altında tutarlılık"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 21,
+        "appearances": 6,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 0,
+        "subOff": 0,
+        "minutes": 540,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-tarik-cetin",
+      "name": "Tarık Çetin",
+      "slug": "tarik-cetin",
+      "position": "Kaleci",
+      "age": 29,
+      "nationality": "Türkiye",
+      "photo": "/players/tarik-cetin.jpg",
+      "shirtNumber": 13,
+      "contractEndDate": "30 Haz 2029",
+      "marketValue": "600 bin €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,93 m",
+      "foot": "Sağ ayak",
+      "fullName": "Tarık Çetin",
+      "mainPosition": "Kaleci",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "1,93 boyunda tecrübeli bir kaleci. Ceza sahası içinde sakin, refleksleri güvenilir; rotasyonda ve kupa maçlarında güven veren bir alternatif.",
+        "strengths": [
+          "Boy ve erişim",
+          "Ceza sahası içi sakinlik",
+          "Refleks kurtarışlar",
+          "Rotasyon güvenilirliği"
+        ],
+        "development": [
+          "Ayak oyunu akıcılığı",
+          "Düzenli maç ritmi bulma",
+          "Uzun toplarda çıkış"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "İlk 11"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 40,
+        "appearances": 4,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 1,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 0,
+        "subOff": 0,
+        "minutes": 360,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-engin-can-biterge",
+      "name": "Engin Can Biterge",
+      "slug": "engin-can-biterge",
+      "position": "Kaleci",
+      "age": 19,
+      "nationality": "Türkiye / Bulgaristan",
+      "photo": "/players/engin-can-biterge.jpg",
+      "shirtNumber": 39,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": null,
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,94 m",
+      "foot": "Sağ ayak",
+      "fullName": "Engin Can Biterge",
+      "mainPosition": "Kaleci",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "1,94 boyunda genç kaleci. Fiziksel erişimi ve potansiyeliyle geleceğe dönük bir kaleci projesi; gelişimini sürdüren bir isim.",
+        "strengths": [
+          "Boy ve erişim avantajı",
+          "Genç yaş potansiyeli",
+          "Refleks gelişim alanı",
+          "Çalışma disiplini"
+        ],
+        "development": [
+          "Maç tecrübesi",
+          "Ayak oyunu ve çıkışlar",
+          "Baskı altında olgunluk"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 14,
+        "appearances": 0,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 0,
+        "subOff": 0,
+        "minutes": 0,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-jayden-oosterwolde",
+      "name": "Jayden Oosterwolde",
+      "slug": "jayden-oosterwolde",
+      "position": "Stoper",
+      "age": 25,
+      "nationality": "Hollanda / Surinam",
+      "photo": "/players/jayden-oosterwolde.jpg",
+      "shirtNumber": 24,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "20.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,89 m",
+      "foot": "Sol ayak",
+      "fullName": "Jayden Oosterwolde",
+      "mainPosition": "Stoper",
+      "subPositions": [
+        "Sol Bek",
+        "Orta Saha Sol"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Sol ayaklı, atletik bir sol bek/stoper. Hız ve fiziğiyle hücuma bindiren, geniş alanı arşınlayan modern bir kanat bek. Gerektiğinde üçlü savunmanın solunda da oynayabilen çok yönlü bir profil.",
+        "strengths": [
+          "Hız ve dikey bindirme kapasitesi",
+          "Fiziksel dayanıklılık ve alan kapatma",
+          "Sol bek ve sol stoper esnekliği",
+          "Savunmada birebir mücadele"
+        ],
+        "development": [
+          "Son pas ve orta kalitesinde istikrar",
+          "Hücum pozisyonu sonrası savunmaya dönüş",
+          "Karar alma hızının rafine edilmesi"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "İlk 11"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 48,
+        "appearances": 47,
+        "goals": 1,
+        "assists": 1,
+        "yellowCards": 18,
+        "secondYellows": 1,
+        "redCards": 0,
+        "subOn": 2,
+        "subOff": 4,
+        "minutes": 4086,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-milan-kriniar",
+      "name": "Milan Škriniar",
+      "slug": "milan-kriniar",
+      "position": "Stoper",
+      "age": 31,
+      "nationality": "Slovakya",
+      "photo": "/players/milan-kriniar.png",
+      "shirtNumber": 37,
+      "contractEndDate": "30 Haz 2029",
+      "marketValue": "10.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,87 m",
+      "foot": "Sağ ayak",
+      "fullName": "Milan Škriniar",
+      "mainPosition": "Stoper",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Inter ve PSG'de üst düzey oynamış, uluslararası tecrübesi yüksek bir stoper. Pozisyon alma zekâsı, hava hakimiyeti ve markaj disipliniyle savunmanın lideri. Sağ stoper veya üçlü savunmanın sağında güven veren bir referans.",
+        "strengths": [
+          "Pozisyon alma ve önceden okuma",
+          "Hava topu hakimiyeti ve markaj",
+          "Liderlik ve savunma organizasyonu",
+          "Baskı altında sakin top çıkarma"
+        ],
+        "development": [
+          "Geniş alanda birebir hız dezavantajı",
+          "Yüksek savunma hattında derinlik riski",
+          "Çok hızlı forvetlere karşı pozisyon zorlanması"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "Gol 42'"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 46,
+        "appearances": 40,
+        "goals": 2,
+        "assists": 1,
+        "yellowCards": 10,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 0,
+        "subOff": 3,
+        "minutes": 3515,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-yigit-efe-demir",
+      "name": "Yiğit Efe Demir",
+      "slug": "yigit-efe-demir",
+      "position": "Stoper",
+      "age": 21,
+      "nationality": "Türkiye",
+      "photo": "/players/yigit-efe-demir.jpg",
+      "shirtNumber": 14,
+      "contractEndDate": "30 Haz 2029",
+      "marketValue": "6.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,94 m",
+      "foot": "Sağ ayak",
+      "fullName": "Yiğit Efe Demir",
+      "mainPosition": "Stoper",
+      "subPositions": [
+        "Ön Libero",
+        "Sağ Bek"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Uzun boylu (1,94) genç stoper. Hava üstünlüğü ve fiziksel potansiyeliyle geleceğe dönük bir savunma projesi; gerektiğinde savunmanın farklı bölgelerinde de oynayabiliyor.",
+        "strengths": [
+          "Boy ve hava topu potansiyeli",
+          "Fiziksel gelişim alanı",
+          "Genç yaş ve yüksek tavan",
+          "Pozisyonel çok yönlülük"
+        ],
+        "development": [
+          "Tecrübe ve oyun okuma",
+          "Hız ve dönüş kabiliyeti",
+          "Baskı altında karar alma"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 47,
+        "appearances": 26,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 5,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 15,
+        "subOff": 3,
+        "minutes": 1247,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-diego-carlos",
+      "name": "Diego Carlos",
+      "slug": "diego-carlos",
+      "position": "Stoper",
+      "age": 33,
+      "nationality": "Brezilya / İspanya",
+      "photo": "/players/diego-carlos.jpg",
+      "shirtNumber": null,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "5.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,85 m",
+      "foot": "Sağ ayak",
+      "fullName": "Diego Carlos Santos Silva",
+      "mainPosition": "Stoper",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Sevilla ve Aston Villa'da oynamış, fiziksel olarak güçlü bir Brezilyalı stoper. Agresif markajı, hava üstünlüğü ve ikili mücadele gücüyle savunmaya sertlik katıyor. Tecrübesiyle hattı organize edebilen bir isim.",
+        "strengths": [
+          "Fiziksel güç ve ikili mücadele",
+          "Hava topu hakimiyeti",
+          "Agresif ve zamanında markaj",
+          "Avrupa'da edinilmiş tecrübe"
+        ],
+        "development": [
+          "Yaşa bağlı hız kaybı",
+          "Ara ara konsantrasyon düşüşü",
+          "Ağır sakatlık sonrası süreklilik"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": []
+    },
+    {
+      "id": "fb-2627-rodrigo-becao",
+      "name": "Rodrigo Becão",
+      "slug": "rodrigo-becao",
+      "position": "Stoper",
+      "age": 30,
+      "nationality": "Brezilya",
+      "photo": "/players/rodrigo-becao.jpg",
+      "shirtNumber": 50,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "2.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,91 m",
+      "foot": "Sağ ayak",
+      "fullName": "Rodrigo Nascimento França",
+      "mainPosition": "Stoper",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Udinese'de uzun yıllar oynamış, Serie A tecrübeli Brezilyalı stoper. Hava hakimiyeti ve fiziksel gücüyle ceza sahasını koruyan, sade ve etkili bir savunmacı.",
+        "strengths": [
+          "Hava topu ve fiziksel mücadele",
+          "Serie A savunma tecrübesi",
+          "Sade ve pozisyonel savunma",
+          "Ceza sahası içi güven"
+        ],
+        "development": [
+          "Geniş alanda hız",
+          "Ayakla oyun kurma rahatlığı",
+          "Yüksek hat savunmasında risk"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "Gol 74'"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 10,
+        "appearances": 1,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 1,
+        "subOff": 0,
+        "minutes": 6,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-yigit-fidan",
+      "name": "Yiğit Fidan",
+      "slug": "yigit-fidan",
+      "position": "Stoper",
+      "age": 21,
+      "nationality": "Türkiye",
+      "photo": "/players/yigit-fidan.png",
+      "shirtNumber": 88,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "1.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,87 m",
+      "foot": "Sağ ayak",
+      "fullName": "Yiğit Fidan",
+      "mainPosition": "Stoper",
+      "subPositions": [
+        "Sağ Bek"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Genç Türk stoper. Fiziksel altyapısı ve öğrenme isteğiyle geleceğe yönelik bir savunma seçeneği; düzenli maç tecrübesiyle gelişmesi beklenen bir profil.",
+        "strengths": [
+          "Fiziksel potansiyel",
+          "Genç yaş ve gelişim alanı",
+          "Savunma pozisyon çalışması",
+          "İstek ve disiplin"
+        ],
+        "development": [
+          "Üst düzey maç tecrübesi",
+          "Hız ve birebir savunma",
+          "Oyun okuma olgunluğu"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": []
+    },
+    {
+      "id": "fb-2627-omar-fayed",
+      "name": "Omar Fayed",
+      "slug": "omar-fayed",
+      "position": "Stoper",
+      "age": 23,
+      "nationality": "Mısır",
+      "photo": "/players/omar-fayed.png",
+      "shirtNumber": null,
+      "contractEndDate": "30 Haz 2027",
+      "marketValue": "600 bin €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,92 m",
+      "foot": "Sağ ayak",
+      "fullName": "Omar Fayed Abdelwahab Elrakhawy",
+      "mainPosition": "Stoper",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Mısır asıllı genç stoper. Fiziksel varlığı ve mücadele gücüyle savunmada alternatif oluşturan, gelişimini sürdüren bir oyuncu.",
+        "strengths": [
+          "Fiziksel mücadele",
+          "Boy ve hava katkısı",
+          "Genç yaş potansiyeli",
+          "Savunma isteği"
+        ],
+        "development": [
+          "Tecrübe ve süreklilik",
+          "Ayakla oyun rahatlığı",
+          "Konsantrasyon istikrarı"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": []
+    },
+    {
+      "id": "fb-2627-archie-brown",
+      "name": "Archie Brown",
+      "slug": "archie-brown",
+      "position": "Sol Bek",
+      "age": 24,
+      "nationality": "İngiltere / Jamaika",
+      "photo": "/players/archie-brown.png",
+      "shirtNumber": 3,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "12.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,90 m",
+      "foot": "Sol ayak",
+      "fullName": "Archie Brown",
+      "mainPosition": "Sol Bek",
+      "subPositions": [
+        "Orta Saha Sol",
+        "Stoper"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Gent'ten transfer edilen İngiliz sol bek. Sol ayaklı, atletik ve hücuma katkı veren modern bir kanat bek. Genç yaşına rağmen Avrupa'da düzenli oynamış, gelişime açık bir profil.",
+        "strengths": [
+          "Hücum bindirmesi ve dikey koşu",
+          "Sol ayakla orta ve pas",
+          "Atletik kapasite ve hız",
+          "Genç yaş, yüksek tavan"
+        ],
+        "development": [
+          "Savunma pozisyonu ve birebir olgunluğu",
+          "Süper Lig'e adaptasyon",
+          "Defansif konsantrasyon"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 41,
+        "appearances": 38,
+        "goals": 5,
+        "assists": 7,
+        "yellowCards": 7,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 9,
+        "subOff": 11,
+        "minutes": 2589,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-levent-mercan",
+      "name": "Levent Mercan",
+      "slug": "levent-mercan",
+      "position": "Sol Bek",
+      "age": 25,
+      "nationality": "Türkiye / Almanya",
+      "photo": "/players/levent-mercan.jpg",
+      "shirtNumber": 22,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "5.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,76 m",
+      "foot": "Sol ayak",
+      "fullName": "Levent Mercan",
+      "mainPosition": "Sol Bek",
+      "subPositions": [
+        "Orta Saha Sol",
+        "Merkez Orta Saha"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Alman altyapısından yetişen sol ayaklı sol bek. Hücum katkısı verebilen, kanatta genişlik sağlayan çok yönlü bir defans oyuncusu; gerektiğinde ileri hatlarda da görev alabiliyor.",
+        "strengths": [
+          "Sol ayakla orta ve pas",
+          "Hücuma katkı ve genişlik",
+          "Pozisyonel esneklik",
+          "Çalışkanlık"
+        ],
+        "development": [
+          "Savunmada birebir istikrarı",
+          "Fiziksel güç",
+          "Sürekli forma bulma"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "İlk 11"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 42,
+        "appearances": 30,
+        "goals": 0,
+        "assists": 5,
+        "yellowCards": 1,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 12,
+        "subOff": 10,
+        "minutes": 1717,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-ognjen-mimovi",
+      "name": "Ognjen Mimović",
+      "slug": "ognjen-mimovi",
+      "position": "Sağ Bek",
+      "age": 21,
+      "nationality": "Sırbistan",
+      "photo": "/players/ognjen-mimovi.jpg",
+      "shirtNumber": 77,
+      "contractEndDate": "30 Haz 2029",
+      "marketValue": "2.70 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,79 m",
+      "foot": "Sağ ayak",
+      "fullName": "Ognjen Mimović",
+      "mainPosition": "Sağ Bek",
+      "subPositions": [
+        "Orta Saha Sağ"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Sırbistan altyapısından gelen genç sağ bek. Atletik ve hücuma dönük; Avrupa futboluna adapte olmaya çalışan, gelişim potansiyeli taşıyan bir profil.",
+        "strengths": [
+          "Atletizm ve hız",
+          "Hücuma bindirme isteği",
+          "Genç yaş ve gelişim alanı",
+          "Öğrenmeye açıklık"
+        ],
+        "development": [
+          "Savunma pozisyonu olgunluğu",
+          "Süper Lig fizik/tempo adaptasyonu",
+          "Süreklilik ve tecrübe"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "İlk 11"
+        }
+      ]
+    },
+    {
+      "id": "fb-2627-bartug-elmaz",
+      "name": "Bartuğ Elmaz",
+      "slug": "bartug-elmaz",
+      "position": "Ön Libero",
+      "age": 23,
+      "nationality": "Türkiye",
+      "photo": "/players/bartug-elmaz.png",
+      "shirtNumber": 28,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "1.50 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,79 m",
+      "foot": "Sağ ayak",
+      "fullName": "Bartuğ Elmaz",
+      "mainPosition": "Ön Libero",
+      "subPositions": [
+        "Merkez Orta Saha"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Fransa altyapısından yetişen ön libero/merkez orta saha. Oyun kuruluşunda pas dağıtımına yatkın, savunma önünde denge sağlamaya çalışan genç bir Türk oyuncu.",
+        "strengths": [
+          "Oyun kuruluşunda pas dağıtımı",
+          "Savunma önü pozisyon alma",
+          "Genç yaş ve teknik altyapı",
+          "Sakin top kullanımı"
+        ],
+        "development": [
+          "Fiziksel güç ve ikili mücadele",
+          "Süper Lig tempo adaptasyonu",
+          "Düzenli maç tecrübesi"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "İlk 11"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 20,
+        "appearances": 8,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 2,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 6,
+        "subOff": 2,
+        "minutes": 244,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-matteo-guendouzi",
+      "name": "Mattéo Guendouzi",
+      "slug": "matteo-guendouzi",
+      "position": "Merkez Orta Saha",
+      "age": 27,
+      "nationality": "Fransa / Fas",
+      "photo": "/players/matteo-guendouzi.png",
+      "shirtNumber": 6,
+      "contractEndDate": "30 Haz 2030",
+      "marketValue": "27.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,85 m",
+      "foot": "Sağ ayak",
+      "fullName": "Mattéo Guendouzi",
+      "mainPosition": "Merkez Orta Saha",
+      "subPositions": [
+        "Ön Libero",
+        "On Numara"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Arsenal, Marsilya ve Lazio çizgisinden gelen, kadronun en yüksek piyasa değerli oyuncusu. Merkez orta sahada hem yıkıcı hem de oyun kurucu; sürekli hareket eden, ikili mücadelelere istekli, liderlik enerjisi yüksek bir motor.",
+        "strengths": [
+          "Geniş sahayı kapatan çalışma temposu",
+          "İkili mücadele ve top kazanma agresifliği",
+          "Orta sahadan ceza sahasına geç kat eden koşular",
+          "Rekabetçi karakter ve liderlik"
+        ],
+        "development": [
+          "Aşırı agresiflik kaynaklı kart görme eğilimi",
+          "Karar anlarında sabır ve pas seçimi",
+          "Bazen pozisyonel disiplinden ödün verme"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "İlk 11"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 22,
+        "appearances": 22,
+        "goals": 2,
+        "assists": 1,
+        "yellowCards": 6,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 2,
+        "subOff": 4,
+        "minutes": 1869,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-fred",
+      "name": "Fred",
+      "slug": "fred",
+      "position": "Merkez Orta Saha",
+      "age": 33,
+      "nationality": "Brezilya",
+      "photo": "/players/fred.png",
+      "shirtNumber": 7,
+      "contractEndDate": "30 Haz 2027",
+      "marketValue": "4.50 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,70 m",
+      "foot": "Çift ayak",
+      "fullName": "Frederico Rodrigues de Paula Santos",
+      "mainPosition": "Merkez Orta Saha",
+      "subPositions": [
+        "On Numara",
+        "Ön Libero"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Manchester United ve Shakhtar Donetsk geçmişiyle Süper Lig'in en tecrübeli merkez orta sahalarından. Çift ayağı ve dar alandaki top koruma yeteneğiyle geçiş anlarında oyunu hızlandıran, agresif pres uygulayan bir box-to-box profili. 33 yaşında olmasına rağmen mücadele hacmi yüksek.",
+        "strengths": [
+          "Yüksek pres yoğunluğu ve topu ileri bölgede kazanma",
+          "Dar alanda çift ayakla top koruma ve çıkış",
+          "Yorulmak bilmeyen dikey koşu hacmi",
+          "Tecrübe ve maç yönetimi"
+        ],
+        "development": [
+          "İleri seviye faul/kart riski (disiplin yönetimi)",
+          "Ceza sahasındaki bitiricilik verimliliği düşük",
+          "Yaşa bağlı toparlanma süreleri"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "Gol 60'"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 50,
+        "appearances": 45,
+        "goals": 4,
+        "assists": 5,
+        "yellowCards": 9,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 20,
+        "subOff": 13,
+        "minutes": 2502,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-abdou-aziz-fall",
+      "name": "Abdou Aziz Fall",
+      "slug": "abdou-aziz-fall",
+      "position": "Merkez Orta Saha",
+      "age": 19,
+      "nationality": "Senegal",
+      "photo": "/players/abdou-aziz-fall.jpg",
+      "shirtNumber": 60,
+      "contractEndDate": "30 Haz 2030",
+      "marketValue": "100 bin €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,80 m",
+      "foot": "Sağ ayak",
+      "fullName": "Abdou Aziz Fall",
+      "mainPosition": "Merkez Orta Saha",
+      "subPositions": [
+        "Ön Libero"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Senegalli genç merkez orta saha. Fiziksel enerjisi ve mücadele isteğiyle dikkat çeken, altyapıdan üst seviyeye adaptasyon sürecindeki bir yetenek.",
+        "strengths": [
+          "Fiziksel enerji ve koşu",
+          "İkili mücadele isteği",
+          "Genç yaş ve gelişim tavanı",
+          "Öğrenmeye açıklık"
+        ],
+        "development": [
+          "Teknik rafinasyon",
+          "Üst düzey maç tecrübesi",
+          "Pozisyonel disiplin"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 0,
+        "appearances": 0,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 0,
+        "subOff": 0,
+        "minutes": 0,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-marco-asensio",
+      "name": "Marco Asensio",
+      "slug": "marco-asensio",
+      "position": "On Numara",
+      "age": 30,
+      "nationality": "İspanya / Hollanda",
+      "photo": "/players/marco-asensio.png",
+      "shirtNumber": 10,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "15.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,82 m",
+      "foot": "Sol ayak",
+      "fullName": "Marco Asensio",
+      "mainPosition": "On Numara",
+      "subPositions": [
+        "Sağ Kanat",
+        "Sol Kanat"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Real Madrid ve PSG'de forma giymiş, sol ayağı çok kaliteli bir kanat/on numara. İçe kat ederek uzaktan şut ve son pas üreten, teknik seviyesi yüksek bir fark yaratıcı. Kadronun yaratıcılık ve bitiricilik anlamında en donanımlı isimlerinden.",
+        "strengths": [
+          "Sol ayakla uzaktan isabetli ve sert şut",
+          "İçe kat edip son pas üretme",
+          "Yüksek teknik ve ilk kontrol kalitesi",
+          "Duran toplarda tehdit"
+        ],
+        "development": [
+          "Sezon boyu süreklilik ve form istikrarı",
+          "Sakatlık geçmişi ve süreklilik riski",
+          "Topsuz alan savunma katkısının sınırlılığı"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 40,
+        "appearances": 38,
+        "goals": 13,
+        "assists": 14,
+        "yellowCards": 2,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 7,
+        "subOff": 13,
+        "minutes": 2749,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-talisca",
+      "name": "Talisca",
+      "slug": "talisca",
+      "position": "On Numara",
+      "age": 32,
+      "nationality": "Brezilya",
+      "photo": "/players/talisca.jpg",
+      "shirtNumber": 94,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "7.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,90 m",
+      "foot": "Sol ayak",
+      "fullName": "Anderson Souza Conceição",
+      "mainPosition": "On Numara",
+      "subPositions": [
+        "Santrafor",
+        "Sağ Kanat"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "1,90 boyunda, sol ayaklı bir on numara/gölge forvet. Gol yükünü sırtlayabilen, serbest vuruş ve penaltı uzmanı; ceza sahasında hava topu tehdidi de olan bir bitirici. Hücumda sayısal ve nitel katkı sağlayan bir profil.",
+        "strengths": [
+          "Ceza sahası içi ve dışı bitiricilik",
+          "Serbest vuruş ve penaltı uzmanlığı",
+          "Boyuna rağmen ayak tekniği ve şut gücü",
+          "Hava topunda hücum tehdidi"
+        ],
+        "development": [
+          "Pres ve savunmaya dönüş katkısı düşük",
+          "Oyun temposunu düşürebilme eğilimi",
+          "Fiziksel süreklilik ve koşu hacmi"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 45,
+        "appearances": 45,
+        "goals": 27,
+        "assists": 5,
+        "yellowCards": 3,
+        "secondYellows": 1,
+        "redCards": 0,
+        "subOn": 13,
+        "subOff": 23,
+        "minutes": 2796,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-emre-demir",
+      "name": "Emre Demir",
+      "slug": "emre-demir",
+      "position": "On Numara",
+      "age": 22,
+      "nationality": "Türkiye",
+      "photo": "/players/emre-demir.png",
+      "shirtNumber": 25,
+      "contractEndDate": "30 Haz 2027",
+      "marketValue": "500 bin €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,75 m",
+      "foot": "Sol ayak",
+      "fullName": "Emre Demir",
+      "mainPosition": "On Numara",
+      "subPositions": [
+        "Sol Kanat",
+        "Sağ Kanat"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Barcelona altyapısı geçmişi olan sol ayaklı ofansif orta saha. Teknik altyapısı ve pas vizyonuyla öne çıkan, düzenli süre bulmayı hedefleyen genç bir Türk oyuncu.",
+        "strengths": [
+          "Sol ayak teknik kalitesi",
+          "Pas vizyonu ve son pas potansiyeli",
+          "Dar alanda top kullanımı",
+          "Genç yaş ve altyapı kalitesi"
+        ],
+        "development": [
+          "Fiziksel güç ve mücadele",
+          "Süreklilik ve maç ritmi",
+          "Savunma katkısı"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": []
+    },
+    {
+      "id": "fb-2627-mert-hakan-yandas",
+      "name": "Mert Hakan Yandaş",
+      "slug": "mert-hakan-yandas",
+      "position": "On Numara",
+      "age": 31,
+      "nationality": "Türkiye",
+      "photo": "/players/mert-hakan-yandas.png",
+      "shirtNumber": 8,
+      "contractEndDate": "30 Haz 2027",
+      "marketValue": null,
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,74 m",
+      "foot": "Sağ ayak",
+      "fullName": "Mert Hakan Yandaş",
+      "mainPosition": "On Numara",
+      "subPositions": [
+        "Merkez Orta Saha",
+        "Sağ Kanat"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Mücadeleci bir merkez/ofansif orta saha. Pres katkısı, koşu hacmi ve ceza sahasına girişleriyle enerji veren, takım için savaşan bir profil.",
+        "strengths": [
+          "Pres ve koşu hacmi",
+          "Ceza sahasına geç kat etme",
+          "Mücadele ve takım oyunu",
+          "Çok yönlü orta saha görevleri"
+        ],
+        "development": [
+          "Teknik ve son pas kalitesi",
+          "Karar alma isabeti",
+          "Hücum üretiminde süreklilik"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 3,
+        "appearances": 0,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 0,
+        "subOff": 0,
+        "minutes": 0,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-anthony-musaba",
+      "name": "Anthony Musaba",
+      "slug": "anthony-musaba",
+      "position": "Sol Kanat",
+      "age": 25,
+      "nationality": "Hollanda / Kongo DC",
+      "photo": "/players/anthony-musaba.png",
+      "shirtNumber": 20,
+      "contractEndDate": "30 Haz 2030",
+      "marketValue": "7.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,82 m",
+      "foot": "Sağ ayak",
+      "fullName": "Anthony Musaba",
+      "mainPosition": "Sol Kanat",
+      "subPositions": [
+        "Sağ Kanat",
+        "Santrafor"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Monaco altyapısından yetişen Hollandalı sol kanat. Hızı ve top sürme yeteneğiyle kanatta genişlik sağlayan, içe kat edebilen bir hücum oyuncusu. Doğru sistemde etkili olabilecek dinamik bir profil.",
+        "strengths": [
+          "Kanatta hız ve top sürme",
+          "İçe kat edip şut arayışı",
+          "Dinamik geçiş oyunu katkısı",
+          "İki kanatta da oynayabilme"
+        ],
+        "development": [
+          "Bitiricilik ve son pas verimliliği",
+          "Süreklilik ve maç etkisi",
+          "Savunma sorumluluğu"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "İlk 11"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 23,
+        "appearances": 23,
+        "goals": 2,
+        "assists": 6,
+        "yellowCards": 1,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 7,
+        "subOff": 15,
+        "minutes": 1230,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-amara-diouf",
+      "name": "Amara Diouf",
+      "slug": "amara-diouf",
+      "position": "Sol Kanat",
+      "age": 18,
+      "nationality": "Senegal",
+      "photo": "/players/amara-diouf.png",
+      "shirtNumber": null,
+      "contractEndDate": "30 Haz 2031",
+      "marketValue": "800 bin €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,75 m",
+      "foot": "Sağ ayak",
+      "fullName": "Amara Diouf",
+      "mainPosition": "Sol Kanat",
+      "subPositions": [
+        "Sağ Kanat",
+        "Santrafor"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Senegal'in genç yeteneklerinden, milli takımında erken yaşta oynamış bir kanat forvet. Hızı ve cesur oyunuyla geleceğe dönük yüksek potansiyel taşıyor.",
+        "strengths": [
+          "Hız ve dinamizm",
+          "Cesur birebir oyunu",
+          "Erken yaşta milli takım tecrübesi",
+          "Yüksek gelişim tavanı"
+        ],
+        "development": [
+          "Fiziksel olgunlaşma",
+          "Karar alma ve bitiricilik",
+          "Avrupa/Süper Lig adaptasyonu"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": []
+    },
+    {
+      "id": "fb-2627-alaettin-ekici",
+      "name": "Alaettin Ekici",
+      "slug": "alaettin-ekici",
+      "position": "Sol Kanat",
+      "age": 17,
+      "nationality": "Türkiye",
+      "photo": "/players/alaettin-ekici.jpg",
+      "shirtNumber": 54,
+      "contractEndDate": "30 Haz 2028",
+      "marketValue": "300 bin €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,83 m",
+      "foot": "Sağ ayak",
+      "fullName": "Alaettin Ekici",
+      "mainPosition": "Sol Kanat",
+      "subPositions": [
+        "Santrafor",
+        "Sağ Kanat"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Altyapıdan yetişen 17 yaşında sol kanat oyuncusu. Genç yaşına rağmen A takım kadrosuna dahil edilen, hız ve hücum isteğiyle öne çıkan geleceğe dönük bir yetenek.",
+        "strengths": [
+          "Kanatta hız ve dinamizm",
+          "Genç yaş, yüksek gelişim tavanı",
+          "Hücuma dönük cesur oyun",
+          "Altyapı formasyonu"
+        ],
+        "development": [
+          "Fiziksel olgunlaşma",
+          "Üst düzey maç tecrübesi",
+          "Karar alma ve bitiricilik istikrarı"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T23:23:27.616303"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T23:13:11.544257",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 14,
+        "appearances": 5,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 5,
+        "subOff": 0,
+        "minutes": 25,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-dorgeles-nene",
+      "name": "Dorgeles Nene",
+      "slug": "dorgeles-nene",
+      "position": "Sağ Kanat",
+      "age": 23,
+      "nationality": "Mali",
+      "photo": "/players/dorgeles-nene.png",
+      "shirtNumber": 45,
+      "contractEndDate": "30 Haz 2030",
+      "marketValue": "20.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,74 m",
+      "foot": "Sağ ayak",
+      "fullName": "Dorgeles Nene",
+      "mainPosition": "Sağ Kanat",
+      "subPositions": [
+        "Santrafor",
+        "Sol Kanat"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Malili genç kanat/kanat forvet. Hızı, dribbling yeteneği ve birebirdeki cesaretiyle dikkat çeken, piyasa değeri yüksek bir yetenek. Geçiş hücumlarında ve dar alanı yaran koşularda tehdit oluşturuyor.",
+        "strengths": [
+          "Yüksek hız ve ivmelenme",
+          "Birebir çalım ve cesaret",
+          "Geçiş anlarında dikey tehdit",
+          "Genç yaş ve gelişim potansiyeli"
+        ],
+        "development": [
+          "Son vuruş ve karar alma tutarlılığı",
+          "Üst düzey maç tecrübesi",
+          "Savunma katkısı ve pozisyonel disiplin"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 41,
+        "appearances": 39,
+        "goals": 11,
+        "assists": 10,
+        "yellowCards": 4,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 14,
+        "subOff": 17,
+        "minutes": 2258,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-cengiz-under",
+      "name": "Cengiz Ünder",
+      "slug": "cengiz-under",
+      "position": "Sağ Kanat",
+      "age": 28,
+      "nationality": "Türkiye",
+      "photo": "/players/cengiz-under.jpg",
+      "shirtNumber": 11,
+      "contractEndDate": "30 Haz 2027",
+      "marketValue": "4.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,73 m",
+      "foot": "Sol ayak",
+      "fullName": "Cengiz Ünder",
+      "mainPosition": "Sağ Kanat",
+      "subPositions": [
+        "Sol Kanat",
+        "On Numara"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Roma, Leicester ve Marsilya çizgisinden dönen, sol ayaklı sağ kanat. İçe kat edip şut çeken ve kaliteli orta yapan, milli takım tecrübesi yüksek bir kanat oyuncusu. Doğru formda fark yaratıcı bir hücum kozu.",
+        "strengths": [
+          "Sağ kanattan içe kat edip şut",
+          "Kaliteli orta ve son pas",
+          "Kanatta birebir çalım ve ivme",
+          "Milli takım/Avrupa tecrübesi"
+        ],
+        "development": [
+          "Form ve süreklilik dalgalanması",
+          "Sakatlık geçmişi",
+          "Savunmaya dönüş ve defansif katkı"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "Gol 9'"
+        }
+      ],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 4,
+        "appearances": 1,
+        "goals": 0,
+        "assists": 0,
+        "yellowCards": 0,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 1,
+        "subOff": 0,
+        "minutes": 8,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-adem-yesilyurt",
+      "name": "Adem Yeşilyurt",
+      "slug": "adem-yesilyurt",
+      "position": "Sağ Kanat",
+      "age": 19,
+      "nationality": "Türkiye",
+      "photo": "/players/adem-yesilyurt.png",
+      "shirtNumber": 35,
+      "contractEndDate": "-",
+      "marketValue": null,
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,78 m",
+      "foot": "Sol ayak",
+      "fullName": "Adem Yeşilyurt",
+      "mainPosition": "Sağ Kanat",
+      "subPositions": [
+        "On Numara",
+        "Merkez Orta Saha"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Genç Türk kanat oyuncusu. Sol ayağı ve hücum isteğiyle altyapıdan A takıma adaptasyon sürecinde; süre buldukça gelişmesi beklenen bir profil.",
+        "strengths": [
+          "Sol ayak ve hücum isteği",
+          "Kanatta dinamizm",
+          "Genç yaş potansiyeli",
+          "Öğrenme motivasyonu"
+        ],
+        "development": [
+          "Üst düzey tecrübe",
+          "Fiziksel güç",
+          "Oyun etkisi sürekliliği"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": []
+    },
+    {
+      "id": "fb-2627-sidiki-cherif",
+      "name": "Sidiki Chérif",
+      "slug": "sidiki-cherif",
+      "position": "Santrafor",
+      "age": 19,
+      "nationality": "Gine",
+      "photo": "/players/sidiki-cherif.jpg",
+      "shirtNumber": 26,
+      "contractEndDate": "30 Haz 2030",
+      "marketValue": "18.00 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,88 m",
+      "foot": "Sağ ayak",
+      "fullName": "Sidiki Chérif",
+      "mainPosition": "Santrafor",
+      "subPositions": [
+        "Sol Kanat"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Gine asıllı, 1,88 boyunda genç santrafor. Fiziksel varlığı ve gol potansiyeliyle piyasa değeri yüksek bir yetenek; ceza sahasında etkili olabilecek modern bir hedef forvet adayı.",
+        "strengths": [
+          "Boy ve fiziksel varlık",
+          "Ceza sahası içi gol potansiyeli",
+          "Genç yaş ve yüksek değer",
+          "Hava topu tehdidi"
+        ],
+        "development": [
+          "Üst düzey maç tecrübesi",
+          "Bitiricilik istikrarı",
+          "Sırtı dönük oyun rafinasyonu"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": [],
+      "seasonStats": {
+        "season": "2025-26",
+        "scope": "Tüm kulvarlar",
+        "inSquad": 17,
+        "appearances": 16,
+        "goals": 3,
+        "assists": 1,
+        "yellowCards": 0,
+        "secondYellows": 0,
+        "redCards": 0,
+        "subOn": 5,
+        "subOff": 6,
+        "minutes": 945,
+        "source": "Transfermarkt"
+      }
+    },
+    {
+      "id": "fb-2627-vedat-muriqi",
+      "name": "Vedat Muriqi",
+      "slug": "vedat-muriqi",
+      "position": "Santrafor",
+      "age": 32,
+      "nationality": "Kosova / Arnavutluk",
+      "photo": "/players/vedat-muriqi.jpg",
+      "shirtNumber": null,
+      "contractEndDate": "30 Haz 2029",
+      "marketValue": "4.50 mil. €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,94 m",
+      "foot": "Sol ayak",
+      "fullName": "Vedat Muriqi",
+      "mainPosition": "Santrafor",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "1,94 boyuyla klasik bir hedef santrafor. Lazio ve Mallorca geçmişiyle hava toplarında neredeyse tartışmasız; ceza sahasında varlık gösteren, penaltı da kullanabilen bir referans forvet. Uzun toplu ve kanat orta oyununun doğal hedefi.",
+        "strengths": [
+          "Hava topu hakimiyeti (hücum ve savunma)",
+          "Ceza sahasında güçlü fiziksel varlık",
+          "Sırtı dönük top tutma ve oyunu bekletme",
+          "Penaltı ve yakın mesafe bitiricilik"
+        ],
+        "development": [
+          "Ayakları arası dinamizm ve hız",
+          "Geniş alana açıldığında etkinlik kaybı",
+          "Yüksek pres sisteminde koşu yükü"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": []
+    },
+    {
+      "id": "fb-2627-cagri-fedai",
+      "name": "Çağrı Fedai",
+      "slug": "cagri-fedai",
+      "position": "Santrafor",
+      "age": 20,
+      "nationality": "Türkiye / Kuzey Makedonya",
+      "photo": "/players/cagri-fedai.jpg",
+      "shirtNumber": 95,
+      "contractEndDate": "30 Haz 2029",
+      "marketValue": "150 bin €",
+      "status": "active",
+      "season": "2026-27",
+      "height": "1,88 m",
+      "foot": "Sağ ayak",
+      "fullName": "Çağrı Fedai",
+      "mainPosition": "Santrafor",
+      "subPositions": [
+        "Forvet Arkası",
+        "Sol Kanat"
+      ],
+      "birthPlace": "",
+      "scout": {
+        "overview": "Genç santrafor. Fiziksel altyapısı ve gol arayışıyla geleceğe dönük bir forvet seçeneği; düzenli süre ve tecrübeyle gelişmesi beklenen bir oyuncu.",
+        "strengths": [
+          "Fiziksel potansiyel",
+          "Ceza sahası içi arayış",
+          "Genç yaş ve gelişim alanı",
+          "İstek ve çalışkanlık"
+        ],
+        "development": [
+          "Bitiricilik ve tecrübe",
+          "Üst düzey tempo adaptasyonu",
+          "Oyun içi karar alma"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T15:15:53.556178"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T01:52:21.764350",
+      "recentMatches": []
+    },
+    {
+      "id": "fb-2627-cagri-balta",
+      "name": "Çağrı Balta",
+      "slug": "cagri-balta",
+      "position": "Santrafor",
+      "age": 18,
+      "nationality": "Türkiye",
+      "photo": "/players/cagri-balta.jpg",
+      "shirtNumber": 99,
+      "contractEndDate": "30 Haz 2031",
+      "marketValue": null,
+      "status": "active",
+      "season": "2026-27",
+      "height": "",
+      "foot": "Sağ ayak",
+      "fullName": "Çağrı Balta",
+      "mainPosition": "Santrafor",
+      "subPositions": [],
+      "birthPlace": "",
+      "scout": {
+        "overview": "18 yaşında genç santrafor. Altyapıdan A takıma yükselen, gol arayışı ve fiziksel gelişim potansiyeliyle geleceğe yönelik bir forvet projesi.",
+        "strengths": [
+          "Genç yaş ve gelişim alanı",
+          "Ceza sahası içi gol arayışı",
+          "Fiziksel potansiyel",
+          "Çalışma isteği"
+        ],
+        "development": [
+          "Üst düzey maç tempo adaptasyonu",
+          "Bitiricilik ve tecrübe",
+          "Sırtı dönük oyun gelişimi"
+        ],
+        "dataSource": "Transfermarkt (profil verisi) + oyuncu profili analizi",
+        "updatedAt": "2026-07-08T23:23:27.616303"
+      },
+      "formRating": "",
+      "lastMatchRating": "",
+      "trend": "stabil",
+      "strengths": [],
+      "weaknesses": [],
+      "analysis": "",
+      "source": "transfermarkt.com.tr",
+      "scrapedAt": "2026-07-08T23:13:11.544257",
+      "createdAt": "2026-07-08T23:13:11.544257",
+      "recentMatches": [
+        {
+          "opponent": "Admira Wacker",
+          "score": "5-0",
+          "result": "G",
+          "competition": "Hazırlık • Avusturya Kampı",
+          "date": "2026-07-08",
+          "note": "İlk 11"
+        }
+      ]
+    }
+  ]
+}

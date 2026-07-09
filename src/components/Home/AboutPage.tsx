@@ -543,7 +543,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                 Hızlı Formla İlet
               </button>
               <button 
-                onClick={() => onNavigate('premium')}
+                onClick={() => onNavigate('bulten')}
                 className="px-5 py-2.5 bg-fb-yellow hover:bg-white text-fb-navy font-black text-[10px] uppercase tracking-widest rounded-xl transition-all"
               >
                 Premium Listesine Katıl

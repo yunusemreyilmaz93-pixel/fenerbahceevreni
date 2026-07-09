@@ -17,7 +17,7 @@ import {
   Award,
   BookOpen,
   PlusCircle,
-  Sparkles,
+
   ArrowRight,
   Sliders,
   RotateCcw,
@@ -64,40 +64,26 @@ interface PlayersPageProps {
   onNavigate: (view: string) => void;
 }
 
-const AVAILABLE_PLAYERS = [
-  { name: 'Dominik Livaković', pos: 'GK', overall: 84, class: 'Kaleci' },
-  { name: 'İrfan Can Eğribayat', pos: 'GK', overall: 77, class: 'Yedek Kaleci' },
-  { name: 'Ertuğrul Çetin', pos: 'GK', overall: 68, class: 'Genç Kaleci' },
-  { name: 'Çağlar Söyüncü', pos: 'CB', overall: 82, class: 'Milli Stoper' },
-  { name: 'Alexander Djiku', pos: 'CB', overall: 81, class: 'Savaşçı Stoper' },
-  { name: 'Rodrigo Becão', pos: 'CB', overall: 80, class: 'Hava Hakimi Stoper' },
-  { name: 'Samet Akaydin', pos: 'CB', overall: 75, class: 'Mücadeleci Stoper' },
-  { name: 'Serdar Aziz', pos: 'CB', overall: 74, class: 'Tecrübeli Stoper' },
-  { name: 'Jayden Oosterwolde', pos: 'LB/CB', overall: 81, class: 'Atletik Sol Bek' },
-  { name: 'Filip Kostić', pos: 'LB/LM', overall: 79, class: 'Hücumcu Sol Bek / Sol Kanat' },
-  { name: 'Levent Mercan', pos: 'LB', overall: 73, class: 'Yedek Sol Bek' },
-  { name: 'Yusuf Akçiçek', pos: 'CB', overall: 68, class: 'Genç Stoper' },
-  { name: 'Bright Osayi-Samuel', pos: 'RB', overall: 79, class: 'Hızlı Sağ Bek' },
-  { name: 'Mert Müldür', pos: 'RB/LB', overall: 77, class: 'Savaşçı Bek' },
-  { name: 'Sofyan Amrabat', pos: 'DM', overall: 82, class: 'Orta Saha Çpası' },
-  { name: 'İsmail Yüksek', pos: 'DM/MC', overall: 80, class: 'Dinamik Ön Libero' },
-  { name: 'Fred', pos: 'MC', overall: 83, class: 'Orta Saha Dinamosu' },
-  { name: 'Sebastian Szymański', pos: 'AM', overall: 81, class: 'Ofansif Orta Saha' },
-  { name: 'Mert Hakan Yandaş', pos: 'MC/AM', overall: 76, class: 'Orta Saha Lideri' },
-  { name: 'Bartuğ Elmaz', pos: 'DM/MC', overall: 72, class: 'Genç Ön Libero' },
-  { name: 'Dušan Tadić', pos: 'LW/AM', overall: 83, class: 'Oyun Kurucu / Sol Kanat' },
-  { name: 'Allan Saint-Maximin', pos: 'LW', overall: 81, class: 'Dripling Ustası' },
-  { name: 'İrfan Can Kahveci', pos: 'AM/RW', overall: 82, class: 'Sihirbaz Sağ Kanat' },
-  { name: 'Cengiz Ünder', pos: 'RW', overall: 78, class: 'Uzaktan Şutör / Sağ Kanat' },
-  { name: 'Oğuz Aydın', pos: 'LW/RW', overall: 76, class: 'Genç Kanat' },
-  { name: 'Emre Mor', pos: 'RW/LW', overall: 74, class: 'Driplingci Kanat' },
-  { name: 'Ryan Kent', pos: 'LW/RW', overall: 75, class: 'Sözleşmeli Sol Kanat' },
-  { name: 'Edin Džeko', pos: 'CF', overall: 81, class: 'Usta Bitirici / Santrfor' },
-  { name: 'Youssef En-Nesyri', pos: 'CF', overall: 82, class: 'Hava Hakimi Santrfor' },
-  { name: 'Cenk Tosun', pos: 'CF', overall: 76, class: 'Milli Santrfor' },
-  { name: 'Melih Bostan', pos: 'CF', overall: 71, class: 'Genç Santrfor' },
-  { name: 'YENİ TRANSFER', pos: 'TR', overall: 85, class: 'Planlanan Takviye' }
-];
+// Oyuncu havuzu gerçek kadrodan (squad.json → players koleksiyonu) yüklenir.
+// Rol kodu → kabul edilen gerçek mevki adları (Transfermarkt Türkçe mevkileri).
+const ROLE_POSITION_MAP: { [roleKey: string]: string[] } = {
+  GK: ['kaleci'],
+  CB: ['stoper'],
+  LB: ['sol bek', 'sol kanat'],
+  RB: ['sag bek', 'sag kanat'],
+  LM: ['sol bek', 'sol kanat'],
+  RM: ['sag bek', 'sag kanat'],
+  DM: ['on libero', 'merkez orta saha'],
+  MC: ['merkez orta saha', 'on libero', 'on numara'],
+  AM: ['on numara', 'merkez orta saha'],
+  LW: ['sol kanat', 'on numara'],
+  RW: ['sag kanat', 'on numara'],
+  CF: ['santrafor', 'santrfor']
+};
+
+const trNorm = (s: string) => (s || '').toLowerCase()
+  .replace(/ı/g, 'i').replace(/ş/g, 's').replace(/ç/g, 'c')
+  .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ö/g, 'o');
 
 const TACTICAL_FORMATIONS: { [key: string]: { role: string; label: string; x: number; y: number; desc: string }[] } = {
   '4231': [
@@ -362,7 +348,9 @@ const TACTICAL_FORMATIONS: { [key: string]: { role: string; label: string; x: nu
   ]
 };
 
-const getPlayerAvatarUrl = (name: string) => {
+// Gerçek oyuncu fotoğrafı öncelikli avatar çözümü; kadro dışı özel transfer
+// isimleri için nötr placeholder üretilir (dicebear).
+const fallbackAvatarUrl = (name: string) => {
   if (name === 'YENİ TRANSFER' || name === '[YENİ TRANSFER]' || name === 'Transfer') {
     return 'https://api.dicebear.com/7.x/bottts-neutral/svg?seed=transfer&backgroundColor=eab308';
   }
@@ -380,7 +368,6 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
   const [votedPolls, setVotedPolls] = useState<{ [pollId: string]: string }>({});
   const [votedMatchPredict, setVotedMatchPredict] = useState<string | null>(null);
   const [votedPlayerOfWeek, setVotedPlayerOfWeek] = useState<string | null>(null);
-  const [featuredCommentVote, setFeaturedCommentVote] = useState<'agree' | 'disagree' | null>(null);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
   const [newsletterLoading, setNewsletterLoading] = useState(false);
@@ -388,75 +375,34 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
   // Active playing topic for commenting
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
   const [newCommentText, setNewCommentText] = useState('');
-  const [customCommentUser, setCustomCommentUser] = useState('');
   const [topicToast, setTopicToast] = useState<string | null>(null);
 
   // --- INTERACTIVE SQUAD BUILDER STATES ---
+  // Gerçek kadro (players koleksiyonu — Transfermarkt kaynaklı, fotoğraflı)
+  const [squadPlayers, setSquadPlayers] = useState<any[]>([]);
   const [activeFormation, setActiveFormation] = useState<string>('4231');
   const [showShareModal, setShowShareModal] = useState(false);
-  const [lineup, setLineup] = useState<{ [role: string]: string }>({
-    'GK': 'Dominik Livaković',
-    'LB': 'Jayden Oosterwolde',
-    'CB1': 'Alexander Djiku',
-    'CB2': 'Çağlar Söyüncü',
-    'CB3': 'Rodrigo Becão',
-    'RB': 'Bright Osayi-Samuel',
-    'LM': 'Jayden Oosterwolde',
-    'RM': 'Bright Osayi-Samuel',
-    'DM': 'Sofyan Amrabat',
-    'DM1': 'Sofyan Amrabat',
-    'DM2': 'Fred',
-    'MC1': 'Fred',
-    'MC2': 'Sebastian Szymański',
-    'LW': 'Allan Saint-Maximin',
-    'AM': 'Sebastian Szymański',
-    'RW': 'Dušan Tadić',
-    'CF': 'Edin Džeko',
-    'CF1': 'Youssef En-Nesyri',
-    'CF2': 'Edin Džeko'
-  });
+  // Interactive lineup builder starts blank — users pick from the real squad list.
+  const [lineup, setLineup] = useState<{ [role: string]: string }>({});
   const [activePositionSelector, setActivePositionSelector] = useState<string | null>(null);
   const [squadNotes, setSquadNotes] = useState('');
   const [copiedLineup, setCopiedLineup] = useState(false);
 
   // --- INTERACTIVE TRANSFER RUMOR STATES ---
-  const [rumors, setRumors] = useState([
-    {
-      id: 'rumor-1',
-      player: 'Paulo Dybala',
-      source: 'La Gazzetta dello Sport',
-      excerpt: 'Roma’daki sözleşme belirsizliği sürerken Fenerbahçe’nin cazip bir teklifle menajeriyle temas kurduğu bildirildi.',
-      role: 'Oyun Kurucu / Santrfor',
-      hotVotes: 184,
-      coldVotes: 72
-    },
-    {
-      id: 'rumor-2',
-      player: 'Talha Sanel',
-      source: 'TRT Spor Özel',
-      excerpt: 'Süper Lig’de çıkış yapan genç yıldız adayı için scout ekibinin olumlu rapor yazdığı ve Jose Mourinho’nun onay verdiği iddia edildi.',
-      role: 'Stoper / Defans',
-      hotVotes: 95,
-      coldVotes: 23
-    },
-    {
-      id: 'rumor-3',
-      player: 'Jayden Oosterwolde',
-      source: 'Sky Sports',
-      excerpt: 'Premier Lig ekiplerinden birinin sol bek mevkisi için €25M bandında resmi bir teklif paketini yönetime sunduğu konuşuluyor.',
-      role: 'Sol Bek / Stoper (Teklif)',
-      hotVotes: 142,
-      coldVotes: 89
-    }
-  ]);
+  // Product rule: transfer rumors are admin-curated content — never fabricated,
+  // never attributed to real outlets without a real source. Starts empty.
+  const [rumors, setRumors] = useState<{
+    id: string; player: string; source: string; excerpt: string; role: string;
+    hotVotes: number; coldVotes: number;
+  }[]>([]);
   const [votedRumors, setVotedRumors] = useState<{ [id: string]: 'hot' | 'cold' }>({});
 
   // Stats Counters
   const communityStats = {
-    activePolls: 4,
-    weeklyVotes: 1284,
-    weeklyQuestion: 1,
-    fanComments: 326
+    activePolls: polls.length,
+    weeklyVotes: 0,
+    weeklyQuestion: polls.length > 0 ? 1 : 0,
+    fanComments: topics.reduce((acc, t) => acc + (t.comments?.length || 0), 0)
   };
 
   // Seed / Load Data on Mount
@@ -468,87 +414,68 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
         let allPolls: Poll[] = await dbGetCollection('polls');
         const activePolls = allPolls.filter(p => p.status === 'active');
         
-        // Ensure there's at least one poll, fallback to mock if empty
-        if (activePolls.length === 0) {
-          const fallbackPoll: Poll = {
-            id: 'poll-default',
-            question: "Fenerbahçe’nin şu an en acil çözmesi gereken problem ne?",
-            options: [
-              "Orta saha dengesi",
-              "Savunma geçişleri",
-              "Bitiricilik",
-              "Kenar rotasyonu"
-            ],
-            votes: {
-              "Orta saha dengesi": 542,
-              "Savunma geçişleri": 361,
-              "Bitiricilik": 258,
-              "Kenar rotasyonu": 129
-            },
-            status: 'active'
-          };
-          setPolls([fallbackPoll]);
-        } else {
-          setPolls(activePolls);
+        // No fabricated polls — empty DB renders the premium empty state
+        setPolls(activePolls);
+
+        // 2. Build the match prediction only from a real upcoming match — never fabricate
+        try {
+          const allMatches: any[] = await dbGetCollection('matches');
+          const upcoming = (allMatches || [])
+            .filter(m => m.status === 'upcoming' && m.matchDate)
+            .sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime())[0];
+          if (upcoming) {
+            setMatchPrediction({
+              matchId: upcoming.id,
+              homeTeam: upcoming.homeTeam,
+              awayTeam: upcoming.awayTeam,
+              competition: upcoming.competition || '',
+              question: "Bu maç nasıl biter?",
+              options: [`${upcoming.homeTeam} kazanır`, "Beraberlik", `${upcoming.awayTeam} kazanır`],
+              votes: { [`${upcoming.homeTeam} kazanır`]: 0, "Beraberlik": 0, [`${upcoming.awayTeam} kazanır`]: 0 },
+              expectedScore: "",
+              confidenceScore: 0
+            });
+          } else {
+            setMatchPrediction(null);
+          }
+        } catch {
+          setMatchPrediction(null);
         }
 
-        // 2. Fetch matches or use mock match prediction setup
-        const fallbackPrediction: MatchPrediction = {
-          matchId: 'match-1',
-          homeTeam: "Fenerbahçe",
-          awayTeam: "Beşiktaş",
-          competition: "Trendyol Süper Lig • 36. Hafta",
-          question: "Bu maç nasıl biter?",
-          options: ["Fenerbahçe kazanır", "Beraberlik", "Rakip kazanır"],
-          votes: { "Fenerbahçe kazanır": 720, "Beraberlik": 180, "Rakip kazanır": 100 },
-          expectedScore: "2-1",
-          confidenceScore: 7.8
-        };
-        setMatchPrediction(fallbackPrediction);
-
         // 3. Discussion topics initialization
+        // Editorial discussion starters — no fabricated user comments or counts.
         const initialTopics: DiscussionTopic[] = [
           {
             id: "disc-1",
             title: "Bu takımın ideal orta saha üçlüsü kim olmalı?",
             tag: "Taktik",
-            commentCount: 128,
+            commentCount: 0,
             excerpt: "Merkezde denge mi, yaratıcılık mı, pres gücü mü? Fenerbahçe’nin doğru üçlüsü üzerine taraftar görüşleri.",
-            comments: [
-              { username: "mou_taktik", text: "Kesinlikle Fred - İsmail - Amrabat üçlüsü başlamalı. Hem direnç kazanır hem de Fred rahat ileri sarkar.", date: "1 saat önce", likes: 14 },
-              { username: "kadikoy_kartali", text: "Szymanski yerine İrfan Can merkezde 8.5 gibi oynamalı, yaratıcılığımız çok düşük seviyede.", date: "2 saat önce", likes: 8 }
-            ]
+            comments: []
           },
           {
             id: "disc-2",
             title: "Transferde öncelik hangi bölge olmalı?",
             tag: "Transfer",
-            commentCount: 96,
+            commentCount: 0,
             excerpt: "6 numara mı, stoper mi, kanat mı? Kadro ihtiyacına dair ortak akıl.",
-            comments: [
-              { username: "scout_bora", text: "Sol kanat beki Heeren alınırsa Ferdi orta sahaya geçer veya alternatif yaratırız.", date: "4 saat önce", likes: 22 },
-              { username: "fener_turan", text: "Yaratıcı bir orta saha ve yedek bir stoper sezon sonu şampiyonluğunu doğrudan çözer.", date: "5 saat önce", likes: 19 }
-            ]
+            comments: []
           },
           {
             id: "disc-3",
             title: "Hoca tercihleri skoru mu oyunu mu etkiliyor?",
             tag: "Maç Sonu",
-            commentCount: 74,
+            commentCount: 0,
             excerpt: "Değişiklik zamanlamaları, oyun planı ve maç içi reaksiyonlar üzerine tartışma.",
-            comments: [
-              { username: "analist_sinan", text: "Erken oyuncu değişiklikleri rakiplerin savunma kurgusunu bozmak için şart.", date: "1 gün önce", likes: 35 }
-            ]
+            comments: []
           },
           {
             id: "disc-4",
             title: "Genç oyunculara daha fazla süre verilmeli mi?",
             tag: "Altyapı",
-            commentCount: 52,
+            commentCount: 0,
             excerpt: "Potansiyel, baskı seviyesi ve maç ritmi açısından genç oyuncuların kullanımı.",
-            comments: [
-              { username: "akademi_sever", text: "Kesinlikle! Son yarım saat skor garantilendiğince gençlere şans verilmeli ki tecrübe kazansınlar.", date: "1 gün önce", likes: 41 }
-            ]
+            comments: []
           }
         ];
         
@@ -578,18 +505,28 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
         const vPlayer = localStorage.getItem('voted_player_of_the_week');
         if (vPlayer) setVotedPlayerOfWeek(vPlayer);
 
-        const vComment = localStorage.getItem('voted_featured_comment');
-        if (vComment) setFeaturedCommentVote(vComment as any);
+        // Gerçek kadro havuzu (fotoğraf + mevki + piyasa değeri)
+        try {
+          const plist = await dbGetCollection('players');
+          setSquadPlayers((plist || []).filter((p: any) => p.status === 'active'));
+        } catch { setSquadPlayers([]); }
 
-        // Retrieve rumors and squad line-up from Storage
-        const vRumor1 = localStorage.getItem('voted_rumor_rumor-1') as 'hot' | 'cold' | null;
-        const vRumor2 = localStorage.getItem('voted_rumor_rumor-2') as 'hot' | 'cold' | null;
-        const vRumor3 = localStorage.getItem('voted_rumor_rumor-3') as 'hot' | 'cold' | null;
-        const loadedVotedRumors: { [id: string]: 'hot' | 'cold' } = {};
-        if (vRumor1) loadedVotedRumors['rumor-1'] = vRumor1;
-        if (vRumor2) loadedVotedRumors['rumor-2'] = vRumor2;
-        if (vRumor3) loadedVotedRumors['rumor-3'] = vRumor3;
-        setVotedRumors(loadedVotedRumors);
+        // Gerçek transfer söylentileri (Transfermarkt scrape → rumors.json)
+        try {
+          const rr = await fetch('/data/rumors.json');
+          if (rr.ok) {
+            const rd = await rr.json();
+            if (Array.isArray(rd.rumors) && rd.rumors.length > 0) {
+              setRumors(rd.rumors);
+              const loadedVotedRumors: { [id: string]: 'hot' | 'cold' } = {};
+              rd.rumors.forEach((rum: any) => {
+                const v = localStorage.getItem(`voted_rumor_${rum.id}`) as 'hot' | 'cold' | null;
+                if (v) loadedVotedRumors[rum.id] = v;
+              });
+              setVotedRumors(loadedVotedRumors);
+            }
+          }
+        } catch { /* söylenti dosyası yoksa boş durum kalır */ }
 
         const savedLineup = localStorage.getItem('squad_builder_lineup');
         if (savedLineup) {
@@ -666,12 +603,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
   };
 
   // Player of the week Vote Handler
-  const [playerVotes, setPlayerVotes] = useState<{ [opt: string]: number }>({
-    "Dominik Livaković": 154,
-    "Sebastian Szymański": 128,
-    "Fred": 97,
-    "Alexander Djiku": 62
-  });
+  const [playerVotes, setPlayerVotes] = useState<{ [opt: string]: number }>({});
 
   const handlePlayerVote = (option: string) => {
     if (votedPlayerOfWeek) return;
@@ -685,54 +617,51 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
     setVotedPlayerOfWeek(option);
   };
 
-  // --- DYNAMIC SQUAD RATING COMPUTATIONS ---
-  const squadMetrics = React.useMemo(() => {
-    const currentPositions = TACTICAL_FORMATIONS[activeFormation];
-    let totalDefense = 0;
-    let totalAttack = 0;
-    let defenseCount = 0;
-    let attackCount = 0;
-    let creativityBonus = 55;
-    let pressingBonus = 55;
-
-    currentPositions.forEach(p => {
-      const selectedPlayerName = lineup[p.role];
-      const playerObj = AVAILABLE_PLAYERS.find(pl => pl.name === selectedPlayerName);
-      if (playerObj) {
-        if (['GK', 'LB', 'RB', 'CB', 'CB1', 'CB2', 'CB3', 'DM', 'DM1', 'DM2', 'LM', 'RM'].includes(p.role)) {
-          totalDefense += playerObj.overall;
-          defenseCount++;
-        } else {
-          totalAttack += playerObj.overall;
-          attackCount++;
-        }
-
-        if (playerObj.name === 'Dušan Tadić') creativityBonus += 15;
-        if (playerObj.name === 'İrfan Can Kahveci') creativityBonus += 12;
-        if (playerObj.name === 'Sebastian Szymański') {
-          creativityBonus += 8;
-          pressingBonus += 8;
-        }
-        if (playerObj.name === 'Fred') {
-          creativityBonus += 10;
-          pressingBonus += 12;
-        }
-        if (playerObj.name === 'İsmail Yüksek') pressingBonus += 15;
-        if (playerObj.name === 'Sofyan Amrabat') pressingBonus += 10;
-        if (playerObj.name === 'Allan Saint-Maximin') creativityBonus += 10;
-      }
+  // Gerçek kadro yardımcıları: rol → uygun mevkideki oyuncular + fotoğraf çözümü
+  const roleKeyOf = (role: string) => role.replace(/\d+$/, '');
+  const playersForRole = (role: string) => {
+    const keys = ROLE_POSITION_MAP[roleKeyOf(role)] || [];
+    if (squadPlayers.length === 0) return [];
+    const filtered = squadPlayers.filter((p: any) => {
+      const positions = [p.mainPosition, p.position, ...(Array.isArray(p.subPositions) ? p.subPositions : [])]
+        .filter(Boolean).map((x: string) => trNorm(x));
+      return keys.some(k => positions.some(pp => pp.includes(k)));
     });
+    return filtered.length > 0 ? filtered : squadPlayers;
+  };
+  const resolveAvatar = (name: string) => {
+    const found = squadPlayers.find((p: any) => p.name === name);
+    if (found?.photo || found?.photoUrl) return found.photo || found.photoUrl;
+    return fallbackAvatarUrl(name);
+  };
 
-    const defenseRating = defenseCount > 0 ? Math.round(totalDefense / defenseCount) : 80;
-    const attackRating = attackCount > 0 ? Math.round(totalAttack / attackCount) : 80;
-
-    return {
-      defense: Math.min(99, Math.max(65, defenseRating)),
-      attack: Math.min(99, Math.max(65, attackRating)),
-      creativity: Math.min(99, Math.max(50, creativityBonus)),
-      pressing: Math.min(99, Math.max(50, pressingBonus))
+  // --- GERÇEK KADRO METRİKLERİ (yaş ortalaması + toplam piyasa değeri) ---
+  const squadMetrics = React.useMemo(() => {
+    const parseMv = (mv?: string | null): number => {
+      if (!mv) return 0;
+      const m = mv.replace(',', '.').match(/([\d.]+)/);
+      if (!m) return 0;
+      const n = parseFloat(m[1]);
+      if (Number.isNaN(n)) return 0;
+      if (/mil/i.test(mv) || /m/i.test(mv)) return n * 1_000_000;
+      if (/bin/i.test(mv) || /k/i.test(mv)) return n * 1_000;
+      return n;
     };
-  }, [lineup, activeFormation]);
+    const names = TACTICAL_FORMATIONS[activeFormation].map(p => lineup[p.role]).filter(Boolean);
+    const selected = names
+      .map(n => squadPlayers.find((sp: any) => sp.name === n))
+      .filter(Boolean) as any[];
+    const ages = selected.map(p => parseInt(p.age)).filter(n => n > 0);
+    const avgAge = ages.length > 0 ? ages.reduce((a, b) => a + b, 0) / ages.length : 0;
+    const totalValue = selected.reduce((acc, p) => acc + parseMv(p.marketValue), 0);
+    return {
+      filled: names.length,
+      slots: TACTICAL_FORMATIONS[activeFormation].length,
+      avgAge: avgAge > 0 ? avgAge.toFixed(1) : '—',
+      totalValueLabel: totalValue > 0 ? `€${(totalValue / 1_000_000).toFixed(1)}M` : '—'
+    };
+  }, [lineup, activeFormation, squadPlayers]);
+
 
   // Handle position select
   const handleAssignPlayer = (role: string, playerName: string) => {
@@ -748,35 +677,16 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
   };
 
   const handleResetLineup = () => {
-    const defaultLineup = {
-      'GK': 'Dominik Livaković',
-      'LB': 'Jayden Oosterwolde',
-      'CB1': 'Alexander Djiku',
-      'CB2': 'Çağlar Söyüncü',
-      'CB3': 'Rodrigo Becão',
-      'RB': 'Bright Osayi-Samuel',
-      'LM': 'Jayden Oosterwolde',
-      'RM': 'Bright Osayi-Samuel',
-      'DM': 'Sofyan Amrabat',
-      'DM1': 'Sofyan Amrabat',
-      'DM2': 'Fred',
-      'MC1': 'Fred',
-      'MC2': 'Sebastian Szymański',
-      'LW': 'Allan Saint-Maximin',
-      'AM': 'Sebastian Szymański',
-      'RW': 'Dušan Tadić',
-      'CF': 'Edin Džeko',
-      'CF1': 'Youssef En-Nesyri',
-      'CF2': 'Edin Džeko'
-    };
-    setLineup(defaultLineup);
-    localStorage.setItem('squad_builder_lineup', JSON.stringify(defaultLineup));
+    // Boş sahaya dön — kullanıcı gerçek kadrodan yeniden seçer
+    setLineup({});
+    localStorage.removeItem('squad_builder_lineup');
+    setActivePositionSelector(null);
   };
 
   const handleShareLineup = () => {
     const currentPositions = TACTICAL_FORMATIONS[activeFormation];
     const teamText = currentPositions.map(p => `${p.desc || p.role}: ${lineup[p.role] || 'Belirtilmedi'}`).join('\n');
-    const fullText = `🔥 Fenerbahçe Evreni - Benim Taktik Kadrom (${activeFormation}):\n\n${teamText}\n\nKadro Endekslerim:\n⚡ Hücum: ${squadMetrics.attack}\n🛡️ Savunma: ${squadMetrics.defense}\n✨ Yaratıcılık: ${squadMetrics.creativity}\n🔥 Pres Gücü: ${squadMetrics.pressing}\n\nTaktik Notu: ${squadNotes ? squadNotes : "Mourinho asimetrik geçiş planı."}\n\nKendi kadronu kurup oylamak için taraftar odasına gel!`;
+    const fullText = `🔥 Fenerbahçe Evreni - Benim Taktik Kadrom (${activeFormation.split('').join('-')}):\n\n${teamText}\n\n📊 Yaş Ortalaması: ${squadMetrics.avgAge} | 💰 Toplam Değer: ${squadMetrics.totalValueLabel}\n\nTaktik Notu: ${squadNotes ? squadNotes : "—"}\n\nKendi kadronu kurup oylamak için taraftar odasına gel!`;
     
     try {
       navigator.clipboard.writeText(fullText);
@@ -805,28 +715,6 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
 
     setVotedRumors(prev => ({ ...prev, [rumorId]: type }));
     localStorage.setItem(`voted_rumor_${rumorId}`, type);
-  };
-
-  // Featured Comment pulse
-  const [featuredCommentStats, setFeaturedCommentStats] = useState({ likes: 243, agreeRate: 89, disagreeCount: 30 });
-  const handleFeaturedVote = (type: 'agree' | 'disagree') => {
-    if (featuredCommentVote) return;
-
-    if (type === 'agree') {
-      setFeaturedCommentStats(prev => ({
-        ...prev,
-        likes: prev.likes + 1,
-        agreeRate: Math.round(((prev.likes + 1) / (prev.likes + prev.disagreeCount + 1)) * 100)
-      }));
-    } else {
-      setFeaturedCommentStats(prev => ({
-        ...prev,
-        disagreeCount: prev.disagreeCount + 1,
-        agreeRate: Math.round((prev.likes / (prev.likes + prev.disagreeCount + 1)) * 100)
-      }));
-    }
-    localStorage.setItem('voted_featured_comment', type);
-    setFeaturedCommentVote(type);
   };
 
   // Newsletter subscription
@@ -858,7 +746,13 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
     e.preventDefault();
     if (!newCommentText.trim() || !activeTopicId) return;
 
-    const username = customCommentUser.trim() ? customCommentUser.trim() : "sarilacivert_katilimci";
+    // Cihaza sabit anonim takma ad — serbest kullanıcı adı girişi kimlik ifade
+    // etmediği için kaldırıldı; gerçek üyelik sistemi gelene dek bu kullanılır.
+    let username = localStorage.getItem('fan_alias') || '';
+    if (!username) {
+      username = 'taraftar_' + Math.random().toString(36).slice(2, 7);
+      localStorage.setItem('fan_alias', username);
+    }
     const newComment = {
       username: username.replace(/[^a-zA-Z0-9_]/g, ""),
       text: newCommentText.trim(),
@@ -880,7 +774,6 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
     setTopics(updatedTopics);
     localStorage.setItem('cms_discussion_topics', JSON.stringify(updatedTopics));
     setNewCommentText('');
-    setCustomCommentUser('');
     setTopicToast("Görüşünüz başarıyla eklendi ve paylaşıldı!");
     setTimeout(() => setTopicToast(null), 3000);
   };
@@ -995,13 +888,25 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
 
               <div className="space-y-6">
                 <div>
-                  <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020] block mb-1">
+                  <span className="text-[10px] uppercase font-black tracking-widest text-[#FFD21F] block mb-1">
                     Ortak Akıl Anketi
                   </span>
                   <p className="text-xs text-fb-muted font-bold block mb-4">
                     Görüşünüzü yansıtın, genel eğilimi anında görün.
                   </p>
                 </div>
+
+                {polls.length === 0 && !loading && (
+                  <div className="p-8 rounded-xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
+                    <Vote size={22} className="text-slate-600 mx-auto" />
+                    <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                      Aktif anket bulunmuyor.
+                    </p>
+                    <p className="text-[10px] text-slate-500 italic">
+                      Yeni anket yayınlandığında tribün görüşü burada toplanır.
+                    </p>
+                  </div>
+                )}
 
                 {polls.map((poll) => {
                   const hasVoted = !!votedPolls[poll.id];
@@ -1076,7 +981,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                 <div>
                   <div className="flex items-center gap-2">
                     <Sliders size={16} className="text-fb-yellow animate-pulse" />
-                    <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020]">
+                    <span className="text-[10px] uppercase font-black tracking-widest text-[#FFD21F]">
                       KADIKÖY TAKTİK TAHTASI
                     </span>
                   </div>
@@ -1117,15 +1022,15 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                 {/* Canlı Endeks Değerleri */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { label: "OFS. GÜCÜ", value: squadMetrics.attack, color: "text-amber-400", bg: "bg-amber-400/10" },
-                    { label: "DEF. DİRENCİ", value: squadMetrics.defense, color: "text-emerald-400", bg: "bg-emerald-400/10" },
-                    { label: "YARATICILIK", value: squadMetrics.creativity, color: "text-indigo-400", bg: "bg-indigo-400/10" },
-                    { label: "PRES GÜCÜ", value: squadMetrics.pressing, color: "text-orange-400", bg: "bg-orange-400/10" }
+                    { label: "DİZİLEN OYUNCU", value: `${squadMetrics.filled}/${squadMetrics.slots}`, color: "text-amber-400", bg: "bg-amber-400/10" },
+                    { label: "YAŞ ORTALAMASI", value: squadMetrics.avgAge, color: "text-emerald-400", bg: "bg-emerald-400/10" },
+                    { label: "TOPLAM DEĞER", value: squadMetrics.totalValueLabel, color: "text-indigo-400", bg: "bg-indigo-400/10" },
+                    { label: "DİZİLİŞ", value: activeFormation.split('').join('-'), color: "text-orange-400", bg: "bg-orange-400/10" }
                   ].map((metric, i) => (
                     <div key={i} className={`p-3 rounded-xl ${metric.bg} border border-white/5 text-center`}>
                       <span className="text-[9px] font-black uppercase text-fb-muted block tracking-wider">{metric.label}</span>
                       <span className={`text-xl font-mono font-black italic block mt-0.5 ${metric.color}`}>
-                        {metric.value}<span className="text-xs font-bold text-slate-500 font-sans">/99</span>
+                        {metric.value}
                       </span>
                     </div>
                   ))}
@@ -1156,7 +1061,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                       const currentPlayer = lineup[p.role] || "Boş";
                       const isSelectedNode = activePositionSelector === p.role;
                       const hasPlayer = currentPlayer && currentPlayer !== "Boş";
-                      const avatarUrl = getPlayerAvatarUrl(currentPlayer);
+                      const avatarUrl = resolveAvatar(currentPlayer);
                       
                       return (
                         <button
@@ -1231,11 +1136,11 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                               <span>✍ MEVKİYE TRANSFER YAZIN</span>
                             </button>
 
-                            {AVAILABLE_PLAYERS.map((pl) => {
+                            {playersForRole(activePositionSelector).map((pl: any) => {
                               const isPlaced = Object.values(lineup).includes(pl.name);
                               const isPlacedExactlyHere = lineup[activePositionSelector] === pl.name;
-                              const pAvatar = getPlayerAvatarUrl(pl.name);
-                              
+                              const pAvatar = pl.photo || pl.photoUrl || fallbackAvatarUrl(pl.name);
+
                               return (
                                 <button
                                   key={pl.name}
@@ -1243,18 +1148,19 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                                   onClick={() => handleAssignPlayer(activePositionSelector, pl.name)}
                                   className={`w-full p-2 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all ${isPlacedExactlyHere ? 'bg-fb-yellow/20 border border-fb-yellow text-white' : 'bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 text-slate-300'}`}
                                 >
-                                  <img 
-                                    src={pAvatar} 
-                                    alt="" 
-                                    className="w-7 h-7 rounded-full bg-slate-900 border border-white/10 object-cover shrink-0"
+                                  <img
+                                    src={pAvatar}
+                                    alt={pl.name}
+                                    className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 object-cover object-top shrink-0"
                                     referrerPolicy="no-referrer"
+                                    loading="lazy"
                                   />
                                   <div className="text-left flex-1 min-w-0">
                                     <span className="block truncate leading-tight">{pl.name}</span>
-                                    <span className="text-[9px] font-bold text-fb-muted block">{pl.class}</span>
+                                    <span className="text-[9px] font-bold text-fb-muted block">{pl.mainPosition || pl.position || ''}{pl.shirtNumber ? ` • #${pl.shirtNumber}` : ''}</span>
                                   </div>
                                   <div className="flex items-center gap-1.5 shrink-0 ml-1">
-                                    <span className="font-mono text-[9px] font-bold opacity-75">OVR:{pl.overall}</span>
+                                    {pl.marketValue && <span className="font-mono text-[9px] font-bold text-emerald-400/80">{pl.marketValue}</span>}
                                     {isPlaced && !isPlacedExactlyHere && (
                                       <span className="text-[8px] px-1 bg-white/10 text-slate-400 rounded font-normal shrink-0 font-sans">Dizili</span>
                                     )}
@@ -1305,7 +1211,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
             {/* SÖYLENTİ DEĞİRMENİ */}
             <div className="p-6 md:p-8 rounded-2xl bg-fb-card border border-white/[0.06] relative overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.3)]">
               <div className="absolute top-0 right-0 p-3 text-[9px] font-black text-rose-400 bg-rose-500/10 uppercase rounded-bl-xl tracking-widest border-l border-b border-rose-500/10">
-                SÖYLENTİ PAROMETRESİ
+                SÖYLENTİLER
               </div>
 
               <div className="space-y-6">
@@ -1324,6 +1230,17 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                   </p>
                 </div>
 
+                {rumors.length === 0 && (
+                  <div className="p-8 rounded-xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
+                    <Flame size={22} className="text-slate-600 mx-auto" />
+                    <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                      Aktif transfer söylentisi bulunmuyor.
+                    </p>
+                    <p className="text-[10px] text-slate-500 italic">
+                      Editör ekibi güvenilir kaynaklı iddiaları buraya ekledikçe taraftar oylaması açılır.
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-4">
                   {rumors.map((rum) => {
                     const myVote = votedRumors[rum.id];
@@ -1408,7 +1325,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020]">
+                    <span className="text-[10px] uppercase font-black tracking-widest text-[#FFD21F]">
                       YAKLAŞAN MAÇ TAHMİNİ
                     </span>
                   </div>
@@ -1466,13 +1383,24 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
 
             {/* 5. Match Man of the Week */}
             <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] overflow-hidden">
-              <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020] block mb-1">
+              <span className="text-[10px] uppercase font-black tracking-widest text-[#FFD21F] block mb-1">
                 Tribün Seçimi
               </span>
               <h3 className="text-lg font-bold text-white tracking-tight mb-4">
                 Haftanın Oyuncusu Kimdi?
               </h3>
 
+              {Object.keys(playerVotes).length === 0 && (
+                <div className="p-8 rounded-xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
+                  <Award size={22} className="text-slate-600 mx-auto" />
+                  <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                    Bu hafta için oylama henüz açılmadı.
+                  </p>
+                  <p className="text-[10px] text-slate-500 italic">
+                    Maç sonrası aday listesi yayınlandığında tribün seçimi burada başlar.
+                  </p>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {Object.keys(playerVotes).map((option, idx) => {
                   const percentage = getPercentage(playerVotes, option);
@@ -1581,14 +1509,6 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                         {/* Comment insertion Form */}
                         <form onSubmit={handleAddComment} className="space-y-4">
                           <div className="flex flex-col sm:flex-row gap-3">
-                            <input
-                              type="text"
-                              required
-                              value={customCommentUser}
-                              onChange={(e) => setCustomCommentUser(e.target.value)}
-                              placeholder="Kullanıcı adınız (opsiyonel)"
-                              className="w-full sm:w-1/3 px-4 py-3 rounded-lg bg-fb-dark/95 border border-white/10 text-xs text-white placeholder-fb-muted focus:outline-none focus:border-fb-yellow font-bold"
-                            />
                             <div className="flex-1 relative">
                               <input
                                 type="text"
@@ -1663,130 +1583,10 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
           {/* RIGHT SIDEBAR: Featured comments, fan pulse, guidelines, and newsletter CTA */}
           <div className="space-y-8 text-left">
             
-            {/* 7. Featured Fan Comment */}
-            <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] bg-gradient-to-b from-fb-card to-fb-navy/30 relative">
-              <span className="absolute top-2 right-2 text-3xl font-display font-black text-fb-yellow/15 leading-none select-none">“</span>
-              
-              <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020] block mb-1">
-                HAFTANIN TARAFTAR YORUMU
-              </span>
-              
-              <div className="space-y-4 pt-1">
-                <p className="text-xs text-slate-100 italic leading-relaxed font-bold">
-                  “Bence sorun sadece oyuncu kalitesi değil, oyun temposunun belli bölümlerde kopması. İlk 20 dakikadaki baskı sürdürülebilirse bu takım çok daha dominant görünebilir.”
-                </p>
-
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-fb-yellow flex items-center justify-center font-black text-[10px] text-fb-navy">
-                    FE
-                  </div>
-                  <span className="text-[10px] text-fb-muted font-black uppercase">
-                    Bir Fenerbahçe Evreni takipçisi
-                  </span>
-                </div>
-
-                <div className="pt-3 border-t border-white/[0.05] flex justify-between items-center text-[10px] text-fb-muted font-bold">
-                  <span>👍 {featuredCommentStats.likes} Hak Verildi</span>
-                  <span className="text-fb-accent">Katılıyorum: {featuredCommentStats.agreeRate}%</span>
-                </div>
-
-                {/* Agree Button Grid */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    disabled={!!featuredCommentVote}
-                    onClick={() => handleFeaturedVote('agree')}
-                    className={`py-2 rounded px-2 text-[10px] font-black uppercase tracking-wider text-center transition-all ${featuredCommentVote === 'agree' ? 'bg-fb-accent/20 text-fb-accent border border-fb-accent/20' : featuredCommentVote ? 'opacity-30 border border-white/5' : 'bg-white/5 text-slate-300 hover:bg-fb-accent hover:text-fb-navy'}`}
-                  >
-                    KATILIYORUM
-                  </button>
-                  <button
-                    disabled={!!featuredCommentVote}
-                    onClick={() => handleFeaturedVote('disagree')}
-                    className={`py-2 rounded px-2 text-[10px] font-black uppercase tracking-wider text-center transition-all ${featuredCommentVote === 'disagree' ? 'bg-red-500/20 text-red-400 border border-red-500/20' : featuredCommentVote ? 'opacity-30 border border-white/5' : 'bg-white/5 text-slate-300 hover:bg-red-500 hover:text-white'}`}
-                  >
-                    KATILMIYORUM
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* 8. Fan Pulse Section */}
-            <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] space-y-4">
-              <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020] block mb-1">
-                TARAFTARIN NABZI
-              </span>
-              
-              <div className="space-y-3 pt-1">
-                {[
-                  { title: "Takıma Güven", value: "7.4 / 10", trend: "yükseliyor" },
-                  { title: "Hoca Tercihleri", value: "6.2 / 10", trend: "tartışmalı" },
-                  { title: "Transfer Beklentisi", value: "8.1 / 10", trend: "yüksek" },
-                  { title: "Şampiyonluk İnancı", value: "7.8 / 10", trend: "güçlü" }
-                ].map((item, idx) => (
-                  <div key={idx} className="p-3 rounded-xl bg-fb-dark/80 border border-white/5 flex justify-between items-center">
-                    <div>
-                      <span className="text-xs font-bold text-slate-200 block">{item.title}</span>
-                      <span className="text-xs font-black text-fb-yellow font-mono">{item.value}</span>
-                    </div>
-                    <div>
-                      <span className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-wider ${item.trend === 'yükseliyor' || item.trend === 'güçlü' || item.trend === 'yüksek' ? 'bg-fb-accent/10 border border-fb-accent/20 text-fb-accent' : 'bg-fb-warning/10 border border-fb-warning/20 text-fb-warning'}`}>
-                        {item.trend}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CANLI KADIKÖY MAÇ GÜNÜ SOHBET AKIŞI & AI TAKTİK SENTEZİ */}
-            <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] space-y-4 relative overflow-hidden">
-              <span className="absolute top-2 right-2 text-xs font-black px-1.5 py-0.5 rounded bg-red-600/20 border border-red-500/20 text-red-400 animate-pulse uppercase tracking-wider text-[8px]">
-                CANLI AKIŞ
-              </span>
-              
-              <div>
-                <span className="text-[10px] uppercase font-black tracking-widest text-[#FFB020] block mb-1">
-                  KADIKÖY SOHBET ODASI
-                </span>
-                <span className="text-[9px] font-bold text-fb-muted block leading-tight">Tribün ateşi simülatörü ve akıllı analiz.</span>
-              </div>
-
-              {/* Chat Stream Card Area */}
-              <div className="space-y-2 p-3.5 rounded-xl bg-fb-dark/80 border border-white/5 max-h-[190px] overflow-y-auto font-sans text-xs">
-                {[
-                  { user: "genc_fb_90", msg: "Bu kadroyu Mourinho görse direkt asistan yapar adamı!", time: "Saniyeler önce", color: "text-amber-400" },
-                  { user: "kadikoy_muhtari", msg: "Fred varken oyunun hızı 2 katına çıkıyor cidden.", time: "1 dk önce", color: "text-sky-400" },
-                  { user: "taktik_kral", msg: "Çift forvet dizilişi Amrabat'ın yükünü çok artırır yalnız.", time: "3 dk önce", color: "text-emerald-400" },
-                  { user: "di_maria_1907", msg: "Dybala dedikoduları doğru çıksa var ya, lig biter lig!", time: "5 dk önce", color: "text-slate-300" }
-                ].map((post, index) => (
-                  <div key={index} className="space-y-0.5 border-b border-white/[0.02] pb-1.5 last:border-0 last:pb-0">
-                    <div className="flex items-center justify-between text-[9px]">
-                      <span className={`font-black ${post.color}`}>{post.user}</span>
-                      <span className="text-slate-500 font-bold">{post.time}</span>
-                    </div>
-                    <p className="text-slate-300 font-semibold leading-tight text-[11px] text-left">{post.msg}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* AI Sentezi Bubble with neon pulse */}
-              <div className="p-3.5 rounded-xl bg-fb-navy/30 border border-fb-yellow/20 space-y-2 text-left relative overflow-hidden">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-fb-yellow animate-ping shrink-0" />
-                  <span className="text-[9px] font-black uppercase text-fb-yellow tracking-widest flex items-center gap-1">
-                    <Sparkles size={10} /> YAPAY ZEKA COACH SENTEZİ
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-200 font-bold leading-relaxed italic text-left">
-                  "Seçtiğiniz kadroda {activeFormation.split('').join('-')} dizilişiyle Amrabat ve Fred çift pivotu merkez omurgayı kilitliyor. Bu asimetrik geçiş sisteminde Saint-Maximin ve Tadiç genişliği takım hücum katsayısını {squadMetrics.attack} seviyesine taşıyor."
-                </p>
-              </div>
-            </div>
-
             {/* 9. Community Guidelines */}
             <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] space-y-4">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-[#FFB020]" />
+                <ShieldAlert className="w-5 h-5 text-[#FFD21F]" />
                 <span className="text-[10px] uppercase font-black tracking-widest text-white block">
                   TARAFTAR ODASI KURALLARI
                 </span>
@@ -1814,9 +1614,9 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* 10. Join Community CTA & 11. Newsletter Signup */}
-            <div className="p-6 rounded-3xl bg-gradient-to-br from-fb-card to-fb-navy/40 border border-[#FFB020]/25 space-y-5">
+            <div className="p-6 rounded-3xl bg-gradient-to-br from-fb-card to-fb-navy/40 border border-[#FFD21F]/25 space-y-5">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-fb-yellow" />
+                
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#FF001F] text-fb-yellow">BÜLTEN KATILIMI</span>
               </div>
               
@@ -1934,23 +1734,19 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                 })}
               </div>
 
-              {/* Metrics preview */}
-              <div className="grid grid-cols-4 gap-2 text-center">
+              {/* Metrics preview — gerçek kadro verileri */}
+              <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="p-1.5 rounded bg-amber-400/5 border border-amber-400/10">
-                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">HÜCUM</span>
-                  <span className="text-xs font-black text-amber-400">{squadMetrics.attack}</span>
+                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">OYUNCU</span>
+                  <span className="text-xs font-black text-amber-400">{squadMetrics.filled}/{squadMetrics.slots}</span>
                 </div>
                 <div className="p-1.5 rounded bg-emerald-400/5 border border-emerald-400/10">
-                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">SAVUNMA</span>
-                  <span className="text-xs font-black text-emerald-400">{squadMetrics.defense}</span>
+                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">YAŞ ORT.</span>
+                  <span className="text-xs font-black text-emerald-400">{squadMetrics.avgAge}</span>
                 </div>
                 <div className="p-1.5 rounded bg-cyan-400/5 border border-cyan-400/10">
-                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">KREATİF</span>
-                  <span className="text-xs font-black text-cyan-400">{squadMetrics.creativity}</span>
-                </div>
-                <div className="p-1.5 rounded bg-rose-400/5 border border-rose-400/10">
-                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">PRES</span>
-                  <span className="text-xs font-black text-rose-400">{squadMetrics.pressing}</span>
+                  <span className="block text-[8px] text-fb-muted font-bold uppercase leading-none">DEĞER</span>
+                  <span className="text-xs font-black text-cyan-400">{squadMetrics.totalValueLabel}</span>
                 </div>
               </div>
 
@@ -1958,7 +1754,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
               <div className="text-center px-1">
                 <span className="text-[8px] font-black text-fb-muted tracking-wider block uppercase">AKTİF TAKTİK PLAN NOTU</span>
                 <p className="text-[10px] italic text-slate-300 font-bold leading-normal mt-0.5 truncate">
-                  "{squadNotes || 'Mourinho asimetrik geçiş planı.'}"
+                  "{squadNotes || 'Taktik plan notunuzu ekleyin.'}"
                 </p>
               </div>
             </div>
@@ -1973,7 +1769,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
               {/* Twitter */}
               <a 
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                  `🔥 Fenerbahçe Evreni'nde kurduğum ilk 11'im hazır!\n⚽ Diziliş: ${activeFormation.split('').join('-')}\n⚡ Hücum: ${squadMetrics.attack} | 🛡️ Savunma: ${squadMetrics.defense}\n\n👉 Kendi kadronu kurmak ve taraftar odasına katılmak için siteye gel!`
+                  `🔥 Fenerbahçe Evreni'nde kurduğum ilk 11'im hazır!\n⚽ Diziliş: ${activeFormation.split('').join('-')}\n📊 Yaş Ort: ${squadMetrics.avgAge} | 💰 Değer: ${squadMetrics.totalValueLabel}\n\n👉 Kendi kadronu kurmak ve taraftar odasına katılmak için siteye gel!`
                 )}`}
                 target="_blank" 
                 rel="noreferrer"
@@ -1985,7 +1781,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
               {/* WhatsApp */}
               <a 
                 href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
-                  `🔥 Fenerbahçe Evreni'nde kurduğum efsane kadroma bak!\n⚽ Diziliş: ${activeFormation.split('').join('-')}\n⚡ Hücum: ${squadMetrics.attack} | 🛡️ Savunma: ${squadMetrics.defense}\n📝 Taktik Notu: ${squadNotes || 'Asimetrik geçiş planı.'}\n\n👉 Kadroyu görmek ve kendi kadronu kurmak için tıklayın!`
+                  `🔥 Fenerbahçe Evreni'nde kurduğum efsane kadroma bak!\n⚽ Diziliş: ${activeFormation.split('').join('-')}\n📊 Yaş Ort: ${squadMetrics.avgAge} | 💰 Değer: ${squadMetrics.totalValueLabel}\n📝 Taktik Notu: ${squadNotes || '—'}\n\n👉 Kadroyu görmek ve kendi kadronu kurmak için tıklayın!`
                 )}`}
                 target="_blank" 
                 rel="noreferrer"
@@ -2023,7 +1819,7 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
                 type="button"
                 onClick={() => {
                   const plainText = TACTICAL_FORMATIONS[activeFormation]?.map(p => `${p.desc || p.role}: ${lineup[p.role] || 'Boş'}`).join('\n') || '';
-                  const shareTxt = `Fenerbahçe Evreni Kadrom\nDiziliş: ${activeFormation}\nHücum: ${squadMetrics.attack}\nSavunma: ${squadMetrics.defense}\n---\n${plainText}`;
+                  const shareTxt = `Fenerbahçe Evreni Kadrom\nDiziliş: ${activeFormation.split('').join('-')}\nYaş Ortalaması: ${squadMetrics.avgAge}\nToplam Değer: ${squadMetrics.totalValueLabel}\n---\n${plainText}`;
                   navigator.clipboard.writeText(shareTxt);
                   alert("Kadro metni panoya kopyalandı!");
                 }}

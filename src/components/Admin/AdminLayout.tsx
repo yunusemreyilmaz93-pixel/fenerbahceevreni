@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import {
+  motion, AnimatePresence } from 'motion/react';
 import { 
   LayoutDashboard, 
   FileText, 
@@ -8,7 +9,7 @@ import {
   Users, 
   Search, 
   BarChart3, 
-  Sparkles, 
+ 
   Mail, 
   Send,
   Image, 
@@ -28,7 +29,10 @@ import {
   Layers,
   HardDrive,
   Activity,
-  Database
+  Database,
+  Star,
+  Terminal,
+  Link2,
 } from 'lucide-react';
 import { logoutAdmin } from '../../lib/firebase';
 
@@ -57,6 +61,8 @@ import { AdminContentHealth } from './AdminContentHealth';
 import { AdminImportExport } from './AdminImportExport';
 import { AdminApiTest } from './AdminApiTest';
 import { AdminDataIntegration } from './AdminDataIntegration';
+import { AdminJobs } from './AdminJobs';
+import { AdminEntityMap } from './AdminEntityMap';
 
 interface AdminLayoutProps {
   adminUser: any;
@@ -102,7 +108,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
     { id: 'teams', label: 'Takımlar', icon: ShieldCheck },
     { id: 'transfer', label: 'Transfer Radar', icon: Search },
     { id: 'polls', label: 'Anketler', icon: BarChart3 },
-    { id: 'premium', label: 'Premium İçerikler', icon: Sparkles },
+    { id: 'premium', label: 'Premium İçerikler', icon: Star },
     { id: 'newsletter', label: 'Bülten Aboneleri', icon: Mail },
     { id: 'newsletter_issues', label: 'Bülten Sayıları', icon: Send },
     { id: 'media', label: 'Medya Kütüphanesi', icon: Image },
@@ -115,6 +121,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
     { id: 'content_health', label: 'İçerik Sağlığı', icon: HeartPulse },
     { id: 'import_export', label: 'İçe / Dışa Aktar', icon: HardDrive },
     { id: 'data_integration', label: 'Veri Entegrasyonu', icon: Database },
+    { id: 'scrape_jobs', label: 'Scraper Jobs', icon: Terminal },
+    { id: 'entity_map', label: 'Entity Map', icon: Link2 },
     { id: 'homepage', label: 'Ana Sayfa Yönetimi', icon: Home },
     { id: 'settings', label: 'Site Ayarları', icon: Settings },
     { id: 'api_test', label: 'FUTBOL VERİ MERKEZİ', icon: Activity },
@@ -184,6 +192,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ adminUser, onLogout, o
         return <AdminImportExport showToast={showToast} />;
       case 'data_integration':
         return <AdminDataIntegration showToast={showToast} adminUser={adminUser} />;
+      case 'scrape_jobs':
+        return <AdminJobs showToast={showToast} adminUser={adminUser} />;
+      case 'entity_map':
+        return <AdminEntityMap showToast={showToast} />;
       case 'homepage':
         return <AdminHomepage showToast={showToast} />;
       case 'settings':

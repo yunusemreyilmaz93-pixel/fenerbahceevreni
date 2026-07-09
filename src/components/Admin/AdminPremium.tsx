@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { 
-  Sparkles, 
+ 
   Plus, 
   Search, 
   Edit, 
@@ -32,7 +32,7 @@ export const AdminPremium: React.FC = () => {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    coverImage: 'https://images.unsplash.com/photo-1510519138101-570d1dca3d66?w=600&auto=format&fit=crop',
+    coverImage: '',
     downloadUrl: '',
     category: 'Taktik Rehber',
     status: 'published'
@@ -87,7 +87,7 @@ export const AdminPremium: React.FC = () => {
     setForm({
       title: p.title || '',
       description: p.description || '',
-      coverImage: p.coverImage || 'https://images.unsplash.com/photo-1510519138101-570d1dca3d66?w=600&auto=format&fit=crop',
+      coverImage: p.coverImage || '',
       downloadUrl: p.downloadUrl || '',
       category: p.category || 'Taktik Rehber',
       status: p.status || 'published'
@@ -100,7 +100,7 @@ export const AdminPremium: React.FC = () => {
     setForm({
       title: '',
       description: '',
-      coverImage: 'https://images.unsplash.com/photo-1510519138101-570d1dca3d66?w=600&auto=format&fit=crop',
+      coverImage: '',
       downloadUrl: '',
       category: 'Taktik Rehber',
       status: 'published'
@@ -217,7 +217,7 @@ export const AdminPremium: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="Örn: Mourinho Dönemi 4-2-3-1 Hücum Mekanizmaları Analiz Kitapçığı"
+                    placeholder="Örn: İsmail Kartal 4-2-3-1 Hücum Mekanizmaları Analiz Kitapçığı"
                     value={form.title}
                     onChange={(e) => setForm(p => ({ ...p, title: e.target.value }))}
                     className="px-4 py-2.5 bg-fb-dark border border-white/15 rounded-xl text-xs text-white placeholder-fb-muted focus:border-fb-yellow focus:outline-none font-bold"

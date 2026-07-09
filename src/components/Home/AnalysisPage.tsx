@@ -7,7 +7,7 @@ import {
   Clock, 
   ArrowRight, 
   ChevronLeft, 
-  Sparkles, 
+ 
   Mail, 
   FileText, 
   CheckCircle, 
@@ -76,7 +76,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeScenario, setActiveScenario] = useState<'press' | 'transition' | 'lowBlock'>('press');
   const [userVote, setUserVote] = useState<string | null>(null);
-  const [votes, setVotes] = useState({ agree: 142, disagree: 18, neutral: 34 });
+  const [votes, setVotes] = useState({ agree: 0, disagree: 0, neutral: 0 });
 
   // Scroll reader tracking
   useEffect(() => {
@@ -115,145 +115,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
     }, 4000);
   };
 
-  // Hardcoded premium quality fallbacks if firebase/database is temporarily blank or unsynced
-  const fallbackArticles: Article[] = [
-    {
-      id: "fb-art-1",
-      title: "Fenerbahçe’nin oyun planında asıl problem ne?",
-      slug: "fenerbahce-oyun-plani-problem",
-      category: "Taktik",
-      excerpt: "Topa sahip olmak her zaman oyunu kontrol etmek anlamına gelmez. Fenerbahçe’nin son maçlarda yaşadığı temel sorun, topun nerede ve hangi hızda dolaştığıyla ilgili.",
-      content: "Fenerbahçe’nin son haftalardaki performans grafiği incelendiğinde, sahadaki taktik diziliş ile pratik yerleşim arasında ciddi bir kopukluk göze çarpıyor. Topun mülkiyetine sahip olma oranlarımız %60 seviyelerine ulaşmasına rağmen, üçüncü bölgedeki üretkenlik endekslerimiz lig ortalamasının gerisinde kalıyor.\n\nTemel problem, orta alan ile hücum hattı arasındaki geçiş hızının düşüklüğüdür. Top geriden çıkarken stoperlerin gereğinden fazla yatay pas yapması, rakip savunma bloklarının yerleşmesine ve kaymalarını kusursuz yapmasına olanak tanıyor. Fred'in üstlendiği kilit oyun kurucu ve dinamo rolünün alternatifinin bulunmayışı, takımın ritmini doğrudan etkiliyor. \n\nModern dikey pas öncelikli felsefeyi sahaya yansıtabilmek adına oyuncularımızın topsuz alan koşularını artırması gerekmektedir. Özellikle beklerin hücum çizgisine ulaştığı anlarda kanat forvetlerimizin iç koridorlara girmemesi ön tarafta sayısal çoğunluğu kaybetmemize yol açıyor. Gelecek haftalardaki derbilerde, geçiş savunmasındaki zafiyetlerin giderilmesi birinci öncelik olacaktır.",
-      tags: ["Taktik", "Gelişim", "Analiz"],
-      coverImage: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1200&auto=format&fit=crop",
-      author: "Bora Karaca",
-      status: "published",
-      isPremium: false,
-      featured: true,
-      readingTime: "6 dakika",
-      publishedAt: "2026-05-28T12:00:00.000Z",
-      createdAt: "2026-05-28T12:00:00.000Z"
-    },
-    {
-      id: "fb-art-2",
-      title: "Fenerbahçe neden bazı maçlarda tempoyu kaybediyor?",
-      slug: "fenerbahce-neden-tempoyu-kaybediyor",
-      category: "Taktik",
-      excerpt: "İlk bölümde kurulan baskının sürdürülememesi, orta saha bağlantıları ve kenar oyuncularının pozisyon alışlarıyla doğrudan ilişkili.",
-      content: "Fiziksel dayanıklılık seviyeleri ve oyuncu rotasyon sıklığı modern futbolda tempoyu korumanın iki temel taşıdır. Fenerbahçe'nin ilk 30 dakikada rakip kaleye uyguladığı bunaltıcı baskının, ikinci yarının ortalarına doğru düşmesinin rasyonel nedenlerini bu yazıda masaya yatırıyoruz.\n\nAnaliz ekibimizin topladığı koşu mesafeleri verilerine göre, ön alan presinde harcanan yüksek enerji bütçesi, 60. dakikadan sonra takımdaki pas isabet oranının %12 oranında gerilemesine neden oluyor. Bloklar arası mesafenin 40 metrenin üzerine çıkmasıyla rakiplerimiz merkezde geniş boşluklar bulabiliyor.",
-      tags: ["Tempo", "Rotasyon", "Fiziksel", "Pres"],
-      coverImage: "https://images.unsplash.com/photo-1544698310-74ea9d1c8258?w=800&auto=format&fit=crop",
-      author: "Caner Yılmaz",
-      status: "published",
-      isPremium: false,
-      featured: false,
-      readingTime: "5 dakika",
-      publishedAt: "2026-05-27T15:30:00.000Z",
-      createdAt: "2026-05-27T15:30:00.000Z"
-    },
-    {
-      id: "fb-art-3",
-      title: "Maçın kırılma anı: ikinci yarıdaki baskı sekansı",
-      slug: "macin-kirilma-ani-baski-sekansi",
-      category: "Maç Sonu",
-      excerpt: "Skoru değiştiren bölüm sadece gol pozisyonu değil, ondan önceki üç dakikalık baskı zinciriydi.",
-      content: "Maçın taktiksel kronolojisine baktığımızda, tabelanın 1-1 gittiği ve oyunun kör düğüm olduğu 72. dakikada kulübenin yaptığı hamlelerin hemen sonrasında gelen fırtınayı analiz ediyoruz. Top kapma başarısı ve kanat bindirmelerinin birbirini tamamladığı 180 saniyelik sekans, galibiyetin anahtarıydı.",
-      tags: ["Maç Raporu", "Analiz", "Kırılma Noktası"],
-      coverImage: "https://images.unsplash.com/photo-1518063319789-7217e6706b04?w=800&auto=format&fit=crop",
-      author: "Doğukan Özen",
-      status: "published",
-      isPremium: false,
-      featured: false,
-      readingTime: "4 dakika",
-      publishedAt: "2026-05-26T22:15:00.000Z",
-      createdAt: "2026-05-26T22:15:00.000Z"
-    },
-    {
-      id: "fb-art-4",
-      title: "Orta sahada doğru üçlü hangisi?",
-      slug: "orta-sahada-dogru-uclu-kombinasyonu",
-      category: "Oyuncu Analizi",
-      excerpt: "Fenerbahçe’nin oyun ritmini belirleyen asıl konu, merkezde hangi oyuncuların birlikte oynadığı.",
-      content: "Amrabat, İsmail Yüksek, Fred, Szymański ve Mert Hakan Yandaş... Fenerbahçe'nin zengin orta saha havuzunda, her rakibin taktiğine uygun olan en verimli üçlü eşleşmeleri formülize ettik. Defansif sertlik seviyesi ile kreatif dikey pas kalitesini maksimize eden ideal şablonları keşfedin.",
-      tags: ["Orta Saha", "Fred", "Amrabat", "Szymanski"],
-      coverImage: "https://images.unsplash.com/photo-1519766304817-4f37bda74a27?w=800&auto=format&fit=crop",
-      author: "Onur Şahin",
-      status: "published",
-      isPremium: false,
-      featured: false,
-      readingTime: "5 dakika",
-      publishedAt: "2026-05-25T09:00:00.000Z",
-      createdAt: "2026-05-25T09:00:00.000Z"
-    },
-    {
-      id: "fb-art-5",
-      title: "Transfer profili: Fenerbahçe nasıl bir 6 numara aramalı?",
-      slug: "transfer-profili-ideali-kriterler",
-      category: "Transfer",
-      excerpt: "Savunma önü oyuncusu sadece top kazanan değil, aynı zamanda ilk pas kalitesini yükselten bir profil olmalı.",
-      content: "Camianın uzun yıllardır eksikliğini hissettiği ve modern futbolda oyunun merkezini yönetecek kusursuz 6 numara arayışı sürüyor. Scout ekibimiz, hem savunma geçişlerinde duvar olabilecek hem de geriden oyun kurarken pres altındayken bile top kaybetmeyecek 3 global adayı listeledi.",
-      tags: ["Scouting", "Transfer", "6 Numara", "Analiz"],
-      coverImage: "https://images.unsplash.com/photo-1431324155629-1a6edd1d226a?w=800&auto=format&fit=crop",
-      author: "Serhat Akıncı",
-      status: "published",
-      isPremium: false,
-      featured: false,
-      readingTime: "7 dakika",
-      publishedAt: "2026-05-23T14:40:00.000Z",
-      createdAt: "2026-05-23T14:40:00.000Z"
-    },
-    {
-      id: "fb-art-6",
-      title: "Kanat rotasyonu hücum aklını nasıl etkiliyor?",
-      slug: "kanat-rotasyonu-hucum-akli",
-      category: "Taktik",
-      excerpt: "Çizgiye basan kanatlarla iç koridora giren kanatlar arasındaki fark, Fenerbahçe’nin hücum çeşitliliğini doğrudan değiştiriyor.",
-      content: "Tadić'in solda başlattığı yaratıcı iç koridor oyunları ile sağ tarafta İrfan Can veya Cengiz'in içe kat ederek açtığı şut koridorlarının taktik varyasyon farklarını inceliyoruz. Hangi formül ceza sahasında daha çok topla buluşma sağlıyor?",
-      tags: ["Kanat", "Tadic", "Irfan Can", "Taktik"],
-      coverImage: "https://images.unsplash.com/photo-1524015368236-bbf6f72545b6?w=800&auto=format&fit=crop",
-      author: "Bora Karaca",
-      status: "published",
-      isPremium: false,
-      featured: false,
-      readingTime: "5 dakika",
-      publishedAt: "2026-05-22T10:15:00.000Z",
-      createdAt: "2026-05-22T10:15:00.000Z"
-    },
-    {
-      id: "fb-art-7",
-      title: "Fenerbahçe’de liderlik problemi var mı?",
-      slug: "fenerbahcede-liderlik-ve-mental-kontrol",
-      category: "Köşe Yazısı",
-      excerpt: "Bazı maçlarda mesele taktikten çok oyunun duygusal kontrolüyle ilgili hale geliyor.",
-      content: "Kadıköy'ün benzersiz baskı ikliminde oyunun psikolojik ve duygusal boyutu çoğu zaman taktiğin önüne geçiyor. Kriz anlarında sorumluluk alan saha içi liderlerin eksikliği, kritik şampiyonluk virajlarında alınan beklenmedik sonuçların asıl sebebi mi?",
-      tags: ["Köşe Yazısı", "Mental", "Liderlik", "Kriz Yönetimi"],
-      coverImage: "https://images.unsplash.com/photo-1540747737956-378724044602?w=800&auto=format&fit=crop",
-      author: "Murat Özkan",
-      status: "published",
-      isPremium: false,
-      featured: false,
-      readingTime: "4 dakika",
-      publishedAt: "2026-05-20T17:00:00.000Z",
-      createdAt: "2026-05-20T17:00:00.000Z"
-    },
-    {
-      id: "fb-art-8",
-      title: "Premium: Detaylı Beşiktaş Derbisi taktik raporu ve oyuncu puanları",
-      slug: "premium-detayli-besiktas-derbisi-raporu",
-      category: "Premium",
-      excerpt: "Maçın tüm taktik kırılmaları, rakip zayıf yön analizleri, kilit kilit oyuncu eşleşmeleri ve bir sonraki maç için kritik galibiyet anahtarı.",
-      content: "Derbinin anahtarı orta sahadaki pres yoğunluğunda gizli. Beşiktaş'ın kilit oyun kurucusu Rafa Silva'yı durdurmak için İsmail Yüksek'in yapacağı gölge markaj, savunma hattımızın derinliğini doğrudan koruyacaktır. Bu yazıda her iki takımın son 5 maçlık detaylı istatistikleri ve geçiş haritaları karşılaştırılmaktadır.\n\nYanal hücum organizasyonlarında Beşiktaş'ın bek arkasında bıraktığı koridorlar, Tadić'in milimetrik pasları ve Ferdi'nin bindirmeleri için muazzam fırsatlar barındırıyor. Ancak orta saha merkez bloklarında yaşanacak basit top kayıpları hızlı kontra ataklara kapı aralayabilir. Şampiyonluk yolunda kritik 3 puanı getirecek tüm mikro taktikler ve oyuncu rollerine ait özel ısı tabloları bu raporun ekinde yer almaktadır.",
-      tags: ["Derbi", "Beşiktaş", "Isı Haritası", "Taktik Rapor"],
-      coverImage: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop",
-      author: "Taktik Kurulu",
-      status: "published",
-      isPremium: true,
-      featured: false,
-      readingTime: "10 dakika",
-      publishedAt: "2026-05-18T19:30:00.000Z",
-      createdAt: "2026-05-18T19:30:00.000Z"
-    }
-  ];
+  // Product rule: no fabricated articles. Empty DB -> premium empty state in UI.
+  const fallbackArticles: Article[] = [];
 
   // Load Articles on mount
   useEffect(() => {
@@ -486,7 +349,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
             <header className="relative pt-28 pb-16 bg-gradient-to-b from-fb-navy/30 to-transparent border-b border-white/[0.04]">
               <div className="container mx-auto px-6 max-w-6xl text-left relative z-10 space-y-4">
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow [font-size:10px] uppercase font-black tracking-widest">
-                  <Sparkles size={11} /> Taktik Akıl & Veri Analizi
+                   Taktik Akıl & Veri Analizi
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-black text-white italic uppercase tracking-tight leading-none">
                   Analizler
@@ -533,12 +396,18 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                 >
                   {/* cover image */}
                   <div className="lg:col-span-7 relative h-64 lg:h-full min-h-[300px] overflow-hidden bg-fb-dark">
-                    <img 
-                      src={featuredArticle.coverImage || "https://images.unsplash.com/photo-1544698310-74ea9d1c8258?w=1200&auto=format&fit=crop"} 
-                      alt={featuredArticle.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      referrerPolicy="no-referrer"
-                    />
+                    {featuredArticle.coverImage ? (
+                      <img 
+                        src={featuredArticle.coverImage} 
+                        alt={featuredArticle.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-[#0E1A36] via-[#0B0F19] to-[#132347] flex items-center justify-center">
+                        <img src="/logos/fenerbahce.png" alt="" className="w-24 h-24 object-contain opacity-20" />
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-fb-dark via-fb-dark/40 to-transparent"></div>
                     
                     {/* Badge */}
@@ -650,12 +519,18 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                         <div className="text-left">
                           {/* Card image container */}
                           <div className="relative h-44 overflow-hidden bg-fb-dark">
-                            <img 
-                              src={art.coverImage || "https://images.unsplash.com/photo-1544698310-74ea9d1c8258?w=800&auto=format&fit=crop"} 
-                              alt={art.title} 
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
-                              referrerPolicy="no-referrer"
-                            />
+                            {art.coverImage ? (
+                              <img 
+                                src={art.coverImage} 
+                                alt={art.title} 
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gradient-to-br from-[#0E1A36] via-[#0B0F19] to-[#132347] flex items-center justify-center">
+                                <img src="/logos/fenerbahce.png" alt="" className="w-14 h-14 object-contain opacity-20" />
+                              </div>
+                            )}
                             
                             {/* Categories Badges */}
                             <div className="absolute top-3 left-3 flex gap-1.5 z-10">
@@ -725,7 +600,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* STRIP CARD 1: STORY */}
-                <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] text-left space-y-4 relative overflow-hidden group hover:border-[#FFB020]/20 transition-all">
+                <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] text-left space-y-4 relative overflow-hidden group hover:border-[#FFD21F]/20 transition-all">
                   <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
                     <BookOpen size={18} />
                   </div>
@@ -907,12 +782,18 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
 
                 {/* Big cover Image */}
                 <div className="h-64 md:h-96 rounded-2xl overflow-hidden bg-fb-dark border border-white/10 relative shadow-2xl">
-                  <img 
-                    src={currentArticle.coverImage || "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1200&auto=format&fit=crop"} 
-                    alt={currentArticle.title} 
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+                  {currentArticle.coverImage ? (
+                    <img 
+                      src={currentArticle.coverImage} 
+                      alt={currentArticle.title} 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#0E1A36] via-[#0B0F19] to-[#132347] flex items-center justify-center">
+                      <img src="/logos/fenerbahce.png" alt="" className="w-20 h-20 object-contain opacity-20" />
+                    </div>
+                  )}
                 </div>
 
                 {/* 🔬 INTERACTIVE TACTICAL LAB CARD */}
@@ -922,7 +803,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1.5">
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-[9px] uppercase font-black tracking-wider">
-                        <Sparkles size={11} /> CANLI TAKTİK PLAYBOOK SUİTİ
+                         CANLI TAKTİK PLAYBOOK SUİTİ
                       </div>
                       <h3 className="text-xl font-display font-black text-white italic uppercase tracking-tight">
                         İnteraktif Taktik Laboratuvarı
@@ -1097,7 +978,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                     <div className="space-y-6">
                       {/* First couple of paragraphs rendered */}
                       <p>
-                        {currentArticle.content.split('\n\n')[0] || "Beşiktaş derbisine giden şampiyonluk yolunda kritik teknik hazırlıklar bitti. Teknik heyetimizin sahada uygulayacağı özel setler, ısı tablosunda belirgin bir baskı vadediyor..."}
+                        {currentArticle.content.split('\n\n')[0] || currentArticle.excerpt || ''}
                       </p>
                       
                       {/* Gradient Teaser overlay block */}
@@ -1124,7 +1005,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
 
                         <div className="pt-2 max-w-sm mx-auto">
                           <button 
-                            onClick={() => onNavigate('premium')}
+                            onClick={() => onNavigate('bulten')}
                             className="w-full py-4 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2"
                           >
                             Premium Listesine Katıl
@@ -1136,66 +1017,18 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                     /* REGULAR NON-PREMIUM FULL TEXT BODY */
                     <div className="space-y-6">
                       {currentArticle.content.split('\n\n').map((paragraph, index) => (
-                        <p key={index} className="text-slate-300 font-medium text-justify">
-                          {paragraph}
-                        </p>
+                        paragraph.startsWith('## ') ? (
+                          <h3 key={index} className="text-lg md:text-xl font-display font-black text-white uppercase italic tracking-tight pt-3">
+                            {paragraph.replace(/^## /, '')}
+                          </h3>
+                        ) : (
+                          <p key={index} className="text-slate-300 font-medium text-[15px] leading-relaxed">
+                            {paragraph}
+                          </p>
+                        )
                       ))}
                     </div>
                   )}
-                </div>
-
-                {/* METRIC COMPARISON SLIDERS */}
-                <div className="p-6 md:p-8 rounded-3xl bg-fb-card border border-white/[0.06] text-left space-y-5">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-fb-yellow" />
-                    <span className="text-xs font-black uppercase tracking-wider text-white">Veri Laboratuvarı: Lig Kıyaslaması</span>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {/* Metric 1 */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[11px] font-black text-fb-muted">
-                        <span>ATAK GEÇİŞ TEMPOSU (M/SN SÜRAT)</span>
-                        <span className="text-[#FFD21F]">Fenerbahçe: 9.2 (Üst Sınıf) <span className="text-slate-400 font-normal">/ Lig Ort: 6.8</span></span>
-                      </div>
-                      <div className="h-1.5 bg-fb-dark rounded-full overflow-hidden flex">
-                        <div className="h-full bg-[#FFD21F] rounded-full" style={{ width: '92%' }}></div>
-                      </div>
-                    </div>
-
-                    {/* Metric 2 */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[11px] font-black text-fb-muted">
-                        <span>PPDA PRES YOĞUNLUĞU (DÜŞÜK DAHA İYİDİR)</span>
-                        <span className="text-[#FFD21F]">Fenerbahçe: 8.4 PA (En Yoğun) <span className="text-slate-400 font-normal">/ Lig Ort: 11.2 PA</span></span>
-                      </div>
-                      <div className="h-1.5 bg-fb-dark rounded-full overflow-hidden flex">
-                        <div className="h-full bg-[#FFD21F] rounded-full" style={{ width: '85%' }}></div>
-                      </div>
-                    </div>
-
-                    {/* Metric 3 */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[11px] font-black text-fb-muted">
-                        <span>3. BÖLGEDE TOP KAZANMA BAŞARISI</span>
-                        <span className="text-[#FFD21F]">Fenerbahçe: %68.2 <span className="text-slate-400 font-normal">/ Lig Ort: %48.5</span></span>
-                      </div>
-                      <div className="h-1.5 bg-fb-dark rounded-full overflow-hidden flex">
-                        <div className="h-full bg-[#FFD21F] rounded-full" style={{ width: '68%' }}></div>
-                      </div>
-                    </div>
-
-                    {/* Metric 4 */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[11px] font-black text-fb-muted">
-                        <span>MAÇ BAŞINA AKAN OYUN XG (GOL BEKLENTİSİ)</span>
-                        <span className="text-[#FFD21F]">Fenerbahçe: 1.84 <span className="text-slate-400 font-normal">/ Lig Ort: 1.12</span></span>
-                      </div>
-                      <div className="h-1.5 bg-fb-dark rounded-full overflow-hidden flex">
-                        <div className="h-full bg-[#FFD21F] rounded-full" style={{ width: '88%' }}></div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
                 {/* USER REACTION / VOTE BOX */}

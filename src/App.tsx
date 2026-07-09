@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { viewToPath, pathToView, pathSubSlug } from './lib/routing';
 import { parseMarkdownToTree } from './lib/markdownParser';
 import { enrichFactionData } from './lib/factionService';
-import UniverseView from './components/UniverseView';
+const UniverseView = React.lazy(() => import('./components/UniverseView'));
 import HomePage from './components/Home/HomePage';
 import Navbar from './components/Home/Navbar';
 import { FactionNode } from './types';
@@ -9,25 +10,25 @@ import { AnimatePresence, motion } from 'motion/react';
 
 // Using the full markdown provided by the user
 const GALAXY_DATA = `
-# Fenerbahçe
-- Düz Fenerbahçeliler
+# FenerbahÃ§e
+- DÃ¼z FenerbahÃ§eliler
 - Balkan Lobisi
-  - Yeni Nesil Balkancılar
+  - Yeni Nesil BalkancÄ±lar
     - Tadicciler
     - Dzekocular
     - Sandro Zuficciler
-  - Dinozorbahçeli Balkancılar
+  - DinozorbahÃ§eli BalkancÄ±lar
     - Veselinovicciler
     - Stankovicciler
-    - İvicciler
+    - Ä°vicciler
     - Kaloperovicciler
     - Baricciler
     - Gegicciler
 - Hollanda Lobisi
   - Cocucular
-  - Koemancılar
-  - Hiddinkçiler
-  - Advocaatcılar
+  - KoemancÄ±lar
+  - HiddinkÃ§iler
+  - AdvocaatcÄ±lar
   - RVPciler
 - Macar Lobisi
   - Capellocular
@@ -36,134 +37,134 @@ const GALAXY_DATA = `
   - Favreciler
 - Rumen Lobisi
   - Trpisovskyciler
-  - Neestrupçular
-  - Teascacılar
+  - NeestrupÃ§ular
+  - TeascacÄ±lar
   - Ionescucular
   - Datcucular
-- Hacı İsmail Kartalcılar
-  - Oldschool İsocular
-  - Güçlendirilmiş İsmail Kartalcılar
+- HacÄ± Ä°smail KartalcÄ±lar
+  - Oldschool Ä°socular
+  - GÃ¼Ã§lendirilmiÅŸ Ä°smail KartalcÄ±lar
   - Saran Lobisi
-  - Sonradan İsocu Olanlar
-  - Conceiçaocular
-  - Portekiz Düşmanları
+  - Sonradan Ä°socu Olanlar
+  - ConceiÃ§aocular
+  - Portekiz DÃ¼ÅŸmanlarÄ±
 - Emre Bellocular
-- Aykutçular
-  - Dinozorbahçeli Aykutçular
+- AykutÃ§ular
+  - DinozorbahÃ§eli AykutÃ§ular
   - Sad Edit Tayfa
 - Basket Tayfa
   - Djordevicciler
-  - Saraşçılar
+  - SaraÅŸÃ§Ä±lar
   - Garnierciler
-  - Spahijacılar
+  - SpahijacÄ±lar
   - Obradovicciler
   - Tanjevicciler
 - Portekiz Lobisi
-  - Kahve Editçileri
+  - Kahve EditÃ§ileri
   - Vitorcular
-    - Scout Bahçeliler
-    - RVP Düşmanları
+    - Scout BahÃ§eliler
+    - RVP DÃ¼ÅŸmanlarÄ±
   - Mourinhohcular
     - Foticiler
-    - Wolves Sevdalıları
-    - Wonderkid Fetişistleri
-    - Küskünler
+    - Wolves SevdalÄ±larÄ±
+    - Wonderkid FetiÅŸistleri
+    - KÃ¼skÃ¼nler
     - Global Moucular
     - Nuno Espirito Santocular
-    - Jardımciler
-  - Abel Ferreira’cılar
-  - Fonsecacılar
-  - Villas-Boasçılar
+    - JardÄ±mciler
+  - Abel Ferreiraâ€™cÄ±lar
+  - FonsecacÄ±lar
+  - Villas-BoasÃ§Ä±lar
   - Jose Moraisciler
   - Amorimciler
   - Meirelesciler
-- Jesusçular
-  - Ziraat Edebiyatı Yapanlar
-  - Avrupa Jesusçuları
-- Ahrazbahçeliler
-  - Apo Avcıcılar
+- JesusÃ§ular
+  - Ziraat EdebiyatÄ± Yapanlar
+  - Avrupa JesusÃ§ularÄ±
+- AhrazbahÃ§eliler
+  - Apo AvcÄ±cÄ±lar
   - Sergenciler
   - Terimciler
-  - Şenolcular
-  - Okancılar
-  - Karam Tayfacılar
-    - Murat Yakıncılar
-    - Roland Kochçular
-    - Arda Turancılar
-    - Burak Yılmazcılar
-    - Yaz Yıldırımcılar
-    - Selçuk İnananlar
+  - Åenolcular
+  - OkancÄ±lar
+  - Karam TayfacÄ±lar
+    - Murat YakÄ±ncÄ±lar
+    - Roland KochÃ§ular
+    - Arda TurancÄ±lar
+    - Burak YÄ±lmazcÄ±lar
+    - Yaz YÄ±ldÄ±rÄ±mcÄ±lar
+    - SelÃ§uk Ä°nananlar
     - Di Matteocular
     - Hardcore Azizciler
-  - GS Hocası İsteyenler
-  - Samet Aybabacılar
-  - Hakan Baltacılar
-- Alman Ekolücüler
-  - Yerli Düşmanları
-  - Devin Özekçiler
-  - Okan Özkancılar
-  - Erol Bulutçular
-  - Dinozorbahçeli Almancılar
+  - GS HocasÄ± Ä°steyenler
+  - Samet AybabacÄ±lar
+  - Hakan BaltacÄ±lar
+- Alman EkolÃ¼cÃ¼ler
+  - Yerli DÃ¼ÅŸmanlarÄ±
+  - Devin Ã–zekÃ§iler
+  - Okan Ã–zkancÄ±lar
+  - Erol BulutÃ§ular
+  - DinozorbahÃ§eli AlmancÄ±lar
     - Daumcular
-    - Löwcüler
-    - Lorantçılar
-    - Labbadiacılar
-    - Rangnickçiler
-    - Klinsmanncılar
-    - Hürcelerciler
-    - Nagelsmancılar
-  - Yeni Nesil Almancılar
-    - Terzicçiler
-    - Hoeneßçiler
+    - LÃ¶wcÃ¼ler
+    - LorantÃ§Ä±lar
+    - LabbadiacÄ±lar
+    - RangnickÃ§iler
+    - KlinsmanncÄ±lar
+    - HÃ¼rcelerciler
+    - NagelsmancÄ±lar
+  - Yeni Nesil AlmancÄ±lar
+    - TerzicÃ§iler
+    - HoeneÃŸÃ§iler
     - Roseciler
     - Nuriciler
-    - Schmidtçiler
+    - SchmidtÃ§iler
     - Jaissleciler
 - Ersuncular
-  - Tahir Karapınarcılar
-  - Derbiden Derbiye İzleyenler
-  - Begiristancılar (Sportif Direktör Olarak)
-  - Çobani Örgütü
-  - Küskün Ersuncular
-- Serdar Ali Çelikler Terör Örgütü
+  - Tahir KarapÄ±narcÄ±lar
+  - Derbiden Derbiye Ä°zleyenler
+  - BegiristancÄ±lar (Sportif DirektÃ¶r Olarak)
+  - Ã‡obani Ã–rgÃ¼tÃ¼
+  - KÃ¼skÃ¼n Ersuncular
+- Serdar Ali Ã‡elikler TerÃ¶r Ã–rgÃ¼tÃ¼
   - Hoca Yiyiciler
-  - Dönerci Batıranlar
-  - Aykut Düşmanları (Vardar Örgütü)
-  - Buvaccılar (Balkan Lobisi)
-  - Brendan Rodgersçılar
+  - DÃ¶nerci BatÄ±ranlar
+  - Aykut DÃ¼ÅŸmanlarÄ± (Vardar Ã–rgÃ¼tÃ¼)
+  - BuvaccÄ±lar (Balkan Lobisi)
+  - Brendan RodgersÃ§Ä±lar
   - De Zerbiciler
-- İsim Takıntılıları
-  - Krossçular
-  - Ten Hagcılar
-  - Yabancı Olsun Da Hoca Fark Etmezciler
+- Ä°sim TakÄ±ntÄ±lÄ±larÄ±
+  - KrossÃ§ular
+  - Ten HagcÄ±lar
+  - YabancÄ± Olsun Da Hoca Fark Etmezciler
   - Postecoglucular
-  - Avrupa Kupası Edebiyatçıları
+  - Avrupa KupasÄ± EdebiyatÃ§Ä±larÄ±
   - Rafa Benitezciler
   - Xaviciler
   - Allegriciler
-  - Mottacılar
-  - Kloppçular
+  - MottacÄ±lar
+  - KloppÃ§ular
   - Ancelotticiler
   - Conteciler
   - Fergusoncular
-  - Thomas Frankçılar
+  - Thomas FrankÃ§Ä±lar
   - Kompanyciler
-  - Marescacılar
+  - MarescacÄ±lar
   - Xabi Alonsocular
   - Simeoneciler
-  - Zidanecılar
+  - ZidanecÄ±lar
   - Pirlocular
-  - Nestacılar
+  - NestacÄ±lar
   - Unai Emeryciler
-  - Gerrardcılar
+  - GerrardcÄ±lar
   - Shevchenkocular
   - Wengerciler
-- Ütopikçiler
+- ÃœtopikÃ§iler
   - Pepciler
   - Southgateciler
   - Tuchelciler
   - Luis Enriqueciler
-  - Flickçiler
+  - FlickÃ§iler
   - Guidetticiler
   - Santarelliciler
 - Voleybol Tayfa
@@ -171,118 +172,118 @@ const GALAXY_DATA = `
   - Bernardiciler
   - Rezendeciler
   - Lavariniciler
-  - Kiralycılar
-  - Yeon-Koungcular (Camia Evlatları)
-  - Abbondanzacılar
-  - Dişi Kanaryalar
-    - Tedescocular (muhtemelen adını ilk kez dün duydular)
-    - Üçlü Sevenler
-    - Toshackcılar (Dinozorbahçeliler)
-- Anadolu İrfanı
-  - Yılmazcılar
-  - Çağdaşçılar
+  - KiralycÄ±lar
+  - Yeon-Koungcular (Camia EvlatlarÄ±)
+  - AbbondanzacÄ±lar
+  - DiÅŸi Kanaryalar
+    - Tedescocular (muhtemelen adÄ±nÄ± ilk kez dÃ¼n duydular)
+    - ÃœÃ§lÃ¼ Sevenler
+    - ToshackcÄ±lar (DinozorbahÃ§eliler)
+- Anadolu Ä°rfanÄ±
+  - YÄ±lmazcÄ±lar
+  - Ã‡aÄŸdaÅŸÃ§Ä±lar
   - Samiciler
-  - Mesut Bakkalcılar
-  - Tolunay Kafkasçılar
-  - İsmet Taşdemirciler
-  - Rizacılar
-  - İlhancılar
-  - Servetçiler
-  - Hikmet Karamancılar
+  - Mesut BakkalcÄ±lar
+  - Tolunay KafkasÃ§Ä±lar
+  - Ä°smet TaÅŸdemirciler
+  - RizacÄ±lar
+  - Ä°lhancÄ±lar
+  - ServetÃ§iler
+  - Hikmet KaramancÄ±lar
   - Fatih Tekkeciler
-  - İrfan Buzcular
-- Hırvat Lobisi
+  - Ä°rfan Buzcular
+- HÄ±rvat Lobisi
   - Slaven Bilicciler
-  - Niko Kovaccılar
-  - Hakan Keleşçiler
-  - Recep Uçarcılar
-  - Mustafa Reşit Akçaycılar
+  - Niko KovaccÄ±lar
+  - Hakan KeleÅŸÃ§iler
+  - Recep UÃ§arcÄ±lar
+  - Mustafa ReÅŸit AkÃ§aycÄ±lar
   - Prosineckiciler
-  - Bjelicacılar
+  - BjelicacÄ±lar
   - Dalicciler
-  - Ünal Karamancılar
-  - Ömer Erdoğancılar
-  - Ertuğrul Sağlamcılar
+  - Ãœnal KaramancÄ±lar
+  - Ã–mer ErdoÄŸancÄ±lar
+  - ErtuÄŸrul SaÄŸlamcÄ±lar
   - Filipe Luisciler
-  - Yakın Koşu Kavakçılar (343 Lobisi)
-  - Şenol Çorlucular
-  - Hüseyin Eroğlucular
-  - Sinan Kaloğlucular
-  - Osman Zeki Korkmazcılar
-  - Tomasçılar (Hırvat Lobisi)
+  - YakÄ±n KoÅŸu KavakÃ§Ä±lar (343 Lobisi)
+  - Åenol Ã‡orlucular
+  - HÃ¼seyin EroÄŸlucular
+  - Sinan KaloÄŸlucular
+  - Osman Zeki KorkmazcÄ±lar
+  - TomasÃ§Ä±lar (HÄ±rvat Lobisi)
 - Brezilya Lobisi
-  - Oldschool Brezilyacılar
-  - Carlos Alberto Parreiracılar
+  - Oldschool BrezilyacÄ±lar
+  - Carlos Alberto ParreiracÄ±lar
   - Lazaroniciler
   - Alexciler
   - Aureliocular
   - Spalletticiler
   - Didiciler
-- Camia Evladcılar
-  - Kuytçular (Hollanda Lobisi)
-  - Bülentçiler
-  - Tuncaycılar
-  - Ümit Özatçılar
-  - Selçuk Şahinciler
-  - Mehmet Topalcılar
-  - Oğuz Çetinciler
-  - Volkancılar
-  - Rıdvan Dilmenciler
-  - Serhat Akıncılar
-  - Gökhan Gönülcüler
+- Camia EvladcÄ±lar
+  - KuytÃ§ular (Hollanda Lobisi)
+  - BÃ¼lentÃ§iler
+  - TuncaycÄ±lar
+  - Ãœmit Ã–zatÃ§Ä±lar
+  - SelÃ§uk Åahinciler
+  - Mehmet TopalcÄ±lar
+  - OÄŸuz Ã‡etinciler
+  - VolkancÄ±lar
+  - RÄ±dvan Dilmenciler
+  - Serhat AkÄ±ncÄ±lar
+  - GÃ¶khan GÃ¶nÃ¼lcÃ¼ler
   - Roberto Carloscular
   - Mert Nobreciler
   - Sowcular
-  - Avrupa Zicocuları
+  - Avrupa ZicocularÄ±
   - Pozitif Futbol Sevenler
   - Zicocular
   - Deividciler
   - Titeciler
   - Hakan Kutlucular
-  - Şenol Cancılar
-  - Mustafa Kaplançılar (Ankaralılar)
-  - Özhan Pulatcılar (FM Tayfa)
-  - Önder Özenciler
-  - Abdullah Ercancılar
+  - Åenol CancÄ±lar
+  - Mustafa KaplanÃ§Ä±lar (AnkaralÄ±lar)
+  - Ã–zhan PulatcÄ±lar (FM Tayfa)
+  - Ã–nder Ã–zenciler
+  - Abdullah ErcancÄ±lar
   - Mehmet Topuzcular
   - Webocular
-  - Müjdat Yetkinciler
+  - MÃ¼jdat Yetkinciler
   - Fatih Akyelciler
-  - Ogüncüler
+  - OgÃ¼ncÃ¼ler
   - Mirkovicciler (Balkan Lobisi)
-  - Engin İpekoğlucular
-  - Murat Şahinciler
-  - Rüştücüler
-  - Ahmet Yıldırımcılar
-  - Yusuf Şimşekçiler
-  - Coşkun Demirbakancılar
+  - Engin Ä°pekoÄŸlucular
+  - Murat Åahinciler
+  - RÃ¼ÅŸtÃ¼cÃ¼ler
+  - Ahmet YÄ±ldÄ±rÄ±mcÄ±lar
+  - Yusuf ÅimÅŸekÃ§iler
+  - CoÅŸkun DemirbakancÄ±lar
   - Metin Diyadinciler
-  - Oktay Derelioğlucular
-  - Semih Şentürkçüler
-  - Orhan Şamcılar
-  - Abdülkerim Durmazcılar
-  - Hasan Ali Kaldırımcılar
-- Yabancı Anadolu Hocası İsteyenler
-  - Şumudicacılar
+  - Oktay DerelioÄŸlucular
+  - Semih ÅentÃ¼rkÃ§Ã¼ler
+  - Orhan ÅamcÄ±lar
+  - AbdÃ¼lkerim DurmazcÄ±lar
+  - Hasan Ali KaldÄ±rÄ±mcÄ±lar
+- YabancÄ± Anadolu HocasÄ± Ä°steyenler
+  - ÅumudicacÄ±lar
   - Stoilovcular
-  - Gisdolcüler
-  - Feldkampçılar
+  - GisdolcÃ¼ler
+  - FeldkampÃ§Ä±lar
   - Hagiciler
   - Osieckciler
-  - Thomas Reisçiler
+  - Thomas ReisÃ§iler
   - Jakirovicciler
-  - Ömer Kanerciler
-  - Tamer Güneyciler
+  - Ã–mer Kanerciler
+  - Tamer GÃ¼neyciler
   - Vengloscular
   - Kuntzcular
   - Lucescucular
 - Arjantin Lobisi
   - Prandelliciler
-  - Kluivertçiler
+  - KluivertÃ§iler
   - Omerovicciler
   - Stanojevicciler
   - Sassariniciler
-  - Joao Pereiracılar
+  - Joao PereiracÄ±lar
   - Leonardocular (Brezilya Lobisi)
   - Sampaoliciler
   - Gallardocular
@@ -290,51 +291,50 @@ const GALAXY_DATA = `
   - Setienciler
   - Pellegriniciler
   - Farioliciler
-- Milli Takım Hocası İsteyenler
-  - Montellacılar
-- Blancçılar
-  - Fernando Santosçular (Gizli JK’liler)
-  - Defanstan Kısa Pasla Çıkma Fetişistleri
-  - Kenan Koçakçılar
+- Milli TakÄ±m HocasÄ± Ä°steyenler
+  - MontellacÄ±lar
+- BlancÃ§Ä±lar
+  - Fernando SantosÃ§ular (Gizli JKâ€™liler)
+  - Defanstan KÄ±sa Pasla Ã‡Ä±kma FetiÅŸistleri
+  - Kenan KoÃ§akÃ§Ä±lar
   - Valverdeciler
-  - Rambo Okancılar
+  - Rambo OkancÄ±lar
   - Skibbeciler
-- Ali Koççu Yahudi Lobisi
+- Ali KoÃ§Ã§u Yahudi Lobisi
 - Esporcular
-  - 2017 Worldscüler
+  - 2017 WorldscÃ¼ler
   - Nextgenciler
   - Emre Aksoycular
   - Arkheciler
-  - Magathçılar
-  - Clementçiler
-- Finkçiler
-  - Hütterciler
-  - Futbolu Bırakıp Masa Tenisi İzleyenler
+  - MagathÃ§Ä±lar
+  - ClementÃ§iler
+- FinkÃ§iler
+  - HÃ¼tterciler
+  - Futbolu BÄ±rakÄ±p Masa Tenisi Ä°zleyenler
   - Vladimir Petkoviciler
   - Recep Karatepeciler
-  - Sercan Terzioğlucular
+  - Sercan TerzioÄŸlucular
 - Manciniciler
   - Sarriciler
   - Gattusocular
   - Glasnerciler
-  - Van Bronckhorstçular
-  - Graham Pottercılar
-  - Volkan Balcıcılar
-  - İrfan Saraloğlucular
-- Zemancılar
+  - Van BronckhorstÃ§ular
+  - Graham PottercÄ±lar
+  - Volkan BalcÄ±cÄ±lar
+  - Ä°rfan SaraloÄŸlucular
+- ZemancÄ±lar
   - Mustafa Denizliciler
-  - Aragonesciler (İsim Takıntılılar)
-- Zeki Murat Göleciler
+  - Aragonesciler (Ä°sim TakÄ±ntÄ±lÄ±lar)
+- Zeki Murat GÃ¶leciler
 `;
 
 import MatchCenter from './components/Home/MatchCenter';
 import MacMerkeziPage from './components/Home/MacMerkeziPage';
-import PredictorPage from './components/Predictor/PredictorPage';
+const PredictorPage = React.lazy(() => import('./components/Predictor/PredictorPage'));
 import { AnalysisPage } from './components/Home/AnalysisPage';
 import { TransferRadarPage } from './components/Home/TransferRadarPage';
 import { PlayersPage } from './components/Home/PlayersPage';
 import { FanRoomPage } from './components/Home/FanRoomPage';
-import { PremiumPage } from './components/Home/PremiumPage';
 import { AboutPage } from './components/Home/AboutPage';
 import { ContactPage } from './components/Home/ContactPage';
 import BultenPage from './components/Home/BultenPage';
@@ -344,20 +344,17 @@ import CookiesPage from './components/Home/CookiesPage';
 import KvkkPage from './components/Home/KvkkPage';
 import NotFoundPage from './components/Home/NotFoundPage';
 import CookieConsentBanner from './components/Home/CookieConsentBanner';
-import { seedNewsletterSubscribersIfEmpty } from './lib/newsletterService';
-import { latestArticles, transferTargets, playerPerformances, communityPoll } from './constants/mockData';
-import { ShieldCheck, HelpCircle, Star, MessagesSquare, Sparkles, Send, Info, Calendar, BarChart3, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, HelpCircle, Star, MessagesSquare, Send, Info, Calendar, BarChart3, AlertTriangle } from 'lucide-react';
 
-import { AdminLogin } from './components/Admin/AdminLogin';
-import { AdminLayout } from './components/Admin/AdminLayout';
+const AdminLogin = React.lazy(() => import('./components/Admin/AdminLogin').then(m => ({ default: m.AdminLogin })));
+const AdminLayout = React.lazy(() => import('./components/Admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
 import { dbGetCollection } from './lib/dbService';
-import { onAuthStateChangedAdmin, isAdminUserLoggedIn, getAdminUser, logoutAdmin, auth } from './lib/firebase';
+import { onAuthStateChangedAdmin, isAdminUserLoggedIn, getAdminUser, logoutAdmin, auth, ensureAnonymousUser } from './lib/firebase';
 import { isAdminEmail } from './lib/envHelper';
 
 export default function App() {
-  const [view, setView] = useState<'home' | 'universe' | 'match-center' | 'analysis' | 'transfer-radar' | 'players' | 'fan-room' | 'premium' | 'about' | 'contact' | 'predictor' | 'admin' | 'admin-login' | 'bulten' | 'privacy' | 'terms' | 'cookies' | 'kvkk' | '404'>('home');
+  const [view, setView] = useState<'home' | 'universe' | 'match-center' | 'analysis' | 'transfer-radar' | 'players' | 'fan-room' | 'about' | 'contact' | 'predictor' | 'admin' | 'admin-login' | 'bulten' | 'privacy' | 'terms' | 'cookies' | 'kvkk' | '404'>('home');
   const [isQuizOpen, setIsQuizOpen] = useState(false);
-  const [joinedPremium, setJoinedPremium] = useState(false);
   const [aboutMsg, setAboutMsg] = useState(false);
 
   // Secure Auth State Monitors
@@ -373,6 +370,11 @@ export default function App() {
   const [adminUser, setAdminUser] = useState<any>(null);
   const [announcement, setAnnouncement] = useState<any>(null);
 
+  // URL routing (Faz 3): derin link iÃ§in oyuncu slug'Ä± + geri/ileri senkron bayraÄŸÄ±
+  const [initialPlayerSlug, setInitialPlayerSlug] = useState<string | null>(null);
+  const suppressPushRef = useRef(false);
+  const routeReadyRef = useRef(false);
+
   const treeData = useMemo(() => {
     const basicTree = parseMarkdownToTree(GALAXY_DATA);
     return enrichFactionData(basicTree);
@@ -382,22 +384,18 @@ export default function App() {
   useEffect(() => {
     const fetchPublicCMS = async () => {
       try {
-        await seedNewsletterSubscribersIfEmpty();
-        
-        const isSeeded = localStorage.getItem("cms_firebase_seeded_done") === "true" || !!localStorage.getItem("cms_articles");
-        
         const arts = await dbGetCollection('articles');
-        setArticles(arts.length > 0 || isSeeded ? arts : latestArticles);
+        setArticles(arts);
 
         const targets = await dbGetCollection('transferReports');
-        setTransferReports(targets.length > 0 || isSeeded ? targets : transferTargets);
+        setTransferReports(targets);
 
         const plyrs = await dbGetCollection('players');
-        setPlayersList(plyrs.length > 0 || isSeeded ? plyrs : playerPerformances);
+        setPlayersList(plyrs);
 
         const polls = await dbGetCollection('polls');
         const activePoll = polls.find((p: any) => p.status === 'active') || polls[0];
-        setPollValue(activePoll || communityPoll);
+        setPollValue(activePoll || null);
 
         const homes = await dbGetCollection('homeSettings');
         const mainHome = homes.find(h => h.id === 'main');
@@ -420,13 +418,18 @@ export default function App() {
         setAnnouncement(activeAnn || null);
       } catch (err) {
         console.error("Public CMS retrieval failed:", err);
-        setArticles(latestArticles);
-        setTransferReports(transferTargets);
-        setPlayersList(playerPerformances);
-        setPollValue(communityPoll);
+        setArticles([]);
+        setTransferReports([]);
+        setPlayersList([]);
+        setPollValue(null);
       }
     };
     fetchPublicCMS();
+
+    // Give every visitor an invisible Firebase identity for polls and community actions.
+    ensureAnonymousUser().catch((err) => {
+      console.warn('Anonymous Firebase session could not be started:', err);
+    });
 
     // Check URL Hash routing or param trigger for /admin access
     const checkHashRoute = async () => {
@@ -474,8 +477,18 @@ export default function App() {
         }
         setAuthChecking(false);
       } else {
+        // Ä°Ã§erik sayfalarÄ± iÃ§in path â†’ view Ã§Ã¶zÃ¼mÃ¼ (derin link desteÄŸi)
+        const resolved = pathToView(window.location.pathname);
+        if (resolved && resolved !== 'admin' && resolved !== 'home') {
+          setView(resolved);
+          if (resolved === 'players') {
+            const slug = pathSubSlug(window.location.pathname);
+            if (slug) setInitialPlayerSlug(slug);
+          }
+        }
         setAuthChecking(false);
       }
+      routeReadyRef.current = true;
     };
     checkHashRoute();
 
@@ -510,6 +523,29 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [view]);
 
+  // URL routing (Faz 3): geri/ileri tuÅŸu â†’ view; view deÄŸiÅŸince pushState
+  useEffect(() => {
+    const onPop = () => {
+      const v = pathToView(window.location.pathname);
+      if (v) {
+        suppressPushRef.current = true;
+        setView(v);
+        if (v === 'players') setInitialPlayerSlug(pathSubSlug(window.location.pathname));
+      }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  useEffect(() => {
+    if (!routeReadyRef.current) return;            // ilk mount'ta pushlama
+    if (suppressPushRef.current) { suppressPushRef.current = false; return; } // popstate kaynaklÄ±
+    // YalnÄ±zca bÃ¶lÃ¼m gerÃ§ekten deÄŸiÅŸtiyse push et; aynÄ± bÃ¶lÃ¼mdeki alt-path'i (Ã¶r. /oyuncular/talisca) ezme
+    if (pathToView(window.location.pathname) !== view) {
+      window.history.pushState({ view }, '', viewToPath(view));
+    }
+  }, [view]);
+
   // Unified scroll handler for section routing
   const handleScrollToSection = (sectionId: string) => {
     setTimeout(() => {
@@ -522,6 +558,13 @@ export default function App() {
 
   return (
     <div className="bg-fb-dark min-h-screen text-slate-100 font-sans">
+      <React.Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <span className="text-[#FFD21F] font-mono text-xs uppercase tracking-[0.3em] animate-pulse">YÃ¼kleniyor...</span>
+          </div>
+        }
+      >
       {/* Site-Wide Announcement Bar */}
       {announcement && view !== 'admin' && view !== 'admin-login' && (
         <div className="bg-fb-yellow text-fb-navy py-2 px-6 text-center text-xs font-black uppercase tracking-wider flex items-center justify-center gap-3 relative z-50 shadow-md animate-fade-in">
@@ -533,7 +576,7 @@ export default function App() {
               rel="noreferrer" 
               className="underline hover:text-black transition-colors ml-2 font-black italic"
             >
-              İncele →
+              Ä°ncele â†’
             </a>
           )}
         </div>
@@ -638,7 +681,16 @@ export default function App() {
 
         {/* PLAYER PERFORMANCE ZONE PAGE */}
         {view === 'players' && (
-          <PlayersPage onNavigate={setView} />
+          <PlayersPage
+            onNavigate={setView}
+            initialPlayerSlug={initialPlayerSlug}
+            onPlayerRoute={(slug) => {
+              const target = slug ? `/oyuncular/${slug}` : '/oyuncular';
+              if (window.location.pathname !== target) {
+                window.history.pushState({ view: 'players' }, '', target);
+              }
+            }}
+          />
         )}
 
         {/* COMMUNITY / TARAFTAR ODASI PAGE */}
@@ -652,20 +704,6 @@ export default function App() {
             className="pt-28 text-left"
           >
             <FanRoomPage onNavigate={setView} />
-          </motion.div>
-        )}
-
-        {/* PREMIUM MEMBERSHIP PAGE */}
-        {view === 'premium' && (
-          <motion.div
-            key="premium"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            className="pt-28 text-left"
-          >
-            <PremiumPage onNavigate={setView} />
           </motion.div>
         )}
 
@@ -683,7 +721,7 @@ export default function App() {
           </motion.div>
         )}
 
-        {/* CONTACT / İLETİŞİM PAGE */}
+        {/* CONTACT / Ä°LETÄ°ÅÄ°M PAGE */}
         {view === 'contact' && (
           <motion.div
             key="contact"
@@ -697,7 +735,7 @@ export default function App() {
           </motion.div>
         )}
 
-        {/* BÜLTEN PAGE */}
+        {/* BÃœLTEN PAGE */}
         {view === 'bulten' && (
           <motion.div
             key="bulten"
@@ -736,9 +774,9 @@ export default function App() {
         {unauthorized && !authChecking && (view === 'admin' || view === 'admin-login') && (
           <div className="min-h-screen bg-fb-dark flex flex-col items-center justify-center p-6 text-slate-100 text-center font-sans">
             <ShieldCheck className="w-16 h-16 text-rose-500 mb-4 animate-pulse shrink-0 bg-transparent" />
-            <h2 className="text-xl font-display font-black text-white uppercase italic tracking-wide mb-2">YETKİSİZ ERİŞİM</h2>
+            <h2 className="text-xl font-display font-black text-white uppercase italic tracking-wide mb-2">YETKÄ°SÄ°Z ERÄ°ÅÄ°M</h2>
             <p className="text-xs text-fb-muted max-w-sm mb-6 font-semibold leading-relaxed">
-              Bu alana erişim yetkiniz yok.
+              Bu alana eriÅŸim yetkiniz yok.
             </p>
             <button
               onClick={() => {
@@ -747,7 +785,7 @@ export default function App() {
               }}
               className="px-6 py-2.5 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-[0_4px_25px_rgba(255,210,31,0.15)]"
             >
-              Ana Sayfaya Dön
+              Ana Sayfaya DÃ¶n
             </button>
             <button
               onClick={async () => {
@@ -758,7 +796,7 @@ export default function App() {
               }}
               className="mt-4 text-xs text-slate-400 hover:text-white font-bold transition-all underline underline-offset-4 cursor-pointer"
             >
-              Yönetici Giriş Sayfasına Dön
+              YÃ¶netici GiriÅŸ SayfasÄ±na DÃ¶n
             </button>
           </div>
         )}
@@ -803,7 +841,7 @@ export default function App() {
             />
           </motion.div>
         )}
-        {/* LEGAL: GİZLİLİK POLİTİKASI */}
+        {/* LEGAL: GÄ°ZLÄ°LÄ°K POLÄ°TÄ°KASI */}
         {view === 'privacy' && (
           <motion.div
             key="privacy"
@@ -816,7 +854,7 @@ export default function App() {
           </motion.div>
         )}
 
-        {/* LEGAL: KULLANIM ŞARTLARI */}
+        {/* LEGAL: KULLANIM ÅARTLARI */}
         {view === 'terms' && (
           <motion.div
             key="terms"
@@ -829,7 +867,7 @@ export default function App() {
           </motion.div>
         )}
 
-        {/* LEGAL: ÇEREZ POLİTİKASI */}
+        {/* LEGAL: Ã‡EREZ POLÄ°TÄ°KASI */}
         {view === 'cookies' && (
           <motion.div
             key="cookies"
@@ -842,7 +880,7 @@ export default function App() {
           </motion.div>
         )}
 
-        {/* LEGAL: KVKK AYDINLATMA METNİ */}
+        {/* LEGAL: KVKK AYDINLATMA METNÄ° */}
         {view === 'kvkk' && (
           <motion.div
             key="kvkk"
@@ -872,7 +910,9 @@ export default function App() {
       {view !== 'admin' && view !== 'admin-login' && (
         <CookieConsentBanner onNavigate={setView} />
       )}
+      </React.Suspense>
     </div>
   );
 }
+
 

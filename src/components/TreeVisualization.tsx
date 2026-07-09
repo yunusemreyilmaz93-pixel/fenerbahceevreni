@@ -232,7 +232,7 @@ const TreeVisualization: React.FC<TreeVisualizationProps> = ({
       .style('filter', 'url(#glow)');
 
     center.append('image')
-      .attr('xlink:href', 'https://firebasestorage.googleapis.com/v0/b/fenerbahceevreni-a4280.firebasestorage.app/o/fb%20_evreni_logo.png?alt=media&token=e6aa00eb-d16b-47f6-bf10-270b23d5a10c')
+      .attr('xlink:href', '/fb-evreni-logo.png')
       .attr('x', -60 * centerScale)
       .attr('y', -60 * centerScale)
       .attr('width', 120 * centerScale)

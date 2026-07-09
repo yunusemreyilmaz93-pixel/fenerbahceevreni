@@ -11,7 +11,7 @@ import {
   Send, 
   Search, 
   Clock,
-  Sparkles,
+
   ChevronRight,
   ArrowLeft,
   Briefcase,
@@ -78,11 +78,11 @@ export const AdminNewsletterIssues: React.FC<AdminNewsletterIssuesProps> = ({ sh
     const newIssue: NewsletterIssue = {
       title: 'Haftalık Analiz Dosyası - Sayı #' + (issues.length + 1),
       subject: 'Fenerbahçe Evreni: Taktiksel Çözümler ve Son Gelişmeler',
-      intro: 'Fenerbahçe Evreni bülteninin yeni sayısına hoş geldiniz! Bu hafta Mourinho’nun yeni formasyon denemelerini ve transfer haberlerini inceliyoruz.',
+      intro: 'Fenerbahçe Evreni bülteninin yeni sayısına hoş geldiniz! Bu hafta İsmail Kartal’ın yeni formasyon denemelerini ve transfer haberlerini inceliyoruz.',
       sections: [
         {
           heading: '1. Haftanın Taktik Hamlesi',
-          bodyText: 'Mourinho’nun orta saha yerleşimi üzerine kurguladığı yeni geçiş savunması taktiksel başarımızı doğrudan yükseltiyor.',
+          bodyText: 'İsmail Kartal’ın orta saha yerleşimi üzerine kurguladığı yeni geçiş savunması taktiksel başarımızı doğrudan yükseltiyor.',
           ctaText: 'Analizi İncele',
           ctaUrl: '#'
         }

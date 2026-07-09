@@ -4,7 +4,7 @@ import {
   X, 
   AlertTriangle, 
   FolderOpen, 
-  Sparkles, 
+ 
   Image as ImageIcon, 
   FileCheck, 
   Eye, 
@@ -388,7 +388,7 @@ export const ContentPreviewModal: React.FC<ContentPreviewModalProps> = ({
 // 7. FIREBASE IMAGE UPLOADER COMPONENT WITH LOADING, PROGRESS & PREVIEW
 import { storage, auth, getCurrentAdminUser } from '../../lib/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { Upload, Loader2, Sparkles as SparklesIcon, Trash2 as TrashIcon, Check } from 'lucide-react';
+import { Upload, Loader2, Trash2 as TrashIcon, Check } from 'lucide-react';
 
 interface FirebaseImageUploaderProps {
   folderPath: 'article-covers' | 'team-logos' | 'player-images' | 'sponsor-logos';
@@ -488,25 +488,23 @@ export const FirebaseImageUploader: React.FC<FirebaseImageUploaderProps> = ({
         setUploading(false);
       }
     } else {
-      // Mock upload simulation if Firebase is fallback mode
-      console.warn("Firebase Storage is currently not initialized/configured. Simulating mock upload...");
-      let mockProgress = 0;
-      const interval = setInterval(() => {
-        mockProgress += 10;
-        setProgress(mockProgress);
-        if (mockProgress >= 100) {
-          clearInterval(interval);
-          // Standard unsplash or generic photo matching fallback path
-          const mockUrlsByFolder = {
-            'article-covers': 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop',
-            'team-logos': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop',
-            'player-images': 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop',
-            'sponsor-logos': 'https://upload.wikimedia.org/wikipedia/commons/d/df/Ac%C4%B1badem_Logo.png'
-          };
-          onChange(mockUrlsByFolder[folderPath] || 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=800&auto=format&fit=crop');
-          setUploading(false);
-        }
-      }, 150);
+      // Local-first upload: without Firebase Storage, embed the user's real file as a data URL.
+      // No fake external URLs — the actual selected image is stored and rendered.
+      console.warn("Firebase Storage yapılandırılmamış. Görsel yerel (data URL) olarak kaydediliyor...");
+      const reader = new FileReader();
+      reader.onprogress = (e) => {
+        if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      reader.onload = () => {
+        setProgress(100);
+        onChange(typeof reader.result === 'string' ? reader.result : '');
+        setUploading(false);
+      };
+      reader.onerror = () => {
+        setError('Dosya okunamadı. Lütfen tekrar deneyin.');
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
     }
   };
 

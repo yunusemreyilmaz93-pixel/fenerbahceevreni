@@ -19,7 +19,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,210,31,0.25)] overflow-hidden p-0.5">
                 <img 
-                  src="https://firebasestorage.googleapis.com/v0/b/fenerbahceevreni-a4280.firebasestorage.app/o/fb%20_evreni_logo.png?alt=media&token=e6aa00eb-d16b-47f6-bf10-270b23d5a10c" 
+                  src="/fb-evreni-logo.png" 
                   alt="FE Logo" 
                   className="w-full h-full object-contain"
                   referrerPolicy="no-referrer"
@@ -113,7 +113,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate && onNavigate('premium')} className="hover:text-[#FFD21F] transition-colors cursor-pointer">
+                <button onClick={() => onNavigate && onNavigate('bulten')} className="hover:text-[#FFD21F] transition-colors cursor-pointer">
                   Premium Portal
                 </button>
               </li>
@@ -155,7 +155,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <div className="flex items-center gap-2.5 shrink-0 justify-center md:justify-start">
               <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-0.5 shadow-[0_0_15px_rgba(255,210,31,0.2)] overflow-hidden">
                 <img 
-                  src="https://firebasestorage.googleapis.com/v0/b/fenerbahceevreni-a4280.firebasestorage.app/o/fb%20_evreni_logo.png?alt=media&token=e6aa00eb-d16b-47f6-bf10-270b23d5a10c" 
+                  src="/fb-evreni-logo.png" 
                   alt="FE Logo" 
                   className="w-full h-full object-contain"
                   referrerPolicy="no-referrer"

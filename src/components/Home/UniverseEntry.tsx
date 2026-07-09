@@ -86,7 +86,7 @@ const UniverseEntry: React.FC<UniverseEntryProps> = ({ onEnter }) => {
             
             {/* Centerpiece */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 md:w-48 md:h-48 bg-fb-dark rounded-full border-4 border-fb-yellow shadow-[0_0_50px_rgba(254,221,0,0.3)] flex items-center justify-center overflow-hidden">
-              <img src="https://upload.wikimedia.org/wikipedia/tr/f/ff/Fenerbah%C3%A7e_SK.png" alt="Fenerbahçe" className="w-2/3 h-2/3 object-contain" />
+              <img src="/logos/fenerbahce.png" alt="Fenerbahçe" className="w-2/3 h-2/3 object-contain" />
             </div>
           </div>
         </div>

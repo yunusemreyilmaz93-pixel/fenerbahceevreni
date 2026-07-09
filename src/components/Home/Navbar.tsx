@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, ArrowRight, ShieldCheck, Mail, Lock, ChevronDown } from 'lucide-react';
+import { Menu, X, ArrowRight, ShieldCheck, Mail, ChevronDown } from 'lucide-react';
 import { toTurkishUppercase } from '../../lib/stringUtils';
 
 interface NavbarProps {
@@ -34,7 +34,6 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
 
   // Secondary overflowing items grouped under "DİĞER" dropdown
   const secondaryLinks = [
-    { label: 'PREMIUM', view: 'premium', desc: 'Ayrıcalıklı Scout Raporları' },
     { label: 'BÜLTEN', view: 'bulten', desc: 'E-Posta Analiz Gazetesi' },
     { label: 'HAKKINDA', view: 'about', desc: 'Evrenin Hikayesi ve Ekip' },
     { label: 'İLETİŞİM', view: 'contact', desc: 'Analiz İstek ve Ortaklık' },
@@ -62,7 +61,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
         >
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,210,31,0.25)] group-hover:scale-105 transition-transform shrink-0 overflow-hidden p-0.5">
             <img 
-              src="https://firebasestorage.googleapis.com/v0/b/fenerbahceevreni-a4280.firebasestorage.app/o/fb%20_evreni_logo.png?alt=media&token=e6aa00eb-d16b-47f6-bf10-270b23d5a10c" 
+              src="/fb-evreni-logo.png" 
               alt="FE Logo" 
               className="w-full h-full object-contain"
               referrerPolicy="no-referrer"
@@ -142,31 +141,11 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => handleLinkClick('admin-login')}
-            className="flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-fb-yellow text-[10px] xl:text-[11px] font-black rounded-lg border border-white/10 transition-all uppercase cursor-pointer"
-          >
-            <Lock className="w-3.5 h-3.5" />
-            PANEL
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
             onClick={() => handleLinkClick('bulten')}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white text-[10px] xl:text-[11px] font-black rounded-lg border border-white/10 transition-all uppercase cursor-pointer"
           >
             <Mail className="w-3.5 h-3.5 text-fb-yellow" />
             BÜLTEN
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => handleLinkClick('premium')}
-            className="flex items-center gap-1.5 px-4.5 py-2.5 bg-fb-yellow text-fb-navy text-[10px] xl:text-[11px] font-black rounded-lg shadow-[0_4px_20px_rgba(255,210,31,0.25)] hover:bg-white transition-all uppercase cursor-pointer"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            PREMIUM
           </motion.button>
         </div>
 
@@ -201,22 +180,6 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
                   {link.label}
                 </button>
               ))}
-              <div className="flex flex-col gap-2.5 mt-4">
-                <button
-                  onClick={() => handleLinkClick('admin-login')}
-                  className="w-full py-3 bg-white/5 hover:bg-white/10 text-fb-yellow font-black rounded-xl flex items-center justify-center gap-2 text-xs border border-white/10 cursor-pointer"
-                >
-                  <Lock className="w-4 h-4 text-fb-yellow" />
-                  YÖNETİCİ GİRİŞİ
-                </button>
-                <button
-                  onClick={() => handleLinkClick('premium')}
-                  className="w-full py-3.5 bg-fb-yellow text-fb-navy font-black rounded-xl flex items-center justify-center gap-2 text-xs cursor-pointer shadow-[0_4px_15px_rgba(255,210,31,0.2)]"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  PREMİUM’A GEÇ
-                </button>
-              </div>
             </div>
           </motion.div>
         )}

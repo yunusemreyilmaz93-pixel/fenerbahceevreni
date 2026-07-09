@@ -5,9 +5,9 @@ import HeroSection from './HeroSection';
 import MatchCenter from './MatchCenter';
 import LatestAnalysis from './LatestAnalysis';
 import TransferRadar from './TransferRadar';
-import PlayerPerformanceZone from './PlayerPerformanceZone';
+import SquadShowcase from './SquadShowcase';
+import LeagueStrip from './LeagueStrip';
 import CommunitySection from './CommunitySection';
-import PremiumSection from './PremiumSection';
 import NewsletterSection from './NewsletterSection';
 import Footer from './Footer';
 import SEO from './SEO';
@@ -119,7 +119,7 @@ const HomePage: React.FC<HomePageProps> = ({
         </motion.div>
       )}
 
-      {/* 5. Squad performance indexes and ratings */}
+      {/* 5. Squad showcase — gerçek 2026-27 kadrosu (foto + piyasa değeri) */}
       {homeSettings?.showPlayerRatings !== false && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -127,9 +127,12 @@ const HomePage: React.FC<HomePageProps> = ({
           transition={{ duration: 0.6 }}
           viewport={{ once: true, margin: "-100px" }}
         >
-          <PlayerPerformanceZone onNavigate={onNavigate} />
+          <SquadShowcase onNavigate={onNavigate} />
         </motion.div>
       )}
+
+      {/* 5b. Süper Lig 2026-27 katılımcı şeridi — 18 gerçek kulüp arması */}
+      <LeagueStrip onNavigate={onNavigate} />
 
       {/* 6. Active community interactions (Polls, MVP & Atlas access) */}
       {homeSettings?.showCommunityPolls !== false && (
@@ -140,18 +143,6 @@ const HomePage: React.FC<HomePageProps> = ({
           viewport={{ once: true, margin: "-100px" }}
         >
           <CommunitySection onNavigate={onNavigate} onStartQuiz={onStartQuiz} />
-        </motion.div>
-      )}
-
-      {/* 7. Paid Premium listings invitation */}
-      {homeSettings?.showPremiumSection !== false && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <PremiumSection />
         </motion.div>
       )}
 

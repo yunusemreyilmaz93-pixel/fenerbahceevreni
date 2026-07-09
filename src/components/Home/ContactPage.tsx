@@ -13,7 +13,7 @@ import {
   Briefcase, 
   DollarSign, 
   Globe, 
-  Sparkles, 
+ 
   MessageSquare,
   Users,
   Megaphone,
@@ -474,7 +474,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate, initialTyp
                   {/* Instagram */}
                   <div className="p-4 rounded-xl bg-fb-dark border border-white/5 flex gap-3.5 items-center">
                     <div className="w-10 h-10 rounded-xl bg-amber-500/5 border border-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
-                      <Sparkles className="w-5 h-5" />
+                      
                     </div>
                     <div>
                       <span className="text-[9px] text-fb-muted font-black block uppercase tracking-wider">INSTAGRAM HESABI</span>
