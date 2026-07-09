@@ -18,6 +18,11 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: dark;
+    background: var(--color-fb-dark);
+  }
+
   body {
     @apply bg-fb-dark text-slate-200 font-sans antialiased overflow-y-auto overflow-x-hidden selection:bg-fb-yellow selection:text-fb-navy;
   }
@@ -147,4 +152,15 @@
 .content-auto {
   content-visibility: auto;
   contain-intrinsic-size: 1px 420px;
+}
+
+
+/* Keep editorial headings readable across responsive widths. */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Prevent delayed double-tap activation on touch controls. */
+button, a, [role='button'] {
+  touch-action: manipulation;
 }
