@@ -12,7 +12,7 @@
   orderBy,
   runTransaction
 } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from './firebase';
+import { auth, db, isFirebaseConfigured } from './firebase';
 import { DataProvider, AdvancedPlayerStats, AdvancedMatchStats, ExternalPlayerMapping, DataSyncRun } from '../types/soccerdata';
 
 // Firestore Error Handler requested by Section 3 of Firebase-Integration Skill
@@ -36,8 +36,7 @@ export interface FirestoreErrorInfo {
 }
 
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const savedUser = localStorage.getItem("mock_admin_user");
-  const authUser = savedUser ? JSON.parse(savedUser) : null;
+  const authUser = auth?.currentUser || null;
   
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
@@ -641,3 +640,5 @@ export async function castPollVote(pollId: string, optionId: string, userId: str
     });
   });
 }
+
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+﻿import React, { useEffect, useState, useCallback } from 'react';
 import { Play, RefreshCw, CheckCircle2, XCircle, Clock, Terminal, Loader2, ShieldCheck } from 'lucide-react';
 import { getAdminAuthHeaders } from '../../lib/adminAuth';
 
@@ -109,7 +109,7 @@ export const AdminJobs: React.FC<AdminJobsProps> = ({ showToast }) => {
             Loglar <code className="text-fb-yellow">data-worker/output/scrapeJobs</code>.
           </p>
           <div className="flex items-center gap-1.5 mt-2 text-[10px] font-mono text-emerald-400/90">
-            <ShieldCheck className="w-3.5 h-3.5" /> Auth: Firebase ID token veya mock-admin (dev)
+            <ShieldCheck className="w-3.5 h-3.5" /> Auth: Firebase ID token
           </div>
         </div>
         <button
@@ -204,3 +204,4 @@ export const AdminJobs: React.FC<AdminJobsProps> = ({ showToast }) => {
 };
 
 export default AdminJobs;
+

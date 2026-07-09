@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
@@ -35,7 +35,7 @@ const getAdminEmailAllowlist = (): string[] => {
 /**
  * Admin middleware:
  * 1) Gerçek Firebase ID token (Admin SDK hazırsa)
- * 2) Dev/mock: Bearer mock-admin-token-for-{email} — sadece allowlist + (dev veya ALLOW_MOCK_ADMIN=1)
+ * 2) Mock tokens are never accepted
  */
 const checkAdmin = async (
   req: express.Request,
@@ -52,41 +52,20 @@ const checkAdmin = async (
 
   const token = authHeader.slice("Bearer ".length).trim();
   const allowlist = getAdminEmailAllowlist();
-  const allowMock =
-    process.env.ALLOW_MOCK_ADMIN === "1" ||
-    process.env.NODE_ENV !== "production";
 
-  // Mock admin token (local / AI Studio)
+  // Mock tokens are never accepted. Admin routes require a real Firebase ID token.
   if (token.startsWith("mock-admin-token-for-")) {
-    if (!allowMock) {
-      return res.status(401).json({
-        success: false,
-        message: "Mock admin token production'da kapalı. ALLOW_MOCK_ADMIN veya gerçek Firebase token kullanın.",
-      });
-    }
-    const email = token.replace("mock-admin-token-for-", "").trim().toLowerCase();
-    if (!email || !allowlist.includes(email)) {
-      return res.status(403).json({
-        success: false,
-        message: "Mock token e-postası admin listesinde değil.",
-      });
-    }
-    (req as any).user = { email, uid: "mock-admin", mock: true };
-    return next();
+    return res.status(401).json({
+      success: false,
+      message: "Mock admin tokenları devre dışı. Gerçek Firebase ID token kullanın."
+    });
   }
 
   // Firebase Admin SDK
   if (adminInitError || !adminApp) {
-    if (allowMock) {
-      return res.status(503).json({
-        success: false,
-        message:
-          "Firebase Admin yapılandırılmadı. Local mock için Authorization: Bearer mock-admin-token-for-{adminEmail}",
-      });
-    }
-    return res.status(500).json({
+    return res.status(503).json({
       success: false,
-      message: "Sunucu taraflı yetkilendirme sistemi (Firebase Admin) yapılandırılamadı.",
+      message: "Firebase Admin yapılandırılmadı. Admin API geçici olarak kullanılamıyor."
     });
   }
 
@@ -499,3 +478,4 @@ async function startServer() {
 }
 
 startServer();
+

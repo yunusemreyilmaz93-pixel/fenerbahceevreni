@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   Activity, 
   Trophy, 
@@ -198,14 +198,9 @@ export const AdminApiTest: React.FC = () => {
         return;
       }
     } else {
-      const mockUser = getCurrentAdminUser();
-      if (!mockUser) {
-        setErrorMsg("API isteği başarısız: Yönetici oturumu bulunamadı.");
-        setLoading(null);
-        return;
-      }
-      // Pass mock value when Firebase is not configured but a mock user is logged in
-      requestHeaders["Authorization"] = `Bearer mock-admin-token-for-${mockUser.email || 'unknown'}`;
+      setErrorMsg("Firebase yapılandırılmadı. Admin API istekleri kapatıldı.");
+      setLoading(null);
+      return;
     }
 
     try {
@@ -1713,3 +1708,4 @@ export const AdminApiTest: React.FC = () => {
 };
 
 export default AdminApiTest;
+
