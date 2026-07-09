@@ -117,7 +117,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
             <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#FFD21F] block mb-2 font-mono">
               Saha İçi İstihbaratı
             </span>
-            <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tight italic">
+            <h2 className="ui-section-heading text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tight italic">
               Maç Merkezi
             </h2>
           </div>

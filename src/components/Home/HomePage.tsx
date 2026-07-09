@@ -72,7 +72,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 key={item.view}
                 type="button"
                 onClick={() => onNavigate(item.view)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#111625] border border-white/[0.05] hover:border-[#FFD21F]/30 hover:bg-[#151C30] text-slate-300 hover:text-[#FFD21F] font-black text-[11px] uppercase tracking-wider shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
+                className="ui-button ui-button-secondary flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#111625] border border-white/[0.05] hover:border-[#FFD21F]/30 hover:bg-[#151C30] text-slate-300 hover:text-[#FFD21F] font-black text-[11px] uppercase tracking-wider shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
               >
                 <item.icon aria-hidden="true" className="w-4 h-4 text-[#FFD21F]" />
                 <span>{item.label}</span>
