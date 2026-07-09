@@ -22,18 +22,27 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!isDropdownOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsDropdownOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [isDropdownOpen]);
+
   // Primary top-level links for a cleaner look
   const primaryLinks = [
     { label: 'ANA SAYFA', view: 'home' },
     { label: 'MAÇ MERKEZİ', view: 'match-center' },
     { label: 'ANALİZLER', view: 'analysis' },
-    { label: 'TRANSFER RADAR', view: 'transfer-radar' },
     { label: 'OYUNCULAR', view: 'players' },
     { label: 'TARAFTAR ODASI', view: 'fan-room' },
   ];
 
   // Secondary overflowing items grouped under "DİĞER" dropdown
   const secondaryLinks = [
+    { label: 'TRANSFER RADAR', view: 'transfer-radar', desc: 'Transfer haberleri ve hedefler' },
     { label: 'BÜLTEN', view: 'bulten', desc: 'E-Posta Analiz Gazetesi' },
     { label: 'HAKKINDA', view: 'about', desc: 'Evrenin Hikayesi ve Ekip' },
     { label: 'İLETİŞİM', view: 'contact', desc: 'Analiz İstek ve Ortaklık' },
@@ -49,19 +58,21 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
   const isSecondaryActive = secondaryLinks.some(link => currentView === link.view);
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
+    <nav aria-label="Ana navigasyon" className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
       isScrolled ? 'bg-fb-dark/95 backdrop-blur-md py-3.5 border-b border-white/[0.08]' : 'bg-transparent py-5'
     }`}>
       <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
         {/* Logo and Brand */}
         <button 
           onClick={() => handleLinkClick('home')}
-          className="flex items-center gap-2 sm:gap-3 group text-left cursor-pointer"
+          className="flex items-center gap-2 sm:gap-3 group text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
           id="nav-logo"
         >
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center shadow-[0_0_20px_rgba(255,210,31,0.25)] group-hover:scale-105 transition-transform shrink-0 overflow-hidden p-0.5">
             <img 
               src="/fb-evreni-logo.png" 
+              width={44}
+              height={44}
               alt="FE Logo" 
               className="w-full h-full object-contain"
               referrerPolicy="no-referrer"
@@ -100,12 +111,16 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
             onMouseLeave={() => setIsDropdownOpen(false)}
           >
             <button
-              className={`text-[10px] xl:text-[11px] font-black tracking-[0.12em] xl:tracking-[0.15em] transition-all py-2 uppercase hover:text-fb-yellow flex items-center gap-1 cursor-pointer ${
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={isDropdownOpen}
+              onClick={() => setIsDropdownOpen((open) => !open)}
+              className={`text-[10px] xl:text-[11px] font-black tracking-[0.12em] xl:tracking-[0.15em] transition-all py-2 uppercase hover:text-fb-yellow flex items-center gap-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark ${
                 isSecondaryActive ? 'text-fb-yellow' : 'text-slate-400'
               }`}
             >
               DİĞER
-              <ChevronDown size={12} className={`transition-transform duration-250 ${isDropdownOpen ? 'rotate-180 text-fb-yellow' : 'text-slate-500'}`} />
+              <ChevronDown aria-hidden="true" size={12} className={`transition-transform duration-250 ${isDropdownOpen ? 'rotate-180 text-fb-yellow' : 'text-slate-500'}`} />
             </button>
 
             <AnimatePresence>
@@ -114,11 +129,14 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  role="menu"
                   className="absolute right-0 mt-1 w-56 bg-fb-dark/95 border border-white/10 rounded-xl shadow-2xl backdrop-blur-xl p-2.5 overflow-hidden"
                 >
                   <div className="space-y-1">
                     {secondaryLinks.map((link) => (
                       <button
+                        type="button"
+                        role="menuitem"
                         key={link.label}
                         onClick={() => handleLinkClick(link.view)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex flex-col cursor-pointer ${
@@ -142,19 +160,23 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleLinkClick('bulten')}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white text-[10px] xl:text-[11px] font-black rounded-lg border border-white/10 transition-all uppercase cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white text-[10px] xl:text-[11px] font-black rounded-lg border border-white/10 transition-all uppercase cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
           >
-            <Mail className="w-3.5 h-3.5 text-fb-yellow" />
+            <Mail aria-hidden="true" className="w-3.5 h-3.5 text-fb-yellow" />
             BÜLTEN
           </motion.button>
         </div>
 
         {/* Mobile & Tablet-Portrait Navigation Toggle */}
-        <button 
+        <button
+          type="button"
+          aria-label={isMobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-navigation"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="lg:hidden w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white border border-white/5 cursor-pointer hover:bg-white/10 transition-colors"
+          className="lg:hidden w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white border border-white/5 cursor-pointer hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
         >
-          {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          {isMobileMenuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
         </button>
       </div>
 
@@ -165,6 +187,8 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentView, onScrollToSect
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
+            id="mobile-navigation"
+            role="menu"
             className="lg:hidden bg-fb-dark/98 backdrop-blur-2xl border-b border-white/[0.08] overflow-hidden"
           >
             <div className="container mx-auto px-6 py-6 flex flex-col gap-3">

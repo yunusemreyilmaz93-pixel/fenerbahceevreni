@@ -240,6 +240,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                             <img
                               src={p.photo}
                               alt={p.name}
+                              width={112}
+                              height={112}
                               className="h-24 md:h-28 object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.5)] group-hover:scale-105 transition-transform duration-500"
                               referrerPolicy="no-referrer"
                             />
@@ -275,9 +277,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                     {/* Home Team */}
                     <div className="flex flex-col items-center flex-1">
                       <div className="w-16 h-16 rounded-2xl bg-[#0B0F19] border border-white/[0.06] flex items-center justify-center p-2 mb-2 shadow-inner">
-                        <img loading="lazy"
+                        <img
                           src="/logos/fenerbahce.png" 
                           alt="Fenerbahçe" 
+                          width={48}
+                          height={48}
                           className="w-12 h-12 object-contain"
                           referrerPolicy="no-referrer"
                         />
@@ -313,9 +317,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                     <div className="flex flex-col items-center flex-1">
                       <div className="w-16 h-16 rounded-2xl bg-[#0B0F19] border border-white/[0.06] flex items-center justify-center p-2 mb-2 shadow-inner">
                         {opponentLogo ? (
-                          <img loading="lazy"
+                          <img
                             src={opponentLogo} 
                             alt={match.awayTeam === 'Fenerbahçe' ? match.homeTeam : match.awayTeam} 
+                            width={48}
+                            height={48}
                             className="w-12 h-12 object-contain" 
                             referrerPolicy="no-referrer"
                           />
