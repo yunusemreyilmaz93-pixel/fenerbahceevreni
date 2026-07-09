@@ -14,6 +14,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from io_utils import atomic_write_json
+
 from scrapling import Fetcher
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -77,7 +79,7 @@ def main() -> int:
         "sourceUrl": url,
         "rumors": rumors,
     }
-    OUT_PATH.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_write_json(OUT_PATH, doc)
     print(f"OK: {len(rumors)} söylenti -> {OUT_PATH}")
     return 0
 

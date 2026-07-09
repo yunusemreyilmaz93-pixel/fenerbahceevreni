@@ -16,7 +16,7 @@ Ne yapar
 
 Kullanım
 --------
-    pip install scrapling            # tek seferlik
+    pip install "scrapling[fetchers]>=0.2.0" # tek seferlik
     python data-worker/fetch_squad.py
     python data-worker/fetch_squad.py --season 2026   # sezon override
 
@@ -122,7 +122,7 @@ def main():
     try:
         from scrapling.fetchers import Fetcher
     except ImportError:
-        sys.exit("HATA: scrapling kurulu değil. Kurulum: pip install scrapling")
+        sys.exit('HATA: scrapling kurulu değil. Kurulum: pip install "scrapling[fetchers]>=0.2.0"')
 
     def fetch(u):
         return Fetcher.get(u, timeout=30, impersonate="chrome")
@@ -189,7 +189,7 @@ def main():
         "count": len(out_players), "scoutCount": scout_count,
         "players": out_players,
     }
-    json.dump(data, open(SQUAD_JSON, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    atomic_write_json(Path(SQUAD_JSON), data)
     print(f"\n✓ squad.json güncellendi: {len(out_players)} oyuncu, {scout_count} scout raporu korundu.")
     print(f"  → {SQUAD_JSON}")
 
