@@ -137,26 +137,19 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
               <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
                 <button
                   id="hero-cta-primary"
-                  onClick={() => {
-                    const el = document.getElementById('latest-analysis');
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth' });
-                    } else {
-                      onNavigate('analysis');
-                    }
-                  }}
-                  className="w-full sm:w-auto px-8 py-3.5 bg-[#FFD21F] hover:bg-white text-[#0B0F19] font-black hover:scale-[1.02] active:scale-[0.98] rounded-xl shadow-[0_4px_30px_rgba(255,210,31,0.25)] flex items-center justify-center gap-2 group transition-all cursor-pointer"
+                  onClick={() => onNavigate('match-center')}
+                  className="w-full sm:w-auto px-8 py-3.5 bg-[#FFD21F] hover:bg-white text-[#0B0F19] font-black hover:scale-[1.02] active:scale-[0.98] rounded-xl shadow-[0_4px_30px_rgba(255,210,31,0.25)] flex items-center justify-center gap-2 group transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
                 >
-                  <span className="uppercase tracking-widest text-xs">Analizleri Oku</span>
+                  <span className="uppercase tracking-widest text-xs">Maç Merkezini Aç</span>
                   <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
 
                 <button
                   id="hero-cta-secondary"
-                  onClick={() => onNavigate('match-center')}
+                  onClick={() => onNavigate('analysis')}
                   className="w-full sm:w-auto px-8 py-3.5 bg-white/[0.03] hover:bg-white/[0.08] text-white font-black rounded-xl border border-white/[0.08] hover:border-[#FFD21F]/40 hover:scale-[1.01] transition-all cursor-pointer"
                 >
-                  <span className="uppercase tracking-widest text-xs">Maç Merkezine Git</span>
+                  <span className="uppercase tracking-widest text-xs">Analizleri Oku</span>
                 </button>
               </div>
             </motion.div>
@@ -374,7 +367,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
                       onClick={() => onNavigate('match-center')}
                       className="flex-1 py-3 text-center bg-[#FFD21F] hover:bg-white text-[#0B0F19] text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-lg hover:scale-[1.01]"
                     >
-                      Maç Merkezine Git
+                        <span className="uppercase tracking-widest text-xs">Maç Merkezini Aç</span>
                     </button>
                     {(match.status === 'finished' || match.status === 'completed') ? (
                       <button
