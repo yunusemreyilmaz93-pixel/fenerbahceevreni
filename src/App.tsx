@@ -384,35 +384,30 @@ export default function App() {
   useEffect(() => {
     const fetchPublicCMS = async () => {
       try {
-        const arts = await dbGetCollection('articles');
+        const [arts, targets, plyrs, polls, homes, anns] = await Promise.all([
+          dbGetCollection('articles'),
+          dbGetCollection('transferReports'),
+          dbGetCollection('players'),
+          dbGetCollection('polls'),
+          dbGetCollection('homeSettings'),
+          dbGetCollection('announcements')
+        ]);
+
         setArticles(arts);
-
-        const targets = await dbGetCollection('transferReports');
         setTransferReports(targets);
-
-        const plyrs = await dbGetCollection('players');
         setPlayersList(plyrs);
 
-        const polls = await dbGetCollection('polls');
         const activePoll = polls.find((p: any) => p.status === 'active') || polls[0];
         setPollValue(activePoll || null);
 
-        const homes = await dbGetCollection('homeSettings');
-        const mainHome = homes.find(h => h.id === 'main');
+        const mainHome = homes.find((h: any) => h.id === 'main');
         if (mainHome) setHomeSettings(mainHome);
 
-        const anns = await dbGetCollection('announcements');
+        const now = new Date();
         const activeAnn = anns.find((a: any) => {
           if (a.status !== 'active') return false;
-          const now = new Date();
-          if (a.startDate) {
-            const start = new Date(a.startDate);
-            if (now < start) return false;
-          }
-          if (a.endDate) {
-            const end = new Date(a.endDate);
-            if (now > end) return false;
-          }
+          if (a.startDate && now < new Date(a.startDate)) return false;
+          if (a.endDate && now > new Date(a.endDate)) return false;
           return true;
         });
         setAnnouncement(activeAnn || null);
@@ -492,31 +487,24 @@ export default function App() {
     };
     checkHashRoute();
 
-    // Monitor Firebase Auth
+    // Monitor Firebase Auth once for the lifetime of the app.
     const unsubscribe = onAuthStateChangedAdmin((user) => {
       setAdminUser(user);
       setAuthChecking(false);
+
       if (user) {
         setUnauthorized(false);
-        if (view === 'admin-login') {
-          setView('admin');
-        }
+        setView((currentView) => currentView === 'admin-login' ? 'admin' : currentView);
       } else {
         const fbUser = auth ? auth.currentUser : null;
-        if (fbUser && !isAdminEmail(fbUser.email)) {
-          setUnauthorized(true);
-        } else {
-          setUnauthorized(false);
-        }
-        if (view === 'admin') {
-          setView('admin-login');
-        }
+        setUnauthorized(Boolean(fbUser && !isAdminEmail(fbUser.email)));
+        setView((currentView) => currentView === 'admin' ? 'admin-login' : currentView);
       }
     });
 
     return () => unsubscribe();
 
-  }, [view]);
+  }, []);
 
   // Scroll to top when switching views
   useEffect(() => {
@@ -914,6 +902,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
