@@ -15,6 +15,8 @@ import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 
+from io_utils import atomic_write_json
+
 from scrapling import Fetcher
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -97,7 +99,7 @@ def main() -> int:
             matched += 1
 
     squad["updatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    SQUAD_PATH.write_text(json.dumps(squad, ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_write_json(SQUAD_PATH, squad)
     print(f"OK: {matched}/{len(squad.get('players', []))} oyuncuya {season_label} seasonStats yazıldı ({len(stats_by_name)} satır kaynakta)")
     return 0
 

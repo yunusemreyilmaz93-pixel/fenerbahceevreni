@@ -13,7 +13,7 @@ istatistikler tazelenir. Kadroya yeni katılan oyuncular otomatik yakalanır (sc
 boş gelir, sonradan doldurulur).
 
 ```bash
-pip install scrapling
+pip install "scrapling[fetchers]>=0.2.0"
 python data-worker/fetch_squad.py                 # 26/27 kadrosu
 python data-worker/fetch_squad.py --season 2027   # sonraki sezon
 ```

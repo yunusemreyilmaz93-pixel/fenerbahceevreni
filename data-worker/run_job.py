@@ -28,6 +28,8 @@ WORKER = Path(__file__).resolve().parent
 REPO = WORKER.parent
 sys.path.insert(0, str(WORKER))
 
+from io_utils import atomic_write_json
+
 from contracts import (  # noqa: E402
     COLLECTIONS,
     JOB_TYPES,
@@ -280,7 +282,7 @@ def main() -> int:
     doc["startedAt"] = now
 
     job_path = OUT_JOBS / f"{job_id}.json"
-    job_path.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_write_json(job_path, doc)
     print(f"[job] {job_id} running ({args.job_type})...")
 
     code, written, summary = 1, 0, ""
@@ -336,7 +338,7 @@ def main() -> int:
         doc["errorSummary"] = None
         doc["meta"] = {"note": summary[:500] if isinstance(summary, str) else ""}
 
-    job_path.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_write_json(job_path, doc)
     fs_ok = try_firestore_write_job(doc, job_id)
     print(f"[job] status={doc['status']} recordsWritten={doc['recordsWritten']} firestore={fs_ok}")
     print(f"[job] log={job_path}")
