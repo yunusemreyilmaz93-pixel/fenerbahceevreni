@@ -49,7 +49,7 @@ export const AdminApiTest: React.FC = () => {
   // Config States
   const [country, setCountry] = useState<string>('Turkey');
   const [teamSearch, setTeamSearch] = useState<string>('Fenerbahce');
-  const [season, setSeason] = useState<string>('2025');
+  const [season, setSeason] = useState<string>('2026');
   const [leagueId, setLeagueId] = useState<string>('203'); // default Süper Lig
   const [teamId, setTeamId] = useState<string>('611'); // default Fenerbahçe
   const [fixtureId, setFixtureId] = useState<string>(''); // For single match details
@@ -799,7 +799,7 @@ export const AdminApiTest: React.FC = () => {
                 placeholder="Örn: 2025"
               />
               <span className="text-[10px] text-slate-500 mt-1.5 block leading-relaxed">
-                * Lig başlangıç yılı kullanılır (2025/2026 sezonu için 2025).
+                * Lig başlangıç yılı kullanılır (2026/2027 sezonu için 2026).
               </span>
             </div>
 
@@ -1708,4 +1708,5 @@ export const AdminApiTest: React.FC = () => {
 };
 
 export default AdminApiTest;
+
 
