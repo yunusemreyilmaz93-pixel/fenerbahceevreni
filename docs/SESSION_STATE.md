@@ -44,11 +44,17 @@
 - Detay: DataBadge + gerçek seasonStats paneli (TM)
 - KPI şeridi: form yoksa — 
 
+### D5 — Analiz & Transfer okuma UX
+- `ReadingChrome`: PageTitle, ArticleTitle, LoadingScreen, ArchiveEmpty, ReadingProgress
+- CAPS / italic scream azaltıldı; `reading-prose` long-form
+- Analiz: sakin detay, DataBadge, taktik lab “şematik demo” etiketi
+- Transfer: fitScore null disiplin, sakin hero/detay, DataBadge
+
 ## Sonraki
 
-1. Transfer/analiz okuma deneyimi sakinleştir  
-2. MacMerkeziPage kalan god-file parçalama  
-3. PWA / push (daha sonra)
+1. MacMerkeziPage kalan god-file parçalama (hero/fixtures)  
+2. PWA / push (daha sonra)  
+3. İçerik ritmi (editoryal)
 
 ## Komutlar
 

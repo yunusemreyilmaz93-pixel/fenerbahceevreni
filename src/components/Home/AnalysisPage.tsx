@@ -23,6 +23,16 @@ import {
 } from 'lucide-react';
 import { dbGetCollection, dbAddDocument } from '../../lib/dbService';
 import { subscribeToNewsletter } from '../../lib/newsletterService';
+import { DataBadge } from '../ui';
+import {
+  ArchiveEmpty,
+  ArticleTitle,
+  LoadingScreen,
+  PageKicker,
+  PageLead,
+  PageTitle,
+  ReadingProgress,
+} from './reading/ReadingChrome';
 
 interface Article {
   id: string;
@@ -258,14 +268,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-fb-dark">
-        <div className="space-y-4 text-center">
-          <div className="w-12 h-12 border-4 border-fb-yellow border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs font-black uppercase text-fb-yellow tracking-[0.2em] animate-pulse">TAKTİK VERİLERİ GÜNCELLENİYOR...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen label="Analiz arşivi yükleniyor…" />;
   }
 
   // Categories list matching standard pills
@@ -338,17 +341,13 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
             className="pb-24"
           >
             {/* HERO SECTION */}
-            <header className="relative pt-28 pb-16 bg-gradient-to-b from-fb-navy/30 to-transparent border-b border-white/[0.04]">
+            <header className="relative pt-28 pb-12 bg-gradient-to-b from-fb-navy/30 to-transparent border-b border-white/[0.04]">
               <div className="container mx-auto px-6 max-w-6xl text-left relative z-10 space-y-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow [font-size:10px] uppercase font-black tracking-widest">
-                   Taktik Akıl & Veri Analizi
-                </div>
-                <h1 className="text-4xl md:text-5xl font-display font-black text-white italic uppercase tracking-tight leading-none">
-                  Analizler
-                </h1>
-                <p className="text-sm text-fb-muted max-w-2xl font-medium leading-relaxed">
+                <PageKicker>Taktik akıl & veri</PageKicker>
+                <PageTitle>Analizler</PageTitle>
+                <PageLead>
                   Fenerbahçe’ye dair maç sonu okumaları, taktik çözümlemeler, oyuncu değerlendirmeleri ve transfer yorumları. Kadıköy havası, modern futbol teorisi ile harmanlanıyor.
-                </p>
+                </PageLead>
 
                 {/* Animated category chips directly under hero */}
                 <div className="flex flex-wrap gap-2 pt-4">
@@ -472,27 +471,15 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
             {/* ARTICLES GRID */}
             <section className="container mx-auto px-6 max-w-6xl py-8">
               {filteredArticles.length === 0 ? (
-                /* EMPTY STATE */
-                <div className="py-20 text-center space-y-6 max-w-md mx-auto">
-                  <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-fb-muted mx-auto">
-                    <FileText size={24} />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-black text-white italic uppercase">Henüz yayınlanmış analiz yok</h3>
-                    <p className="text-xs text-fb-muted leading-relaxed">
-                      Seçilen kategori veya arama filtresine uygun herhangi bir analiz bulunamadı. Lütfen filtrelerinizi sıfırlayın.
-                    </p>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('Tümü');
-                    }}
-                    className="px-4 py-2 bg-fb-yellow hover:bg-white text-fb-navy text-[10px] font-black uppercase rounded-lg tracking-wider transition-all"
-                  >
-                    Filtreleri Sıfırla
-                  </button>
-                </div>
+                <ArchiveEmpty
+                  icon={FileText}
+                  title="Uygun analiz bulunamadı"
+                  description="Seçilen kategori veya arama için yayınlanmış içerik yok. Filtreleri sıfırlayın veya arşivi yeniden tarayın — uydurma yazı basılmaz."
+                  onReset={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('Tümü');
+                  }}
+                />
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredArticles.map((art, index) => {
@@ -543,7 +530,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                               <span className="flex items-center gap-1"><Clock size={11} /> {art.readingTime}</span>
                             </div>
 
-                            <h3 className="text-lg font-black text-white group-hover:text-fb-yellow leading-snug transition-colors italic uppercase line-clamp-2">
+                            <h3 className="text-lg font-bold text-white group-hover:text-fb-yellow leading-snug transition-colors line-clamp-2 tracking-tight">
                               {art.title}
                             </h3>
 
@@ -701,56 +688,52 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
             transition={{ duration: 0.3 }}
             className="pb-24 pt-28 text-left relative"
           >
-            {scrollProgress > 0 && (
-              <div 
-                className="fixed top-0 left-0 h-1 bg-fb-yellow z-[210] transition-all duration-75" 
-                style={{ width: `${scrollProgress}%` }}
-              />
-            )}
+            <ReadingProgress progress={scrollProgress} />
             {currentArticle ? (
-              <div className="container mx-auto px-6 max-w-4xl space-y-8">
+              <div className="container mx-auto px-6 max-w-3xl space-y-8">
                 
                 {/* Back to Archive button */}
                 <button 
                   onClick={handleBackToList}
-                  className="inline-flex items-center gap-1.5 text-xs font-black text-fb-yellow hover:text-white uppercase tracking-wider transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-fb-yellow transition-colors cursor-pointer"
                 >
-                  <ChevronLeft size={16} /> Analiz Arşivine Geri Dön
+                  <ChevronLeft size={16} /> Arşive dön
                 </button>
 
-                {/* Meta details & headers */}
-                <div className="space-y-4">
+                {/* Meta details & headers — calm reading hierarchy */}
+                <div className="space-y-5">
                   <div className="flex flex-wrap gap-2 items-center">
-                    <span className="px-3 py-1 rounded bg-fb-yellow text-fb-navy text-[10px] font-black uppercase tracking-wider">
+                    <span className="px-2.5 py-1 rounded-md bg-fb-yellow/15 text-fb-yellow text-[11px] font-semibold tracking-wide">
                       {currentArticle.category}
                     </span>
                     {currentArticle.isPremium && (
-                      <span className="px-3 py-1 rounded bg-fb-navy border border-fb-yellow/30 text-fb-yellow text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                        <Lock size={10} /> Premium Rapor
+                      <span className="px-2.5 py-1 rounded-md border border-fb-yellow/25 text-fb-yellow text-[11px] font-semibold flex items-center gap-1">
+                        <Lock size={10} /> Premium
                       </span>
                     )}
-                    <span className="text-xs text-fb-muted font-bold pl-2 flex items-center gap-1">
-                      <Clock size={13} /> {currentArticle.readingTime}
+                    <span className="text-xs text-slate-500 font-medium pl-1 flex items-center gap-1">
+                      <Clock size={13} /> {currentArticle.readingTime || '—'}
                     </span>
+                    <DataBadge provider="editoryal" fetchedAt={currentArticle.publishedAt || currentArticle.createdAt} />
                   </div>
 
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-black text-white italic uppercase tracking-tight leading-tight">
-                    {currentArticle.title}
-                  </h1>
+                  <ArticleTitle>{currentArticle.title}</ArticleTitle>
 
-                  <p className="text-base text-fb-muted font-medium leading-relaxed border-l-2 border-fb-yellow/30 pl-4 py-1">
-                    {currentArticle.excerpt}
-                  </p>
+                  {currentArticle.excerpt && (
+                    <p className="text-base md:text-lg text-slate-400 font-medium leading-relaxed border-l-2 border-fb-yellow/40 pl-4">
+                      {currentArticle.excerpt}
+                    </p>
+                  )}
 
-                  <div className="flex items-center justify-between py-4 border-t border-b border-white/[0.06] mt-4">
+                  <div className="flex items-center justify-between py-4 border-t border-b border-white/[0.06]">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-fb-yellow font-black font-display italic text-sm">
+                      <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-fb-yellow font-bold text-sm">
                         {currentArticle.author.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <span className="text-xs font-black text-white block">{currentArticle.author}</span>
-                        <span className="text-[10px] text-fb-muted font-bold block">
-                          Yayınlanma: {new Date(currentArticle.publishedAt || currentArticle.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        <span className="text-sm font-semibold text-white block">{currentArticle.author}</span>
+                        <span className="text-xs text-slate-500 font-medium block">
+                          {new Date(currentArticle.publishedAt || currentArticle.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </span>
                       </div>
                     </div>
@@ -794,14 +777,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                   
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1.5">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-[9px] uppercase font-black tracking-wider">
-                         CANLI TAKTİK PLAYBOOK SUİTİ
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-200/90 text-[10px] font-semibold tracking-wide">
+                        Şematik demo · canlı kadro değil
                       </div>
-                      <h3 className="text-xl font-display font-black text-white italic uppercase tracking-tight">
-                        İnteraktif Taktik Laboratuvarı
+                      <h3 className="text-xl font-display font-bold text-white tracking-tight">
+                        Taktik laboratuvarı
                       </h3>
-                      <p className="text-xs text-fb-muted max-w-lg font-semibold leading-relaxed">
-                        Fenerbahçe'nin maç senaryolarını test edin. Farklı taktik şablonlara geçerek oyuncuların sahadaki rollerini ve modern alan daraltma planlarını inceleyin.
+                      <p className="text-sm text-slate-400 max-w-lg leading-relaxed">
+                        Okuma deneyimini bozmayan şematik senaryolar. İsimler örnek formasyondur; gerçek kadro ve advanced maç verisi Maç Merkezi / Oyuncular’dadır.
                       </p>
                     </div>
 
@@ -810,15 +793,15 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
                         <button
                           key={sc}
                           onClick={() => setActiveScenario(sc)}
-                          className={`px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-left border transition-all cursor-pointer ${
+                          className={`px-3.5 py-2 rounded-xl text-[11px] font-semibold text-left border transition-all cursor-pointer ${
                             activeScenario === sc
                               ? 'bg-fb-yellow border-fb-yellow text-fb-navy shadow-lg shadow-fb-yellow/15'
                               : 'bg-white/5 border-white/5 text-slate-300 hover:bg-white/10 hover:border-fb-yellow/30'
                           }`}
                         >
-                          {sc === 'press' && '🔥 ÖN ALAN BASKI SETİ'}
-                          {sc === 'transition' && '⚡ ASİMETRİK HÜCUM GEÇİŞİ'}
-                          {sc === 'lowBlock' && '🛡️ KOMPAKT DERİN ALÇAK BLOK'}
+                          {sc === 'press' && 'Ön alan baskı'}
+                          {sc === 'transition' && 'Asimetrik geçiş'}
+                          {sc === 'lowBlock' && 'Derin blok'}
                         </button>
                       ))}
                     </div>
@@ -954,80 +937,64 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
 
                   {/* Scenario Info Box */}
                   <div className="p-4 rounded-2xl bg-fb-dark border border-white/5 space-y-1">
-                    <span className="text-[9px] font-black uppercase text-fb-yellow tracking-widest">Taktik Doktrini</span>
-                    <p className="text-xs text-slate-200 font-semibold leading-relaxed">
-                      {activeScenario === 'press' && "🔥 ÖN ALAN BASKI SETİ: 1-4-2-3-1 esnek ön blok yerleşimiyle rakip stoperlere yoğun pas-kanal baskısı uygularız. Orta saha çizgimiz (Fred-İsmail) rakip kontra ihtimallerinde ilk pas önleme müdahalelerini üstlenir."}
-                      {activeScenario === 'transition' && "⚡ ASİMETRİK HÜCUM GEÇİŞİ: Sağ bek (Osayi) kanat çizgisi boyunca tam bindirme yaparken, sol bek (Oosterwolde) savunma emniyeti için merkeze yaklaşır. Fred ise boşalan sağ iç yarım alan koridoruna sürpriz sızma koşusu atar."}
-                      {activeScenario === 'lowBlock' && "🛡️ KOMPAKT DERİN ALÇAK BLOK: Skor avantajı veya rakip baskısını kırma durumlarında uygulanan 4-5-1 türevi kompakt duruştur. Bloklar arası mesafe minimumda tutularak ceza sahası önünde etten duvar örülür."}
+                    <span className="text-[10px] font-semibold text-fb-yellow tracking-wide">Senaryo notu</span>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      {activeScenario === 'press' && "Ön alan baskı: 1-4-2-3-1 esnek ön blok ile rakip stoperlere pas-kanal baskısı. Orta saha çizgisi kontra ilk pasını kesmeye çalışır. (Şematik demo)"}
+                      {activeScenario === 'transition' && "Asimetrik geçiş: bir bek bindirir, diğeri denge tutar; boşalan iç koridora sızma koşuları. (Şematik demo)"}
+                      {activeScenario === 'lowBlock' && "Derin blok: skor avantajında 4-5-1 türevi kompakt duruş; blok mesafeleri kısa tutulur. (Şematik demo)"}
                     </p>
                   </div>
                 </div>
 
-                {/* CONTENT BODY */}
-                <div className="prose prose-invert max-w-none space-y-6 text-sm text-slate-300 font-semibold leading-relaxed">
+                {/* CONTENT BODY — calm prose */}
+                <div className="reading-prose max-w-none">
                   {currentArticle.isPremium ? (
-                    /* PREMIUM LOCK CONTENT PREVIEW */
                     <div className="space-y-6">
-                      {/* First couple of paragraphs rendered */}
                       <p>
                         {currentArticle.content.split('\n\n')[0] || currentArticle.excerpt || ''}
                       </p>
-                      
-                      {/* Gradient Teaser overlay block */}
-                      <div className="relative pt-24 pb-4">
-                        <div className="absolute inset-0 bg-gradient-to-t from-fb-dark via-fb-dark/80 to-transparent z-10"></div>
-                        <p className="text-slate-400/30 filter blur-[1px] select-none">
-                          Orta alan pres hatlarında Beşiktaş’ın derin stoper kaymalarını bozmak adına Fred’in sürpriz ceza sahası koşuları kritik önem taşıyor. Eğer topsuz preste rakibi gafil avlayabilirsek ilk 20 dakikada tabelayı bulmamız işten bile değil. Detaylı ısı matrisi verilerine göre rakibimizin en çok zaaf verdiği bölge sol yarım iç koridor...
+                      <div className="relative pt-20 pb-4">
+                        <div className="absolute inset-0 bg-gradient-to-t from-fb-dark via-fb-dark/80 to-transparent z-10" />
+                        <p className="text-slate-500/40 select-none blur-[0.5px]">
+                          Premium devamı, yayınlanan teaser sonrası kilitli kalır — dolgu metin gerçek maç verisi değildir.
                         </p>
                       </div>
-
-                      {/* PREMIUM CALLOUT UI */}
-                      <div className="p-8 rounded-3xl bg-gradient-to-b from-[#181F30] to-fb-dark border border-fb-yellow/30 text-center space-y-6 shadow-2xl max-w-xl mx-auto my-12 relative overflow-hidden">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-fb-yellow rounded-full"></div>
-                        <div className="w-12 h-12 rounded-full bg-fb-yellow/10 border border-fb-yellow/20 flex items-center justify-center text-fb-yellow mx-auto">
-                          <Lock size={20} className="animate-pulse" />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <h3 className="text-xl font-display font-black text-white italic uppercase tracking-tight">Bu içerik Fenerbahçe Evreni Premium üyeleri için hazırlanmıştır</h3>
-                          <p className="text-xs text-fb-muted max-w-sm mx-auto leading-relaxed">
-                            Bu analiz ve verinin devamı, kapsamlı taktik dosyaları, özel ısı haritaları ve scouting metrik bültenimize üye olan taraftarlarımıza özeldir.
-                          </p>
-                        </div>
-
-                        <div className="pt-2 max-w-sm mx-auto">
-                          <button 
-                            onClick={() => onNavigate('bulten')}
-                            className="w-full py-4 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2"
-                          >
-                            Premium Listesine Katıl
-                          </button>
-                        </div>
+                      <div className="p-8 rounded-2xl bg-[#121826] border border-fb-yellow/25 text-center space-y-4 max-w-xl mx-auto">
+                        <Lock size={20} className="text-fb-yellow mx-auto" />
+                        <h3 className="text-lg font-display font-bold text-white tracking-tight">
+                          Premium üyelere özel devam
+                        </h3>
+                        <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
+                          Tam dosya, ek diyagram ve scout notları bekleme listesi üzerinden duyurulur.
+                        </p>
+                        <button 
+                          onClick={() => onNavigate('bulten')}
+                          className="w-full max-w-xs mx-auto py-3 bg-fb-yellow hover:bg-white text-fb-navy font-bold text-sm rounded-xl transition-colors cursor-pointer"
+                        >
+                          Bekleme listesine katıl
+                        </button>
                       </div>
                     </div>
                   ) : (
-                    /* REGULAR NON-PREMIUM FULL TEXT BODY */
-                    <div className="space-y-6">
+                    <div>
                       {currentArticle.content.split('\n\n').map((paragraph, index) => (
                         paragraph.startsWith('## ') ? (
-                          <h3 key={index} className="text-lg md:text-xl font-display font-black text-white uppercase italic tracking-tight pt-3">
+                          <h2 key={index}>
                             {paragraph.replace(/^## /, '')}
-                          </h3>
+                          </h2>
                         ) : (
-                          <p key={index} className="text-slate-300 font-medium text-[15px] leading-relaxed">
-                            {paragraph}
-                          </p>
+                          <p key={index}>{paragraph}</p>
                         )
                       ))}
                     </div>
                   )}
                 </div>
 
-                {/* USER REACTION / VOTE BOX */}
+                {/* USER REACTION */}
                 <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] text-center space-y-4">
                   <div className="space-y-1">
-                    <h4 className="text-xs font-black uppercase text-white tracking-widest">TAKTIKSEL SEÇİM GÖRÜŞÜNÜZ</h4>
-                    <p className="text-[11px] text-fb-muted font-semibold">Sizce bu analizdeki taktik vizyon sahada şampiyonluk getirecek formül mü?</p>
+                    <h4 className="text-sm font-semibold text-white">Bu analize katılıyor musun?</h4>
+                    <p className="text-xs text-slate-400">Görüşün yalnızca bu oturumda saklanır; sahte oy sayısı basılmaz.</p>
                   </div>
 
                   <div className="flex flex-wrap justify-center gap-3">

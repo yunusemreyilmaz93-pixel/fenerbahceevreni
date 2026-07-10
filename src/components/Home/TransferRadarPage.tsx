@@ -27,6 +27,16 @@ import {
   LayoutGrid
 } from 'lucide-react';
 import { dbGetCollection, dbAddDocument } from '../../lib/dbService';
+import { DataBadge } from '../ui';
+import { parseOptionalMetric, hasRating, formatRating } from '../../lib/playerMetrics';
+import {
+  ArchiveEmpty,
+  ArticleTitle,
+  LoadingScreen,
+  PageKicker,
+  PageLead,
+  PageTitle,
+} from './reading/ReadingChrome';
 
 interface TransferReport {
   id: string;
@@ -37,7 +47,7 @@ interface TransferReport {
   nationality: string;
   currentClub: string;
   estimatedCost: string;
-  fitScore: number;
+  fitScore: number | null;
   strengths: string[];
   concerns: string[];
   tacticalFit: string;
@@ -94,6 +104,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
         if (published.length > 0) {
           const normalized = published.map((report: any) => ({
             ...report,
+            fitScore: parseOptionalMetric(report.fitScore),
             strengths: Array.isArray(report.strengths) 
               ? report.strengths 
               : (typeof report.strengths === 'string' ? report.strengths.split(',').map((s: string) => s.trim()) : []),
@@ -184,7 +195,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
       // 3. Extra granular drop side filters
       let matchesExtra = true;
       if (extraFilter === 'high_score') {
-        matchesExtra = r.fitScore >= 8.0;
+        matchesExtra = hasRating(r.fitScore) && (r.fitScore as number) >= 8.0;
       } else if (extraFilter === 'low_cost') {
         // Low cost filter approximation (such as containing free, or lower numbers)
         const text = r.estimatedCost.toLowerCase();
@@ -253,14 +264,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-fb-dark">
-        <div className="space-y-4 text-center">
-          <div className="w-12 h-12 border-4 border-fb-yellow border-t-transparent rounded-full animate-spin mx-auto mr-0"></div>
-          <p className="text-xs font-black uppercase text-fb-yellow tracking-[0.2em] animate-pulse">GLOBAL SCOUT RADAR VERİLERİ YÜKLENİYOR...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen label="Transfer radar yükleniyor…" />;
   }
 
   // Active Category Pills
@@ -315,29 +319,16 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
             transition={{ duration: 0.3 }}
             className="pb-24 text-left"
           >
-            {/* HERO MODULE */}
-            <header className="relative pt-28 pb-16 bg-gradient-to-b from-fb-navy/35 to-transparent border-b border-white/[0.04]">
+            {/* HERO — calm archive */}
+            <header className="relative pt-28 pb-12 bg-gradient-to-b from-fb-navy/35 to-transparent border-b border-white/[0.04]">
               <div className="container mx-auto px-6 max-w-6xl space-y-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow [font-size:10px] uppercase font-black tracking-widest">
-                  <Award size={11} className="animate-spin" /> Bağımsız Scout & Analiz Departmanı
-                </div>
-                
-                <h1 className="text-4xl md:text-5xl font-display font-black text-white italic uppercase tracking-tight leading-none">
-                  Transfer Radar
-                </h1>
-                
-                <p className="text-sm text-fb-muted max-w-2xl font-medium leading-relaxed">
-                  Fenerbahçe’nin transfer gündemindeki veya potansiyel olarak takip edilen oyuncuları kuru dedikodulardan uzak; taktik rol, tahmini maliyet, savunma/hücum uyumu ve adaptasyon riskleri çerçevesinde değerlendiren profesyonel bağımsız izleme veri tabanı.
-                </p>
-
-                {/* Info summary pills in hero */}
-                <div className="flex flex-wrap gap-2 pt-4">
-                  {['Oyuncu Profili', 'Taktik Uyum', 'Maliyet Analizi', 'İkili Riskler', 'Fit Score', 'Premium Rapor'].map((inf) => (
-                    <span key={inf} className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-slate-300">
-                      • {inf}
-                    </span>
-                  ))}
-                </div>
+                <PageKicker>
+                  <Award size={12} aria-hidden /> Bağımsız scout
+                </PageKicker>
+                <PageTitle>Transfer radar</PageTitle>
+                <PageLead>
+                  Kuru dedikodu değil: taktik uyum, tahmini maliyet ve risk notları. Fit skoru yalnızca admin/scout kaynağından geldiğinde gösterilir — yoksa “veri yok”.
+                </PageLead>
               </div>
             </header>
 
@@ -345,8 +336,8 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
             {featuredReport && selectedCategory === 'Tümü' && !searchQuery && extraFilter === 'all' && (
               <section className="container mx-auto px-6 max-w-6xl py-12">
                 <div className="mb-6">
-                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-fb-yellow block">İsmail Kartal Sistemine En Uyumlu Profil</span>
-                  <h2 className="text-xl font-display font-black text-white uppercase italic">Öne Çıkan Scout Raporu</h2>
+                  <span className="text-[10px] font-semibold tracking-wide text-fb-yellow block mb-1">Öne çıkan</span>
+                  <h2 className="text-xl font-display font-bold text-white tracking-tight">Scout raporu</h2>
                 </div>
 
                 <div 
@@ -370,19 +361,19 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                       </div>
 
                       <div>
-                        <h3 className="text-2xl font-black text-white uppercase italic group-hover:text-fb-yellow transition-colors">{featuredReport.playerName}</h3>
-                        <span className="text-xs text-fb-yellow font-black uppercase tracking-wider block mt-1">{featuredReport.position}</span>
+                        <h3 className="text-2xl font-bold text-white tracking-tight group-hover:text-fb-yellow transition-colors">{featuredReport.playerName}</h3>
+                        <span className="text-xs text-fb-yellow font-semibold tracking-wide block mt-1">{featuredReport.position}</span>
                       </div>
                     </div>
 
                     {/* Circular Dial Fit Score gauge representation */}
                     <div className="p-4 rounded-2xl bg-fb-dark border border-white/5 w-full flex items-center justify-between gap-4">
                       <div className="text-left">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">GENEL UYUM</span>
+                        <span className="text-[10px] font-semibold text-slate-400 tracking-wide block">Fit skoru</span>
                         <span className="text-xs font-bold text-fb-muted">Kadro/Taktik</span>
                       </div>
                       <div className="flex items-baseline gap-0.5">
-                        <span className="text-3xl font-display font-black text-fb-yellow">{featuredReport.fitScore}</span>
+                        <span className="text-3xl font-display font-black text-fb-yellow">{formatRating(featuredReport.fitScore)}</span>
                         <span className="text-xs text-slate-400 font-bold">/10</span>
                       </div>
                     </div>
@@ -540,7 +531,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                     <Search size={22} />
                   </div>
                   <div className="space-y-1.5">
-                    <h3 className="text-lg font-black text-white italic uppercase">Eşleşen Scout Raporu Bulunamadı</h3>
+                    <h3 className="text-lg font-bold text-white tracking-tight">Eşleşen scout raporu yok</h3>
                     <p className="text-xs text-fb-muted leading-relaxed">
                       Lütfen oyuncu ismini doğru yazdığınızdan emin olun veya kategori/ekstra filtre tercihlerini sıfırlayarak aramayı genişletin.
                     </p>
@@ -572,7 +563,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                         {/* Card header meta */}
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="text-lg font-black text-white uppercase group-hover:text-fb-yellow transition-colors italic leading-tight">
+                            <h3 className="text-lg font-bold text-white group-hover:text-fb-yellow transition-colors leading-tight tracking-tight">
                               {report.playerName}
                             </h3>
                             <span className="text-[10px] font-bold text-fb-muted uppercase tracking-wider block mt-0.5">
@@ -583,7 +574,7 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                           {/* Circle Badge Fit Score */}
                           <div className="px-3 py-1.5 rounded-xl bg-fb-dark border border-white/10 text-center shrink-0">
                             <div className="text-[8px] font-black text-fb-yellow uppercase leading-none tracking-widest mb-0.5">FIT</div>
-                            <div className="text-sm font-black text-white leading-none">{report.fitScore}</div>
+                            <div className="text-sm font-black text-white leading-none">{formatRating(report.fitScore)}</div>
                           </div>
                         </div>
 
@@ -776,63 +767,56 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
             className="pb-24 pt-28 text-left"
           >
             {currentReport ? (
-              <div className="container mx-auto px-6 max-w-4xl space-y-8">
+              <div className="container mx-auto px-6 max-w-3xl space-y-8">
                 
-                {/* Back Link */}
                 <button 
                   onClick={handleBackToList}
-                  className="inline-flex items-center gap-1.5 text-xs font-black text-fb-yellow hover:text-white uppercase tracking-wider transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-400 hover:text-fb-yellow transition-colors cursor-pointer"
                 >
-                  <ChevronLeft size={16} /> Transfer Radar Listesine Geri Dön
+                  <ChevronLeft size={16} /> Radara dön
                 </button>
 
-                {/* Profile header metadata card */}
-                <div className="p-8 rounded-3xl bg-fb-card border border-white/[0.08] relative overflow-hidden my-4">
-                  <div className="absolute top-5 right-5 flex gap-2">
+                <div className="p-6 md:p-8 rounded-2xl bg-fb-card border border-white/[0.08] relative overflow-hidden">
+                  <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end max-w-[50%]">
                     {currentReport.isPremium && (
-                      <span className="px-2.5 py-1 text-[9px] font-black bg-fb-yellow text-fb-navy rounded uppercase tracking-wider flex items-center gap-1 shadow-md">
-                        <Lock size={9} /> Premium Rapor
+                      <span className="px-2.5 py-1 text-[11px] font-semibold bg-fb-yellow text-fb-navy rounded-md flex items-center gap-1">
+                        <Lock size={9} /> Premium
                       </span>
                     )}
-                    <span className="px-2.5 py-1 text-[9px] font-black bg-fb-dark text-fb-yellow border border-fb-yellow/20 rounded uppercase tracking-wider">
-                      Uyum: {currentReport.fitScore}/10
+                    <span className="px-2.5 py-1 text-[11px] font-semibold bg-fb-dark text-fb-yellow border border-fb-yellow/20 rounded-md">
+                      Fit: {hasRating(currentReport.fitScore) ? `${formatRating(currentReport.fitScore)}/10` : '—'}
                     </span>
+                    <DataBadge provider="scout" fetchedAt={currentReport.updatedAt || currentReport.createdAt} />
                   </div>
 
                   <div className="flex flex-col md:flex-row gap-6 items-center">
-                    {/* Circle initials mockup */}
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-fb-navy to-fb-dark border-2 border-fb-yellow/30 flex items-center justify-center text-fb-yellow font-display italic font-black text-2xl shadow-lg shrink-0">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-fb-navy to-fb-dark border-2 border-fb-yellow/30 flex items-center justify-center text-fb-yellow font-display font-bold text-2xl shadow-lg shrink-0">
                       {currentReport.playerName.substring(0, 2).toUpperCase()}
                     </div>
 
-                    <div className="space-y-2 text-center md:text-left">
+                    <div className="space-y-2 text-center md:text-left pt-8 md:pt-0">
                       <span className="text-[10px] font-black bg-white/5 border border-white/5 text-[#FFD21F] px-2.5 py-1 rounded">
                         Mevki: {currentReport.position}
                       </span>
-                      <h1 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase tracking-tight pt-1">
-                        {currentReport.playerName}
-                      </h1>
+                      <ArticleTitle className="pt-1 text-3xl md:text-4xl">{currentReport.playerName}</ArticleTitle>
                       
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-fb-muted font-bold justify-center md:justify-start">
-                        <span>Yaş: <strong className="text-slate-200">{currentReport.age}</strong></span>
-                        <span>•</span>
-                        <span>Kulüp: <strong className="text-slate-200">{currentReport.currentClub}</strong></span>
-                        <span>•</span>
-                        <span>Uyruk: <strong className="text-slate-200">{currentReport.nationality}</strong></span>
-                        <span>•</span>
-                        <span>Değer: <strong className="text-emerald-400">{currentReport.estimatedCost}</strong></span>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400 font-medium justify-center md:justify-start">
+                        <span>Yaş: <strong className="text-slate-200 font-semibold">{currentReport.age || '—'}</strong></span>
+                        <span className="text-slate-600">·</span>
+                        <span>Kulüp: <strong className="text-slate-200 font-semibold">{currentReport.currentClub || '—'}</strong></span>
+                        <span className="text-slate-600">·</span>
+                        <span>Uyruk: <strong className="text-slate-200 font-semibold">{currentReport.nationality || '—'}</strong></span>
+                        <span className="text-slate-600">·</span>
+                        <span>Maliyet: <strong className="text-emerald-400 font-semibold">{currentReport.estimatedCost || '—'}</strong></span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Grid details: strengths / concerns checklist blocks */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                  
-                  {/* Strengths list */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] text-left space-y-4">
-                    <h3 className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-white/5">
-                      <ShieldCheck size={16} /> Güçlü Yönler (Scout Raporu)
+                    <h3 className="text-sm font-semibold text-emerald-400 flex items-center gap-2 pb-2 border-b border-white/5">
+                      <ShieldCheck size={16} /> Güçlü yönler
                     </h3>
                     <ul className="space-y-3">
                       {currentReport.strengths.map((st, i) => (
@@ -864,48 +848,26 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
                 {/* Rapor Detay Body */}
                 <div className="p-6 md:p-8 rounded-2xl bg-fb-card border border-white/[0.06] text-left space-y-6">
                   
-                  {/* Summary Block */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-black text-fb-yellow uppercase tracking-widest font-display italic">Genel Oyuncu Profili</h3>
-                    <p className="text-sm font-semibold text-slate-300 leading-relaxed">
-                      {currentReport.summary}
-                    </p>
+                  <div className="space-y-2 reading-prose">
+                    <h2 className="!mt-0">Profil özeti</h2>
+                    <p>{currentReport.summary || 'Özet henüz eklenmedi.'}</p>
                   </div>
 
-                  {/* Dynamic full reports render depending on premium status */}
                   {currentReport.isPremium ? (
-                    /* PREMIUM LOCKED BLUR COVER CALLOUT */
-                    <div className="space-y-6 pt-4">
-                      <div className="relative pt-16 pb-2">
-                        <div className="absolute inset-0 bg-gradient-to-t from-fb-dark via-fb-dark/85 to-transparent z-10"></div>
-                        <p className="text-slate-400/20 filter blur-[1px] select-none text-xs">
-                          Moyes sistemlerindeki savunma gömülüş tecrübesi, geriye hızlı dikey koşuları engelleyebilmek adına taktiksel bir kalkan görevi üstleniyor. Isı haritasi verileri sol yarım dalga genişliğini %78 oranında örttüğünü ispatlar nitelikte. Ancak yüksek tempolu geçişlerde stoperlerin arkasında kalan 40 metrelik boşluğa hızlı reaksiyon verebilmesi için partner eşleşmesinde mutlaka daha süratli bir...
-                        </p>
-                      </div>
-
-                      {/* LOCK INTERFACE BOX */}
-                      <div className="p-8 rounded-3xl bg-gradient-to-b from-[#181F30] to-fb-dark border border-fb-yellow/30 text-center space-y-6 shadow-2xl max-w-xl mx-auto my-6 relative overflow-hidden">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-fb-yellow rounded-full"></div>
-                        <div className="w-12 h-12 rounded-full bg-fb-yellow/10 border border-fb-yellow/20 flex items-center justify-center text-fb-yellow mx-auto">
-                          <Lock size={20} className="animate-pulse" />
-                        </div>
-                        
-                        <div className="space-y-1.5">
-                          <h3 className="text-lg font-display font-black text-white italic uppercase tracking-tight">Bu transfer raporunun tamamı Premium üyelerimize özeldir</h3>
-                          <p className="text-xs text-fb-muted max-w-sm mx-auto leading-relaxed">
-                            Ayrıntılı gelişmiş filtreler, hücum/savunma kıyaslama şemaları, olası sözleşme taslağı ve alternatif ucuz adayların yer aldığı tam transfer analizine ancak Premium listemizde yetki verilir.
-                          </p>
-                        </div>
-
-                        <div className="pt-2 max-w-sm mx-auto w-full">
-                          <button 
-                            onClick={() => onNavigate('premium')}
-                            className="w-full py-4 bg-fb-yellow hover:bg-white text-fb-navy font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-lg flex items-center justify-center gap-2"
-                          >
-                            Premium Listesine Katıl
-                          </button>
-                        </div>
-                      </div>
+                    <div className="p-8 rounded-2xl bg-[#121826] border border-fb-yellow/25 text-center space-y-4 max-w-xl mx-auto">
+                      <Lock size={20} className="text-fb-yellow mx-auto" />
+                      <h3 className="text-lg font-display font-bold text-white tracking-tight">
+                        Premium scout dosyası
+                      </h3>
+                      <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
+                        Tam rapor, alternatif adaylar ve sözleşme notları bekleme listesi üzerinden duyurulur. Blur dolgu metin gerçek veri değildir.
+                      </p>
+                      <button 
+                        onClick={() => onNavigate('premium')}
+                        className="w-full max-w-xs mx-auto py-3 bg-fb-yellow hover:bg-white text-fb-navy font-bold text-sm rounded-xl transition-colors cursor-pointer"
+                      >
+                        Bekleme listesine katıl
+                      </button>
                     </div>
                   ) : (
                     /* PUBLICLY VISIBLE REPORTS PORTION */
