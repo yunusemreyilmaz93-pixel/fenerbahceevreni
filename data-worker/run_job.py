@@ -286,10 +286,15 @@ def job_sync_player_season_stats(season: str) -> tuple[int, int, str, dict[str, 
         return code, 0, (out[-1500:] if out else "") + f" | fotmob xg fallback: {e}", meta
 
 
+def _is_fenerbahce_adv(d: dict[str, Any]) -> bool:
+    blob = f"{d.get('homeTeam') or ''} {d.get('awayTeam') or ''}".lower()
+    return "fenerbah" in blob
+
+
 def job_sync_match_advanced(season: str) -> tuple[int, int, str, dict[str, Any]]:
-    """FotMob last matches xG/shotmap."""
+    """FotMob last matches xG/shotmap — B DoD default limit 10."""
     team_id = os.environ.get("FOTMOB_TEAM_ID", "8695")
-    limit = os.environ.get("FOTMOB_MATCH_LIMIT", "5")
+    limit = os.environ.get("FOTMOB_MATCH_LIMIT", "10")
     code, out = run_subprocess(
         [
             py(),
@@ -303,21 +308,24 @@ def job_sync_match_advanced(season: str) -> tuple[int, int, str, dict[str, Any]]
     meta: dict[str, Any] = {}
     written = 0
     if code == 0:
-        # Prefer full advanced files under output/advanced/
+        # Prefer full advanced files under output/advanced/ (FB only)
         adv_dir = WORKER / "output" / "advanced"
         docs: list[dict[str, Any]] = []
         if adv_dir.is_dir():
             for p in sorted(adv_dir.glob("*__fotmob.json")):
                 try:
                     d = json.loads(p.read_text(encoding="utf-8"))
-                    if isinstance(d, dict) and (d.get("id") or d.get("matchDocumentId")):
-                        if not d.get("id") and d.get("matchDocumentId"):
-                            d["id"] = f"{d['matchDocumentId']}__{d.get('provider') or 'fotmob'}"
-                        if not d.get("fetchedAt"):
-                            d["fetchedAt"] = utc_now()
-                        if not d.get("provider"):
-                            d["provider"] = "fotmob"
-                        docs.append(d)
+                    if not isinstance(d, dict):
+                        continue
+                    if not _is_fenerbahce_adv(d):
+                        continue
+                    if not d.get("id") and d.get("matchDocumentId"):
+                        d["id"] = f"{d['matchDocumentId']}__{d.get('provider') or 'fotmob'}"
+                    if not d.get("fetchedAt"):
+                        d["fetchedAt"] = utc_now()
+                    if not d.get("provider"):
+                        d["provider"] = "fotmob"
+                    docs.append(d)
                 except Exception:
                     continue
         if not docs:
@@ -326,7 +334,7 @@ def job_sync_match_advanced(season: str) -> tuple[int, int, str, dict[str, Any]]
                 summary = json.loads(summary_path.read_text(encoding="utf-8"))
                 matches = summary.get("matches") or []
                 for m in matches:
-                    if isinstance(m, dict):
+                    if isinstance(m, dict) and _is_fenerbahce_adv(m):
                         if not m.get("id") and m.get("matchDocumentId"):
                             m["id"] = f"{m['matchDocumentId']}__{m.get('provider') or 'fotmob'}"
                         docs.append(m)
@@ -336,7 +344,19 @@ def job_sync_match_advanced(season: str) -> tuple[int, int, str, dict[str, Any]]
             respect_locked_fields=True,
         )
         meta = fs_meta(result)
+        # Attach coverage if present
+        cov_path = WORKER / "output" / "fotmob" / "coverage_b_dod.json"
+        if cov_path.exists():
+            try:
+                meta["coverage"] = json.loads(cov_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        meta["fbAdvancedDocs"] = len(docs)
         written = records_for_job(result, code=0)
+        # B DoD soft fail only if zero packs
+        if len(docs) == 0:
+            code = 1
+            out = (out or "") + " | no Fenerbahçe advanced packs"
     return code, written, out[-2000:] if out else "", meta
 
 
@@ -357,27 +377,38 @@ def job_sync_entity_ids() -> tuple[int, int, str, dict[str, Any]]:
                 if not pid:
                     continue
                 docs.append({**p, "id": pid, "fetchedAt": data.get("fetchedAt") or utc_now()})
-            # Also accept flat providerIds export
             if not docs and isinstance(data.get("providerIds"), list):
                 for p in data["providerIds"]:
                     if isinstance(p, dict) and (p.get("id") or p.get("playerDocumentId")):
                         pid = p.get("id") or p.get("playerDocumentId")
                         docs.append({**p, "id": pid})
+            meta["matchesEnriched"] = data.get("matchesEnriched")
+            meta["stubsAddedFromAdvanced"] = data.get("stubsAddedFromAdvanced")
+            meta["fotmobAdvancedAvailable"] = data.get("fotmobAdvancedAvailable")
         result = upsert_collection(
             COLLECTIONS["provider_ids"],
             docs,
             respect_locked_fields=True,
         )
-        meta = fs_meta(result)
-        if result.local_count == 0 and em.exists():
-            # Map file existed but no player docs — still count enrichment signal
+        meta.update(fs_meta(result))
+        # Also push enriched CMS matches (source of truth for Maç Merkezi on Firebase path)
+        matches_path = REPO / "public" / "data" / "matches.json"
+        match_docs: list[dict[str, Any]] = []
+        if matches_path.exists():
             try:
-                written = int(json.loads(em.read_text(encoding="utf-8")).get("matchesEnriched") or 0)
+                mj = json.loads(matches_path.read_text(encoding="utf-8"))
+                for m in mj.get("matches") or []:
+                    if isinstance(m, dict) and m.get("id"):
+                        match_docs.append(dict(m))
             except Exception:
-                written = 0
-            meta["note"] = "entity_map had no playerMappings; firestore player upsert empty"
-        else:
-            written = records_for_job(result, code=0)
+                pass
+        if match_docs:
+            mr = upsert_collection(COLLECTIONS["matches"], match_docs, respect_locked_fields=True)
+            meta["matchesFirestoreStatus"] = mr.status
+            meta["matchesFirestoreWritten"] = mr.firestore_count
+        written = records_for_job(result, code=0)
+        if written == 0 and match_docs:
+            written = len(match_docs)
     return code, written, out[-2000:] if out else "", meta
 
 

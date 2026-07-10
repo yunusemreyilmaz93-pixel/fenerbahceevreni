@@ -6,7 +6,7 @@
 # Optional repository variables:
 #   SYNC_SEASON_STANDINGS  default 2025
 #   SYNC_SEASON_SQUAD      default 2026
-#   FOTMOB_MATCH_LIMIT     default 5
+#   FOTMOB_MATCH_LIMIT     default 10 (B DoD: son 10 FB advanced)
 
 name: Data sync nightly
 
@@ -86,7 +86,7 @@ jobs:
           FOTMOB_MATCH_LIMIT: ${{ vars.FOTMOB_MATCH_LIMIT }}
           FOTMOB_TEAM_ID: "8695"
         run: |
-          export FOTMOB_MATCH_LIMIT="${FOTMOB_MATCH_LIMIT:-5}"
+          export FOTMOB_MATCH_LIMIT="${FOTMOB_MATCH_LIMIT:-10}"
           python data-worker/run_job.py --type sync_match_advanced --season 2025-26 --trigger scheduler --require-firestore
           python data-worker/run_job.py --type sync_entity_ids --trigger scheduler --require-firestore
 

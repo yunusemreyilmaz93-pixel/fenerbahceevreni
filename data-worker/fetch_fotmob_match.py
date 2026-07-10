@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--team-id", type=int, default=8695, help="FotMob team id (Fenerbahçe=8695)")
-    ap.add_argument("--limit", type=int, default=5)
+    ap.add_argument("--limit", type=int, default=10, help="Son N bitmiş maç (B DoD: 10)")
     ap.add_argument("--match-id", default=None, help="Tek maç id")
     ap.add_argument("--delay", type=float, default=1.1)
     args = ap.parse_args()

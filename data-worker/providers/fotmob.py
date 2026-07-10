@@ -120,8 +120,42 @@ def get_match_details(match_id: int | str) -> dict[str, Any]:
             raise RuntimeError(f"matchDetails failed: {e1}; fallback: {e2}") from e2
 
 
-def extract_match_ids_from_team(team_payload: dict[str, Any], limit: int = 8) -> list[str]:
-    """Pull finished match ids first from fixtures, then fallback walk."""
+def _team_id_in_match_obj(obj: dict, team_id: int) -> bool:
+    """True if this fixture object is clearly about team_id (avoids rival noise)."""
+    tid = str(team_id)
+    home = obj.get("home") or {}
+    away = obj.get("away") or {}
+    for side in (home, away):
+        if not isinstance(side, dict):
+            continue
+        for key in ("id", "teamId", "idTeam"):
+            if side.get(key) is not None and str(side.get(key)) == tid:
+                return True
+    # pageUrl sometimes embeds /teams/8695/
+    page = str(obj.get("pageUrl") or obj.get("matchUrl") or "")
+    if f"/{tid}" in page or f"id={tid}" in page:
+        return True
+    # name fallback for Fenerbahçe only when ids missing
+    for side in (home, away):
+        if not isinstance(side, dict):
+            continue
+        name = str(side.get("name") or side.get("teamName") or "")
+        if "fenerbah" in name.lower():
+            return True
+    return False
+
+
+def involves_fenerbahce(home: str, away: str) -> bool:
+    blob = f"{home or ''} {away or ''}".lower()
+    return "fenerbah" in blob
+
+
+def extract_match_ids_from_team(
+    team_payload: dict[str, Any],
+    limit: int = 10,
+    team_id: int = DEFAULT_TEAM_ID,
+) -> list[str]:
+    """Pull finished match ids for this team only (skip league noise / wrong clubs)."""
     finished: list[str] = []
     upcoming: list[str] = []
 
@@ -130,7 +164,12 @@ def extract_match_ids_from_team(team_payload: dict[str, Any], limit: int = 8) ->
         if mid is None and obj.get("pageUrl"):
             m = re.search(r"#(\d{6,})", str(obj["pageUrl"]))
             mid = m.group(1) if m else None
+        if mid is None and obj.get("matchId"):
+            mid = obj.get("matchId")
         if mid is None:
+            return
+        # CRITICAL: only keep fixtures for the requested team (prevents Palace etc.)
+        if not _team_id_in_match_obj(obj, team_id):
             return
         mid = str(mid)
         status = obj.get("status") or {}
@@ -140,7 +179,6 @@ def extract_match_ids_from_team(team_payload: dict[str, Any], limit: int = 8) ->
             if isinstance(obj.get("status"), dict)
             else False
         )
-        # score present often means finished
         home = obj.get("home") or {}
         away = obj.get("away") or {}
         has_score = home.get("score") is not None and away.get("score") is not None
@@ -154,7 +192,6 @@ def extract_match_ids_from_team(team_payload: dict[str, Any], limit: int = 8) ->
 
     def walk_matches(obj: Any):
         if isinstance(obj, dict):
-            # match-like
             if ("home" in obj and "away" in obj) or "pageUrl" in obj:
                 if isinstance(obj.get("home"), dict) or "pageUrl" in obj:
                     add_from_match_obj(obj)
@@ -164,15 +201,20 @@ def extract_match_ids_from_team(team_payload: dict[str, Any], limit: int = 8) ->
             for v in obj:
                 walk_matches(v)
 
-    # Prefer fixtures block
+    # Prefer fixtures block only (overview often has other teams' widgets)
     if "fixtures" in team_payload:
         walk_matches(team_payload["fixtures"])
     if len(finished) < limit:
+        # allFixtures / fixturesAll variants
+        for key in ("allFixtures", "fixturesAll", "fixture", "matches"):
+            if key in team_payload:
+                walk_matches(team_payload[key])
+    if len(finished) < limit:
         walk_matches(team_payload.get("overview") or {})
+    # Full payload walk is last resort and still team-filtered
     if len(finished) < limit:
         walk_matches(team_payload)
 
-    # finished first (most recent last in many APIs — reverse to get latest)
     ordered = list(reversed(finished)) + upcoming
     seen = set()
     out = []
@@ -439,16 +481,19 @@ def export_league_xg_table(league_id: int = DEFAULT_LEAGUE_ID) -> dict[str, Any]
 
 def run(
     team_id: int = DEFAULT_TEAM_ID,
-    limit: int = 5,
+    limit: int = 10,
     match_id: str | None = None,
     delay: float = 1.1,
 ) -> dict[str, Any]:
     """
     Fetch last N matches advanced packs for Fenerbahçe (or single match_id).
+    B DoD default: limit=10 finished packs with xG/shotmap when available.
     """
     results: list[dict] = []
     errors: list[str] = []
+    skipped: list[str] = []
     match_ids: list[str] = []
+    require_fb = int(team_id) == int(DEFAULT_TEAM_ID)
 
     if match_id:
         match_ids = [str(match_id)]
@@ -457,23 +502,26 @@ def run(
             team = get_team_fixtures(team_id)
             team_path = OUT_DIR / f"team_{team_id}.json"
             team_path.write_text(json.dumps(team, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
-            match_ids = extract_match_ids_from_team(team, limit=limit)
+            match_ids = extract_match_ids_from_team(team, limit=limit, team_id=team_id)
             if not match_ids:
-                errors.append("No match ids found in team payload")
+                errors.append("No match ids found in team payload for this team")
         except Exception as e:
             errors.append(f"team fetch: {e}")
-            # league fallback: scrape fixtures for Fenerbahçe
             try:
                 league = get_league(DEFAULT_LEAGUE_ID)
                 (OUT_DIR / "league_71.json").write_text(
                     json.dumps(league, ensure_ascii=False, indent=2, default=str),
                     encoding="utf-8",
                 )
-                # walk for fenerbahce matches
-                blob_ids = extract_match_ids_from_team(league, limit=limit * 2)
+                blob_ids = extract_match_ids_from_team(
+                    league, limit=limit * 3, team_id=team_id
+                )
                 match_ids = blob_ids[:limit]
             except Exception as e2:
                 errors.append(f"league fallback: {e2}")
+
+    adv_dir = WORKER / "output" / "advanced"
+    adv_dir.mkdir(parents=True, exist_ok=True)
 
     for mid in match_ids[:limit]:
         try:
@@ -482,20 +530,50 @@ def run(
             raw_path = OUT_DIR / f"match_raw_{mid}.json"
             raw_path.write_text(json.dumps(details, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
             adv = parse_advanced_from_match(details, mid)
+            # Drop wrong-club pollution (e.g. Crystal Palace when team=8695)
+            if require_fb and not involves_fenerbahce(
+                str(adv.get("homeTeam") or ""), str(adv.get("awayTeam") or "")
+            ):
+                skipped.append(f"match {mid}: not Fenerbahçe ({adv.get('homeTeam')} vs {adv.get('awayTeam')})")
+                logger.warning("skip non-FB match %s", mid)
+                continue
             adv_path = OUT_DIR / f"match_adv_{mid}.json"
             adv_path.write_text(json.dumps(adv, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
-            # also under advanced for API
-            adv_dir = WORKER / "output" / "advanced"
-            adv_dir.mkdir(parents=True, exist_ok=True)
             (adv_dir / f"{adv['matchDocumentId']}__fotmob.json").write_text(
                 json.dumps(adv, ensure_ascii=False, indent=2, default=str),
                 encoding="utf-8",
             )
             results.append(adv)
-            logger.info("OK match %s shots=%s", mid, len(adv.get("shotmap") or []))
+            xg_h = (adv.get("teamMetrics") or {}).get("home", {}).get("expectedGoals")
+            xg_a = (adv.get("teamMetrics") or {}).get("away", {}).get("expectedGoals")
+            logger.info(
+                "OK match %s shots=%s xG=%s-%s",
+                mid,
+                len(adv.get("shotmap") or []),
+                xg_h,
+                xg_a,
+            )
         except Exception as e:
             errors.append(f"match {mid}: {e}")
             logger.warning("match %s failed: %s", mid, e)
+
+    # Coverage report (B DoD: last N FB advanced packs)
+    packs_with_shotmap = sum(1 for m in results if (m.get("shotmap") or []))
+    packs_with_xg = sum(
+        1
+        for m in results
+        if (m.get("teamMetrics") or {}).get("home", {}).get("expectedGoals") is not None
+        or (m.get("teamMetrics") or {}).get("away", {}).get("expectedGoals") is not None
+    )
+    coverage = {
+        "targetLimit": limit,
+        "packsOk": len(results),
+        "packsWithShotmap": packs_with_shotmap,
+        "packsWithXg": packs_with_xg,
+        "bDodMet": len(results) >= min(limit, 10) or len(results) >= 10,
+        "skippedWrongClub": len(skipped),
+        "errors": len(errors),
+    }
 
     summary = {
         "schemaVersion": 1,
@@ -506,10 +584,27 @@ def run(
         "successCount": len(results),
         "failedCount": len(errors),
         "errors": errors,
+        "skipped": skipped,
+        "coverage": coverage,
         "matches": results,
     }
     (OUT_DIR / "last_run_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8",
+    )
+    (OUT_DIR / "coverage_b_dod.json").write_text(
+        json.dumps({"fetchedAt": utc_now(), **coverage, "sample": [
+            {
+                "id": m.get("id"),
+                "home": m.get("homeTeam"),
+                "away": m.get("awayTeam"),
+                "score": m.get("score"),
+                "shots": len(m.get("shotmap") or []),
+                "xgHome": (m.get("teamMetrics") or {}).get("home", {}).get("expectedGoals"),
+                "xgAway": (m.get("teamMetrics") or {}).get("away", {}).get("expectedGoals"),
+            }
+            for m in results
+        ]}, ensure_ascii=False, indent=2, default=str),
         encoding="utf-8",
     )
     if not results and errors:

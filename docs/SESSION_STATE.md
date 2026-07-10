@@ -1,39 +1,42 @@
 # SESSION STATE — Fenerbahçe Evreni
 
 > **Son güncelleme:** 2026-07-10  
-> **Durum:** A4+A5+rules deploy+nightly workflow · SA secret kullanıcıda
+> **Durum:** A4+A5+cron+B DoD (10 advanced) · sırada UI/UX 200
 
-## Bu tur
+## Tamamlanan
 
 | İş | Durum |
 |----|--------|
 | A5 localStorage prod kapat | ✅ |
-| A4 firestore_io + job write | ✅ |
-| Firestore + Storage rules deploy | ✅ `fenerbahceevreni-a4280` (CLI login) |
-| Nightly GH Actions workflow | ✅ `.github/workflows/data-sync-nightly.yml` |
-| `npm run rules:deploy` | ✅ script |
-| Service account JSON | ⏳ **kullanıcı yapıştırır** (GitHub secret + opsiyonel local) |
+| A4 Firestore job write + SA | ✅ |
+| Rules deploy | ✅ |
+| Nightly GH Actions | ✅ (secret OK, yeşil run) |
+| **B DoD son 10 FB advanced** | ✅ packsOk=10, Palace gürültü temiz |
+| Entity map + match stubs | ✅ |
 
-## “Hata” açıklaması
+## Veri notu
 
-`Firestore credentials: missing` = SA yok, **rules hatası değil**.  
-Admin SDK rules’ı bypass eder. Detay: `docs/OPS_FIRESTORE_AND_CRON.md`
+- Advanced: `data-worker/output/advanced/*__fotmob.json` (yalnız FB)
+- Coverage: `data-worker/output/fotmob/coverage_b_dod.json`
+- CMS maçlar: `public/data/matches.json` (~10; skorlu advanced stub + upcoming)
+- TM scrape CI’da 403 → cache snapshot upsert (partial)
 
-## Senin tek zorunlu adımın
+## Sonraki
 
-1. Firebase Console → Service accounts → Generate private key  
-2. GitHub → Secrets → `FIREBASE_SERVICE_ACCOUNT_JSON` = JSON içeriği  
-3. Actions → Data sync nightly → Run workflow  
+1. **UI/UX 200** (Faz D): design system + homepage nabız + Maç Merkezi polish  
+2. DataBadge (provider + fetchedAt) her advanced blokta  
+3. Sahte formRating temizliği oyuncu UI  
 
-## Sonraki (kod)
+## Komutlar
 
-- SA gelince: ilk gerçek `sync_standings` + `sync_squad` smoke (istersen buradan)
-- Veri doluluğu (son 10 maç advanced)
-- UI/UX 200 (Faz D) — omurga sonrası
+```bash
+set FOTMOB_MATCH_LIMIT=10
+python data-worker/run_job.py --type sync_match_advanced
+python data-worker/run_job.py --type sync_entity_ids
+```
 
 ## Context prompt
 
 ```
-docs/SESSION_STATE.md + OPS_FIRESTORE_AND_CRON.md oku.
-Rules deploy edildi. Nightly workflow hazır. SA secret kullanıcıda.
+docs/SESSION_STATE.md oku. B DoD 10 advanced bitti. Sonraki: UI/UX Faz D.
 ```
