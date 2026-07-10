@@ -31,11 +31,17 @@
 - Uzun MatchCenter + LatestAnalysis + Community yığını homepage’den çıktı
 - Hero kısaldı; fraksiyon CTA şeridi; ikincil transfer/kadro py sıkı
 
+### D3 — Maç Merkezi advanced
+- `useMatchAdvanced` hook + `matchAdvanced.ts` (lookup IDs, overlay, no fake data)
+- `MatchStatsTab` + `MatchGoalViz` modules
+- Bitmiş maç → varsayılan **İstatistik** sekmesi
+- DataBadge / XG / shotmap / EmptyState hiyerarşisi
+
 ## Sonraki
 
-1. **D3** Maç Merkezi polish (god file split + advanced her maçta tutarlı)  
-2. Oyuncu formRating null disiplini  
-3. Transfer/analiz okuma deneyimi sakinleştir
+1. Oyuncu formRating null disiplini + DataBadge  
+2. Transfer/analiz okuma deneyimi sakinleştir  
+3. MacMerkeziPage kalan god-file parçalama (hero/fixtures)
 
 ## Komutlar
 

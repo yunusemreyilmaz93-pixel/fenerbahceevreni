@@ -21,8 +21,9 @@ import {
   Quote
 } from 'lucide-react';
 import { dbGetCollection } from '../../lib/dbService';
-import ShotmapPitch from './ShotmapPitch';
-import { DataBadge, EmptyState, XGCompare } from '../ui';
+import { useMatchAdvanced } from '../../hooks/useMatchAdvanced';
+import MatchStatsTab from './match/MatchStatsTab';
+import { GoalTimeline } from './match/MatchGoalViz';
 
 interface MacMerkeziPageProps {
   onNavigate: (view: string) => void;
@@ -51,105 +52,6 @@ const TeamBadge: React.FC<{ src: string | null; name: string; size?: string }> =
     </div>
   )
 );
-
-/** Gerçek gol verisinden 0-90 dakika zaman çizelgesi (SVG). */
-const GoalTimeline: React.FC<{ goals: any[]; homeTeam: string; awayTeam: string }> = ({ goals, homeTeam, awayTeam }) => {
-  const W = 720, H = 132, PAD = 28;
-  const axisY = H / 2 + 6;
-  const minX = (m: number) => PAD + (Math.min(m, 95) / 95) * (W - PAD * 2);
-  const sorted = [...goals].sort((a, b) => a.minute - b.minute);
-  return (
-    <div className="w-full overflow-x-auto">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-w-[520px]" role="img" aria-label="Gol zaman çizelgesi">
-        {/* eksen */}
-        <line x1={PAD} y1={axisY} x2={W - PAD} y2={axisY} stroke="rgba(255,255,255,0.14)" strokeWidth={2} />
-        {[0, 15, 30, 45, 60, 75, 90].map(t => (
-          <g key={t}>
-            <line x1={minX(t)} y1={axisY - 4} x2={minX(t)} y2={axisY + 4} stroke="rgba(255,255,255,0.25)" strokeWidth={1.5} />
-            <text x={minX(t)} y={axisY + 20} textAnchor="middle" fontSize={10} fontFamily="monospace" fill="rgba(148,163,184,0.8)">{t}'</text>
-          </g>
-        ))}
-        {/* devre arası */}
-        <line x1={minX(45)} y1={axisY - 26} x2={minX(45)} y2={axisY + 8} stroke="rgba(255,210,31,0.25)" strokeWidth={1} strokeDasharray="3 3" />
-        <text x={minX(45)} y={axisY - 32} textAnchor="middle" fontSize={8.5} fontFamily="monospace" fill="rgba(255,210,31,0.55)">İY</text>
-        {/* goller */}
-        {sorted.map((g, i) => {
-          const x = minX(g.minute);
-          const isHome = g.team === 'home';
-          const y = isHome ? axisY - 14 : axisY + 14;
-          const labelY = isHome ? axisY - 40 - (i % 2) * 14 : axisY + 44 + (i % 2) * 14;
-          const own = /kendi kalesine|k\.k\./i.test(g.scorer || '');
-          const shortName = (g.scorer || '').replace(/\s*\(kendi kalesine\)/i, '').split(' ').slice(-1)[0];
-          return (
-            <g key={i}>
-              <line x1={x} y1={isHome ? axisY - 6 : axisY + 6} x2={x} y2={y} stroke={isHome ? '#FFD21F' : '#94a3b8'} strokeWidth={1.5} opacity={0.6} />
-              <circle cx={x} cy={y} r={6.5} fill={own ? '#0b101c' : isHome ? '#FFD21F' : '#94a3b8'} stroke={isHome ? '#FFD21F' : '#94a3b8'} strokeWidth={own ? 2 : 0} />
-              <text x={x} y={isHome ? y - 12 : y + 4 + 14} textAnchor="middle" fontSize={9.5} fontWeight={800} fill={isHome ? '#FFD21F' : '#cbd5e1'}>{g.minute}'</text>
-              <text x={x} y={labelY} textAnchor="middle" fontSize={9.5} fontWeight={700} fill="rgba(226,232,240,0.92)">
-                {shortName}{own ? ' (k.k.)' : ''}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      <div className="flex items-center justify-center gap-5 text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 pb-1">
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#FFD21F] inline-block" /> {homeTeam}</span>
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block" /> {awayTeam}</span>
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full border-2 border-[#FFD21F] inline-block" /> Kendi kalesine</span>
-      </div>
-    </div>
-  );
-};
-
-/** Gerçek gol verisinden kümülatif skor akışı (adım grafiği, SVG). */
-const ScoreFlow: React.FC<{ goals: any[]; homeTeam: string; awayTeam: string; finalHome: number; finalAway: number }> = ({ goals, homeTeam, awayTeam, finalHome, finalAway }) => {
-  const W = 720, H = 190, PADX = 34, PADY = 22;
-  const maxGoals = Math.max(finalHome, finalAway, 1);
-  const x = (m: number) => PADX + (Math.min(m, 95) / 95) * (W - PADX * 2);
-  const y = (g: number) => H - PADY - (g / maxGoals) * (H - PADY * 2);
-  const sorted = [...goals].sort((a, b) => a.minute - b.minute);
-
-  const buildPath = (team: 'home' | 'away') => {
-    let cur = 0;
-    let d = `M ${x(0)} ${y(0)}`;
-    sorted.forEach(g => {
-      if (g.team === team) {
-        d += ` L ${x(g.minute)} ${y(cur)} L ${x(g.minute)} ${y(cur + 1)}`;
-        cur += 1;
-      }
-    });
-    d += ` L ${x(95)} ${y(cur)}`;
-    return d;
-  };
-
-  return (
-    <div className="w-full overflow-x-auto">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-w-[520px]" role="img" aria-label="Skor akışı grafiği">
-        {/* yatay kılavuzlar */}
-        {Array.from({ length: maxGoals + 1 }, (_, i) => (
-          <g key={i}>
-            <line x1={PADX} y1={y(i)} x2={W - PADX} y2={y(i)} stroke="rgba(255,255,255,0.05)" strokeWidth={1} />
-            <text x={PADX - 8} y={y(i) + 3} textAnchor="end" fontSize={9} fontFamily="monospace" fill="rgba(148,163,184,0.7)">{i}</text>
-          </g>
-        ))}
-        {[0, 45, 90].map(t => (
-          <text key={t} x={x(t)} y={H - 4} textAnchor="middle" fontSize={9} fontFamily="monospace" fill="rgba(148,163,184,0.7)">{t}'</text>
-        ))}
-        <path d={buildPath('away')} fill="none" stroke="#64748b" strokeWidth={2} strokeLinejoin="round" />
-        <path d={buildPath('home')} fill="none" stroke="#FFD21F" strokeWidth={2.5} strokeLinejoin="round" />
-        {sorted.map((g, i) => {
-          let cum = 0;
-          sorted.slice(0, i + 1).forEach(gg => { if (gg.team === g.team) cum += 1; });
-          return <circle key={i} cx={x(g.minute)} cy={y(cum)} r={4} fill={g.team === 'home' ? '#FFD21F' : '#94a3b8'} stroke="#0b101c" strokeWidth={2} />;
-        })}
-      </svg>
-      <div className="flex items-center justify-center gap-5 text-[9px] font-mono font-bold uppercase tracking-widest text-slate-400 pb-1">
-        <span className="flex items-center gap-1.5"><span className="w-4 h-[3px] bg-[#FFD21F] inline-block rounded" /> {homeTeam}</span>
-        <span className="flex items-center gap-1.5"><span className="w-4 h-[3px] bg-slate-500 inline-block rounded" /> {awayTeam}</span>
-      </div>
-    </div>
-  );
-};
 
 /** Yükleme iskeleti — sayfa verisi gelene dek. */
 const HeroSkeleton: React.FC = () => (
@@ -193,7 +95,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
   const [loading, setLoading] = useState(true);
 
   const [activeMatch, setActiveMatch] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('Maç Önü');
+  const [activeTab, setActiveTab] = useState<string>('İstatistik');
   const [selectedXIPosition, setSelectedXIPosition] = useState<string>('CF');
   const [fixtureFilter, setFixtureFilter] = useState<string>('Tüm Maçlar');
   const [showAllFixtures, setShowAllFixtures] = useState(false);
@@ -421,98 +323,10 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
     return getTeamLogoPath(teamName);
   };
 
-  // Sahte fallback maç yok: veri yoksa şık boş durum (ürün kuralı).
-  // FotMob advanced overlay (API veya entity map sonrası match alanları)
-  const [advancedOverlay, setAdvancedOverlay] = useState<any>(null);
-  const [shotmapShots, setShotmapShots] = useState<any[]>([]);
+  // D3: advanced overlay + shotmap via shared hook (API / local)
+  const { resolvedMatch: resolvedActiveMatch, shotmapShots, loading: advancedLoading } =
+    useMatchAdvanced(activeMatch);
 
-  useEffect(() => {
-    setAdvancedOverlay(null);
-    setShotmapShots([]);
-    const m = activeMatch;
-    if (!m) return;
-
-    const fotmobId = m.providerIds?.fotmob;
-    const advDoc = m.advancedMatchDocumentId;
-    // Stats zaten match'te olsa bile shotmap için advanced API dene
-    if (!fotmobId && !advDoc) return;
-
-    const id = advDoc || `fotmob-${fotmobId}`;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/v1/matches/${encodeURIComponent(id)}/advanced?provider=fotmob`);
-        if (!res.ok) return;
-        const json = await res.json();
-        if (cancelled || !json.success || !json.data) return;
-        const adv = Array.isArray(json.data) ? json.data[0] : json.data;
-        const tm = adv.teamMetrics || {};
-        const homeM = tm.home || {};
-        const awayM = tm.away || {};
-        const flipped = !!m.statsFlippedFromProvider;
-        const H = flipped ? awayM : homeM;
-        const A = flipped ? homeM : awayM;
-        const num = (obj: any, keys: string[]) => {
-          for (const k of keys) {
-            if (obj[k] != null && obj[k] !== '') {
-              const n = parseFloat(String(obj[k]).replace(/[^\d.]/g, ''));
-              if (!Number.isNaN(n)) return n;
-            }
-            const found = Object.keys(obj).find(ok => ok.toLowerCase().includes(k.toLowerCase()));
-            if (found != null) {
-              const n = parseFloat(String(obj[found]).replace(/[^\d.]/g, ''));
-              if (!Number.isNaN(n)) return n;
-            }
-          }
-          return null;
-        };
-        // Match'te yoksa overlay ile doldur
-        const fetchedAt = adv.fetchedAt || m.statsFetchedAt || null;
-        if (m.possessionHome == null && m.xGHome == null) {
-          setAdvancedOverlay({
-            possessionHome: num(H, ['Ball possession', 'possession']),
-            possessionAway: num(A, ['Ball possession', 'possession']),
-            shotsHome: num(H, ['Total shots', 'Shots']),
-            shotsAway: num(A, ['Total shots', 'Shots']),
-            shotsOnTargetHome: num(H, ['Shots on target']),
-            shotsOnTargetAway: num(A, ['Shots on target']),
-            cornersHome: num(H, ['Corners']),
-            cornersAway: num(A, ['Corners']),
-            foulsHome: num(H, ['Fouls committed', 'Fouls']),
-            foulsAway: num(A, ['Fouls committed', 'Fouls']),
-            xGHome: num(H, ['expectedGoals', 'Expected goals', 'xG']),
-            xGAway: num(A, ['expectedGoals', 'Expected goals', 'xG']),
-            statsProvider: adv.provider || 'fotmob',
-            statsFetchedAt: fetchedAt,
-            shotmapCount: Array.isArray(adv.shotmap) ? adv.shotmap.length : 0,
-          });
-        } else {
-          setAdvancedOverlay({
-            statsProvider: m.statsProvider || adv.provider || 'fotmob',
-            statsFetchedAt: fetchedAt,
-            shotmapCount: Array.isArray(adv.shotmap) ? adv.shotmap.length : m.shotmapCount,
-            xGHome: m.xGHome ?? num(H, ['expectedGoals', 'Expected goals', 'xG']),
-            xGAway: m.xGAway ?? num(A, ['expectedGoals', 'Expected goals', 'xG']),
-          });
-        }
-        if (Array.isArray(adv.shotmap) && adv.shotmap.length) {
-          setShotmapShots(adv.shotmap);
-        }
-      } catch {
-        /* sessiz */
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [activeMatch?.id, activeMatch?.providerIds?.fotmob, activeMatch?.advancedMatchDocumentId]);
-
-  const resolvedActiveMatch = useMemo(() => {
-    if (!activeMatch) return null;
-    const merged: any = { ...activeMatch, ...(advancedOverlay || {}) };
-    if ((merged.xGHome != null || merged.xGAway != null) && !merged.xG) {
-      merged.xG = `${merged.xGHome ?? '—'} – ${merged.xGAway ?? '—'}`;
-    }
-    return merged;
-  }, [activeMatch, advancedOverlay]);
   const isLive = resolvedActiveMatch?.status === 'live';
   const isCompleted = resolvedActiveMatch?.status === 'finished' || resolvedActiveMatch?.status === 'completed';
 
@@ -598,7 +412,9 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
   const handleSelectFixture = (match: any, tabTarget: string) => {
     setActiveMatch(match);
     const finished = match.status === 'finished' || match.status === 'completed';
-    if (finished && (tabTarget === 'Canlı' || tabTarget === 'Taraftar Tahmini')) tabTarget = 'Maç Sonu';
+    if (finished && (tabTarget === 'Canlı' || tabTarget === 'Taraftar Tahmini')) tabTarget = 'İstatistik';
+    // World-class: bitmiş maçta varsayılan veri katmanı
+    if (finished && (tabTarget === 'Maç Önü' || !tabTarget)) tabTarget = 'İstatistik';
     setActiveTab(tabTarget);
     const element = document.getElementById('featured-match-section');
     if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -609,10 +425,6 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
     : null;
 
   const activeGoals: any[] = Array.isArray(resolvedActiveMatch?.goals) ? resolvedActiveMatch.goals : [];
-  const hasDetailedStats =
-    (resolvedActiveMatch?.possessionHome !== undefined && resolvedActiveMatch?.possessionHome !== null) ||
-    (resolvedActiveMatch?.xGHome !== undefined && resolvedActiveMatch?.xGHome !== null) ||
-    (resolvedActiveMatch?.shotsHome !== undefined && resolvedActiveMatch?.shotsHome !== null);
   const homeGoals = activeGoals.filter(g => g.team === 'home').sort((a, b) => a.minute - b.minute);
   const awayGoals = activeGoals.filter(g => g.team === 'away').sort((a, b) => a.minute - b.minute);
 
@@ -1299,209 +1111,14 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
               </div>
             )}
 
-            {/* ---------- İSTATİSTİK ---------- */}
-            {activeTab === 'İstatistik' && (
-              <div className="space-y-8 animate-fade-in">
-                {isCompleted && activeGoals.length > 0 ? (
-                  <>
-                    {/* Gerçek maç kaydından türetilen özet kartlar */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {(() => {
-                        const firstHalf = activeGoals.filter(g => g.minute <= 45).length;
-                        const secondHalf = activeGoals.length - firstHalf;
-                        const ownGoals = activeGoals.filter(g => /kendi kalesine|k\.k\./i.test(g.scorer || '')).length;
-                        const cleanSheet = (resolvedActiveMatch.scoreAway || 0) === 0;
-                        return [
-                          { label: 'Toplam Gol', value: String(activeGoals.length) },
-                          { label: 'İY / 2Y Dağılımı', value: `${firstHalf} / ${secondHalf}` },
-                          { label: 'Kalesini Gole Kapattı', value: cleanSheet ? 'Evet ✓' : 'Hayır' },
-                          { label: 'Kendi Kalesine', value: String(ownGoals) }
-                        ].map(s => (
-                          <div key={s.label} className="p-4 rounded-2xl bg-[#0b101c] border border-white/[0.06] text-center">
-                            <div className="text-xl md:text-2xl font-display font-black italic text-[#FFD21F]">{s.value}</div>
-                            <div className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-1 font-mono">{s.label}</div>
-                          </div>
-                        ));
-                      })()}
-                    </div>
-
-                    {/* Gol zaman çizelgesi + skor akışı — tamamı gerçek veri */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <motion.div {...fadeUp} className="p-6 rounded-2xl bg-[#0b101c] border border-white/[0.06] space-y-4">
-                        <h3 className="text-[10px] font-black text-[#FFD21F] uppercase tracking-widest font-mono flex items-center gap-2">
-                          <Timer className="w-3.5 h-3.5" /> Gol Zaman Çizelgesi
-                        </h3>
-                        <GoalTimeline goals={activeGoals} homeTeam={resolvedActiveMatch.homeTeam} awayTeam={resolvedActiveMatch.awayTeam} />
-                      </motion.div>
-                      <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.5 }} className="p-6 rounded-2xl bg-[#0b101c] border border-white/[0.06] space-y-4">
-                        <h3 className="text-[10px] font-black text-[#FFD21F] uppercase tracking-widest font-mono flex items-center gap-2">
-                          <Activity className="w-3.5 h-3.5" /> Skor Akışı
-                        </h3>
-                        <ScoreFlow
-                          goals={activeGoals}
-                          homeTeam={resolvedActiveMatch.homeTeam}
-                          awayTeam={resolvedActiveMatch.awayTeam}
-                          finalHome={resolvedActiveMatch.scoreHome || 0}
-                          finalAway={resolvedActiveMatch.scoreAway || 0}
-                        />
-                      </motion.div>
-                    </div>
-                  </>
-                ) : null}
-
-                {/* Detaylı istatistik — varsa gerçek, yoksa dürüst EmptyState + DataBadge */}
-                {hasDetailedStats ? (
-                  <div className="p-6 md:p-8 rounded-2xl bg-[#0b101c] border border-white/[0.08] space-y-5 max-w-3xl">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2.5">
-                      <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase font-mono">Maç İstatistikleri</span>
-                      <DataBadge
-                        provider={resolvedActiveMatch.statsProvider}
-                        fetchedAt={resolvedActiveMatch.statsFetchedAt}
-                        extra={
-                          resolvedActiveMatch.shotmapCount
-                            ? `${resolvedActiveMatch.shotmapCount} şut noktası`
-                            : null
-                        }
-                      />
-                    </div>
-                    {[
-                      { label: 'Topa Sahip Olma (%)', h: resolvedActiveMatch.possessionHome, a: resolvedActiveMatch.possessionAway, pct: true },
-                      { label: 'Toplam Şut', h: resolvedActiveMatch.shotsHome, a: resolvedActiveMatch.shotsAway },
-                      { label: 'İsabetli Şut', h: resolvedActiveMatch.shotsOnTargetHome, a: resolvedActiveMatch.shotsOnTargetAway },
-                      { label: 'Pas İsabeti (%)', h: resolvedActiveMatch.passAccuracyHome, a: resolvedActiveMatch.passAccuracyAway, pct: true },
-                      { label: 'Korner', h: resolvedActiveMatch.cornersHome, a: resolvedActiveMatch.cornersAway },
-                      { label: 'Faul', h: resolvedActiveMatch.foulsHome, a: resolvedActiveMatch.foulsAway }
-                    ].filter(s => s.h !== undefined && s.h !== null).map(s => {
-                      const total = (Number(s.h) || 0) + (Number(s.a) || 0) || 1;
-                      const hw = s.pct ? Number(s.h) : (Number(s.h) / total) * 100;
-                      return (
-                        <div key={s.label} className="space-y-1.5">
-                          <div className="flex justify-between text-xs font-bold text-slate-300">
-                            <span className="font-mono text-white font-black">{s.h}</span>
-                            <span>{s.label}</span>
-                            <span className="font-mono text-white font-black">{s.a}</span>
-                          </div>
-                          <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
-                            <div className="bg-[#FFD21F]" style={{ width: `${hw}%` }} />
-                            <div className="bg-slate-600" style={{ width: `${100 - hw}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                    <XGCompare
-                      home={resolvedActiveMatch.xGHome}
-                      away={resolvedActiveMatch.xGAway}
-                      homeLabel={resolvedActiveMatch.homeTeam}
-                      awayLabel={resolvedActiveMatch.awayTeam}
-                    />
-                  </div>
-                ) : (
-                  <EmptyState
-                    icon={BarChart3}
-                    title="Detaylı istatistik verisi yok"
-                    description={
-                      isCompleted && activeGoals.length > 0
-                        ? 'Topa sahip olma, şut ve xG sağlayıcıdan gelmedi. Gol zaman çizelgesi gerçek maç kayıtlarından üretilmiştir — uydurma metrik basılmadı.'
-                        : 'Bu karşılaşma için topa sahip olma, şut ve xG gibi detaylı istatistikler henüz yok.'
-                    }
-                    className="max-w-3xl"
-                  />
-                )}
-
-                {/* Şut haritası (FotMob advanced) veya dürüst boş */}
-                {shotmapShots.length > 0 && resolvedActiveMatch ? (
-                  <motion.div {...fadeUp} className="max-w-4xl space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase font-mono">Şut Haritası</span>
-                      <DataBadge
-                        provider={resolvedActiveMatch.statsProvider || 'fotmob'}
-                        fetchedAt={resolvedActiveMatch.statsFetchedAt}
-                        extra={`${shotmapShots.length} nokta`}
-                      />
-                    </div>
-                    <ShotmapPitch
-                      shots={shotmapShots}
-                      homeTeam={resolvedActiveMatch.homeTeam}
-                      awayTeam={resolvedActiveMatch.awayTeam}
-                    />
-                  </motion.div>
-                ) : isCompleted ? (
-                  <EmptyState
-                    icon={Activity}
-                    title="Şut haritası yok"
-                    description="Bu maç için shotmap koordinatları sağlayıcıda yok veya henüz çekilmedi. Sıfır uydurma nokta basılmaz."
-                    className="max-w-3xl"
-                  />
-                ) : null}
-
-                {/* İki takım kadroları — gerçek ilk 11'ler */}
-                {(Array.isArray(resolvedActiveMatch.lineupHome) && resolvedActiveMatch.lineupHome.length > 0) && (
-                  <motion.div {...fadeUp} className="p-6 rounded-2xl bg-[#0b101c] border border-white/[0.06] space-y-5">
-                    <h3 className="text-[10px] font-black text-[#FFD21F] uppercase tracking-widest font-mono flex items-center gap-2">
-                      <Shirt className="w-3.5 h-3.5" /> İlk 11'ler
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {/* Fenerbahçe */}
-                      <div className="space-y-2.5">
-                        <div className="flex items-center gap-2 pb-2 border-b border-[#FFD21F]/15">
-                          <TeamBadge src={getTeamLogo(resolvedActiveMatch.homeTeam, resolvedActiveMatch.homeLogo)} name={resolvedActiveMatch.homeTeam} size="w-6 h-6" />
-                          <span className="text-xs font-display font-black text-white uppercase italic">{resolvedActiveMatch.homeTeam}</span>
-                        </div>
-                        {resolvedActiveMatch.lineupHome.map((name: string, i: number) => {
-                          const db = findDbPlayer(name);
-                          const scored = homeGoals.some(g => baseNameNormalize(g.scorer || '').includes(baseNameNormalize(name.split(' ').slice(-1)[0])));
-                          return (
-                            <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.02] transition-colors group">
-                              {db?.photo ? (
-                                <img src={db.photo} alt={name} className="w-8 h-8 rounded-lg object-cover border border-white/10 bg-[#060a12]" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-lg bg-[#060a12] border border-white/10 flex items-center justify-center text-[9px] font-mono font-black text-slate-500">
-                                  {getInitials(name)}
-                                </div>
-                              )}
-                              <span className="text-[8px] font-mono font-black text-[#FFD21F] w-6 text-center shrink-0">{db?.shirtNumber || db?.no || '—'}</span>
-                              <span className="text-xs font-bold text-white flex-1 truncate">{name}</span>
-                              {scored && <span className="text-[10px]" title="Gol attı">⚽</span>}
-                              {db?.mainPosition && <span className="text-[9px] text-slate-500 font-mono uppercase hidden sm:inline">{db.mainPosition}</span>}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {/* Rakip */}
-                      <div className="space-y-2.5">
-                        <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-                          <TeamBadge src={getTeamLogo(resolvedActiveMatch.awayTeam, resolvedActiveMatch.awayLogo)} name={resolvedActiveMatch.awayTeam} size="w-6 h-6" />
-                          <span className="text-xs font-display font-black text-white uppercase italic">{resolvedActiveMatch.awayTeam}</span>
-                        </div>
-                        {Array.isArray(resolvedActiveMatch.lineupAway) && resolvedActiveMatch.lineupAway.length > 0 ? (
-                          resolvedActiveMatch.lineupAway.map((name: string, i: number) => (
-                            <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.02] transition-colors">
-                              <div className="w-8 h-8 rounded-lg bg-[#060a12] border border-white/10 flex items-center justify-center text-[9px] font-mono font-black text-slate-500">
-                                {getInitials(name)}
-                              </div>
-                              <span className="text-xs font-bold text-slate-300 flex-1 truncate">{name}</span>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-xs text-slate-500 italic py-4">Rakip kadro bilgisi eklenmedi.</div>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {!isCompleted && activeGoals.length === 0 && !hasDetailedStats && !(Array.isArray(resolvedActiveMatch.lineupHome) && resolvedActiveMatch.lineupHome.length > 0) && (
-                  <div className="p-12 rounded-2xl bg-[#0b101c] border border-white/[0.08] text-center space-y-4 max-w-xl mx-auto">
-                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto text-slate-400">
-                      <BarChart3 className="w-6 h-6" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="text-base font-black text-white uppercase">Bu maç için istatistik verisi henüz bulunmuyor.</h3>
-                      <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">Veriler karşılaşma oynandığında bu sekmede görüntülenecek.</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* ---------- İSTATİSTİK (D3 modular) ---------- */}
+            {activeTab === 'İstatistik' && resolvedActiveMatch && (
+              <MatchStatsTab
+                match={resolvedActiveMatch}
+                goals={activeGoals}
+                shotmapShots={shotmapShots}
+                advancedLoading={advancedLoading}
+              />
             )}
 
             {/* ---------- TARAFTAR TAHMİNİ (yalnızca oynanmamış maç) ---------- */}
