@@ -30,9 +30,8 @@ interface HomePageProps {
 }
 
 /**
- * D2 Homepage — world-class taraftar nabzı.
- * Üst: hero (kısa) → Bugünün nabzı (maç+analiz+anket) → ikincil derinlik.
- * Uzun scroll / tekrarlayan maç blokları kaldırıldı.
+ * Ana sayfa — hero → nabız → derinlik.
+ * Premium surface dili; sahte spor verisi yok.
  */
 const HomePage: React.FC<HomePageProps> = ({
   onEnterUniverse,
@@ -60,7 +59,7 @@ const HomePage: React.FC<HomePageProps> = ({
   const showNewsletter = homeSettings?.showNewsletter !== false;
 
   return (
-    <div className="bg-fb-dark min-h-screen overflow-x-hidden">
+    <div className="ui-page-bg min-h-screen overflow-x-hidden">
       <SEO
         title="Fenerbahçe Evreni | Bağımsız Fenerbahçe Analiz ve Taraftar Platformu"
         description="Fenerbahçe maç analizleri, transfer radarları, oyuncu performansları, taraftar anketleri ve premium raporları barındıran bağımsız analiz ve medya platformu."
@@ -68,22 +67,21 @@ const HomePage: React.FC<HomePageProps> = ({
         schema={homepageSchema}
       />
 
-      {/* 1. Hero — marka + maç teaser (kısa) */}
       <HeroSection
         onNavigate={onNavigate}
         onEnterUniverse={onEnterUniverse}
         homeSettings={homeSettings}
       />
 
-      {/* 2. Hızlı erişim — sade */}
+      {/* Hızlı erişim */}
       <nav
         aria-label="Hızlı erişim"
-        className="bg-[#0B0F19] py-3 border-b border-white/[0.04] relative z-20"
+        className="py-3.5 border-b border-white/[0.06] relative z-20 bg-[#060a12]/70 backdrop-blur-md"
       >
         <div className="container mx-auto px-6 max-w-7xl">
           <div className="flex items-center justify-start md:justify-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
             {[
-              { label: 'Maç Merkezi', view: 'match-center', icon: Calendar },
+              { label: 'Maç merkezi', view: 'match-center', icon: Calendar },
               { label: 'Analizler', view: 'analysis', icon: BookOpen },
               { label: 'Kadro', view: 'players', icon: Users },
               { label: 'Taraftar', view: 'fan-room', icon: MessageSquare },
@@ -93,7 +91,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 key={item.view}
                 type="button"
                 onClick={() => onNavigate(item.view)}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#111625] border border-white/[0.05] hover:border-fb-yellow/30 hover:bg-[#151C30] text-slate-300 hover:text-fb-yellow font-black text-[10px] uppercase tracking-wider shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.03] border border-white/[0.07] hover:border-fb-yellow/35 hover:bg-fb-yellow/[0.06] text-slate-300 hover:text-fb-yellow font-semibold text-[12px] shrink-0 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow focus-visible:ring-offset-2 focus-visible:ring-offset-fb-dark"
               >
                 <item.icon aria-hidden className="w-3.5 h-3.5 text-fb-yellow" />
                 <span>{item.label}</span>
@@ -103,41 +101,42 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </nav>
 
-      {/* 3. BUGÜNÜN NABZI — core product moment */}
       <TodayPulse onNavigate={onNavigate} articles={articles} />
 
-      {/* 4. Fraksiyon / evren CTA — tek şerit, abartısız */}
-      <section className="py-10 md:py-12 border-b border-white/[0.04] bg-[#0B0F19]">
+      {/* Fraksiyon CTA */}
+      <section className="py-12 md:py-14 border-b border-white/[0.05]">
         <div className="container mx-auto px-6 max-w-7xl">
-          <div className="rounded-2xl border border-white/[0.07] bg-gradient-to-r from-[#111625] via-[#0E1526] to-[#111625] p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-fb-yellow/10 border border-fb-yellow/20 flex items-center justify-center shrink-0">
+          <div className="ui-surface relative overflow-hidden rounded-2xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="absolute top-0 inset-x-0 h-px ui-hairline opacity-70" />
+            <div className="absolute -right-16 -top-16 w-56 h-56 bg-fb-yellow/[0.05] rounded-full blur-3xl pointer-events-none" />
+            <div className="flex items-start gap-4 relative z-10">
+              <div className="w-12 h-12 rounded-xl bg-fb-yellow/10 border border-fb-yellow/20 flex items-center justify-center shrink-0 shadow-[0_0_28px_-6px_rgba(255,210,31,0.35)]">
                 <Sparkles className="w-6 h-6 text-fb-yellow" aria-hidden />
               </div>
               <div>
-                <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-fb-yellow mb-1">
+                <p className="text-[11px] font-semibold tracking-wide text-fb-yellow mb-1">
                   Fraksiyon evreni
                 </p>
-                <h2 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-tight">
+                <h2 className="text-xl md:text-2xl font-display font-bold text-white tracking-tight">
                   Hangi fraksiyondansın?
                 </h2>
-                <p className="mt-1.5 text-xs text-slate-400 max-w-lg leading-relaxed">
+                <p className="mt-1.5 text-[13px] text-slate-400 max-w-lg leading-relaxed">
                   Camianın taktik lobilerini keşfet — quiz ile profilini çıkar, haritayı gez.
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2 shrink-0">
+            <div className="flex flex-wrap gap-2.5 shrink-0 relative z-10">
               <button
                 type="button"
                 onClick={onStartQuiz}
-                className="px-5 py-2.5 rounded-xl bg-fb-yellow text-fb-dark text-[11px] font-black uppercase tracking-wider hover:bg-white transition-colors cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-fb-yellow text-fb-dark text-[13px] font-bold hover:bg-white transition-colors cursor-pointer"
               >
                 Quiz’e başla
               </button>
               <button
                 type="button"
                 onClick={onEnterUniverse}
-                className="px-5 py-2.5 rounded-xl border border-white/10 text-slate-200 text-[11px] font-black uppercase tracking-wider hover:border-fb-yellow/40 hover:text-fb-yellow transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl border border-white/12 text-slate-200 text-[13px] font-semibold hover:border-fb-yellow/40 hover:text-fb-yellow transition-colors cursor-pointer inline-flex items-center gap-1.5"
               >
                 Evreni aç <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -146,7 +145,6 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* 5. İkincil derinlik — transfer / kadro (kısa py) */}
       {showTransfer && (
         <motion.div
           initial={{ opacity: 0 }}

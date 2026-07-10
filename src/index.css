@@ -87,6 +87,58 @@
   @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-fb-yellow to-fb-gold;
 }
 
+/* ── Premium surface system (site geneli yoğunluk / derinlik) ── */
+.ui-surface {
+  background:
+    linear-gradient(165deg, rgba(22, 30, 48, 0.95) 0%, rgba(12, 16, 28, 0.98) 48%, rgba(8, 12, 22, 1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 24px 48px -20px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(255, 210, 31, 0.03);
+}
+
+.ui-surface-hover {
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+.ui-surface-hover:hover {
+  border-color: rgba(255, 210, 31, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 28px 56px -18px rgba(0, 0, 0, 0.8),
+    0 0 40px -16px rgba(255, 210, 31, 0.12);
+}
+
+.ui-hairline {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 210, 31, 0.45) 20%,
+    rgba(255, 255, 255, 0.35) 50%,
+    rgba(255, 210, 31, 0.45) 80%,
+    transparent 100%
+  );
+}
+
+.ui-page-bg {
+  background-color: #060a12;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 47, 108, 0.35), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(255, 210, 31, 0.04), transparent 45%),
+    radial-gradient(ellipse 50% 30% at 0% 40%, rgba(0, 27, 68, 0.4), transparent 50%);
+}
+
+/* Subtle film grain — premium editör hissi */
+.ui-grain::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 /* D5 — calm long-form reading (analiz / transfer detay) */
 .reading-prose {
   @apply text-[15px] md:text-base text-slate-300 leading-[1.75] font-normal;

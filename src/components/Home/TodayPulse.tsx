@@ -167,29 +167,28 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
     <section
       id="bugunun-nabzi"
       aria-label="Bugünün nabzı"
-      className="relative py-14 md:py-16 border-y border-white/[0.04] bg-gradient-to-b from-[#090D16] via-[#0B0F19] to-[#090D16]"
+      className="relative py-14 md:py-18 border-y border-white/[0.05]"
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-24 left-1/4 w-[420px] h-[420px] bg-fb-yellow/[0.04] rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-[360px] h-[360px] bg-[#002F6C]/20 rounded-full blur-[100px]" />
+        <div className="absolute -top-24 left-1/4 w-[420px] h-[420px] bg-fb-yellow/[0.045] rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-[360px] h-[360px] bg-[#002F6C]/22 rounded-full blur-[100px]" />
       </div>
 
       <div className="container mx-auto px-6 max-w-7xl relative z-10">
-        {/* Section head */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-3.5 h-3.5 text-fb-yellow" aria-hidden />
-              <span className="text-[10px] font-black uppercase tracking-[0.28em] text-fb-yellow font-mono">
+              <span className="text-[11px] font-semibold tracking-wide text-fb-yellow">
                 Bugünün nabzı
               </span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">
               Tek bakışta camia
             </h2>
-            <p className="mt-1.5 text-xs text-slate-400 font-medium capitalize">{todayLabel}</p>
+            <p className="mt-1.5 text-[13px] text-slate-400 font-medium capitalize">{todayLabel}</p>
           </div>
-          <p className="text-[11px] text-slate-500 max-w-xs leading-relaxed hidden md:block">
+          <p className="text-[12px] text-slate-500 max-w-xs leading-relaxed hidden md:block">
             Maç · analiz · anket — uydurma skor yok, kaynak etiketi var.
           </p>
         </div>
@@ -199,7 +198,7 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="lg:col-span-4 h-64 rounded-2xl bg-white/[0.03] border border-white/[0.05] animate-pulse"
+                className="lg:col-span-4 h-64 rounded-2xl ui-surface animate-pulse"
               />
             ))}
           </div>
@@ -211,16 +210,17 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45 }}
-              className="lg:col-span-4 rounded-2xl border border-white/[0.08] bg-[#111625]/90 backdrop-blur-sm p-5 md:p-6 flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.35)] hover:border-fb-yellow/20 transition-colors"
+              className="lg:col-span-4 ui-surface ui-surface-hover rounded-2xl p-5 md:p-6 flex flex-col relative overflow-hidden"
             >
+              <div className="absolute top-0 inset-x-0 h-px ui-hairline opacity-60" />
               <div className="flex items-center justify-between gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-400">
                   <Activity className="w-3.5 h-3.5 text-fb-yellow" aria-hidden />
                   Maç
                 </span>
                 {match && (
                   <span
-                    className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider font-mono border ${
+                    className={`px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
                       isLive
                         ? 'bg-red-500/10 border-red-500/25 text-red-400'
                         : isFinished
@@ -242,7 +242,7 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                 />
               ) : (
                 <>
-                  <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-4">
+                  <p className="text-[12px] text-slate-500 font-medium mb-4">
                     {match.competition || 'Süper Lig'} · {formatWhen(match.matchDate)}
                   </p>
 
@@ -256,19 +256,19 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
                       />
-                      <p className="text-[11px] font-black text-white uppercase truncate leading-tight">
+                      <p className="text-[12px] font-bold text-white truncate leading-tight">
                         {match.homeTeam}
                       </p>
                     </div>
                     <div className="shrink-0 px-2 text-center">
                       {isFinished || isLive ? (
-                        <p className="text-2xl md:text-3xl font-mono font-black text-fb-yellow tabular-nums">
+                        <p className="text-2xl md:text-3xl font-mono font-bold text-fb-yellow tabular-nums">
                           {match.scoreHome ?? '—'}
                           <span className="text-slate-500 mx-1">–</span>
                           {match.scoreAway ?? '—'}
                         </p>
                       ) : (
-                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest">vs</p>
+                        <p className="text-sm font-semibold text-slate-400 tracking-wide">vs</p>
                       )}
                     </div>
                     <div className="flex-1 text-center space-y-2 min-w-0">
@@ -284,7 +284,7 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                       ) : (
                         <div className="w-11 h-11 mx-auto rounded-xl bg-white/5 border border-white/10" />
                       )}
-                      <p className="text-[11px] font-black text-white uppercase truncate leading-tight">
+                      <p className="text-[12px] font-bold text-white truncate leading-tight">
                         {match.awayTeam}
                       </p>
                     </div>
@@ -301,7 +301,7 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                     </div>
                   )}
 
-                  <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.05]">
+                  <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06]">
                     <DataBadge
                       provider={match.statsProvider}
                       fetchedAt={match.statsFetchedAt}
@@ -310,7 +310,7 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                     <button
                       type="button"
                       onClick={() => onNavigate('match-center')}
-                      className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-fb-yellow hover:text-white transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-fb-yellow hover:text-white transition-colors cursor-pointer"
                     >
                       Maç merkezi <ArrowRight className="w-3.5 h-3.5" />
                     </button>
@@ -325,10 +325,11 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: 0.06 }}
-              className="lg:col-span-4 rounded-2xl border border-white/[0.08] bg-[#111625]/90 p-5 md:p-6 flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.35)] hover:border-fb-yellow/20 transition-colors"
+              className="lg:col-span-4 ui-surface ui-surface-hover rounded-2xl p-5 md:p-6 flex flex-col relative overflow-hidden"
             >
+              <div className="absolute top-0 inset-x-0 h-px ui-hairline opacity-60" />
               <div className="flex items-center justify-between gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-400">
                   <BookOpen className="w-3.5 h-3.5 text-fb-yellow" aria-hidden />
                   Analiz
                 </span>
@@ -358,19 +359,19 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                       <BookOpen className="w-8 h-8 text-fb-yellow/40" aria-hidden />
                     </div>
                   )}
-                  <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-fb-yellow mb-2">
+                  <p className="text-[11px] font-semibold text-fb-yellow mb-2">
                     {featuredArticle.category || 'Analiz'}
                   </p>
-                  <h3 className="text-lg font-display font-black text-white leading-snug mb-2 line-clamp-3">
+                  <h3 className="text-lg font-display font-bold text-white leading-snug mb-2 line-clamp-3">
                     {featuredArticle.title}
                   </h3>
                   {featuredArticle.excerpt && (
-                    <p className="text-xs text-slate-400 leading-relaxed line-clamp-3 mb-4">
+                    <p className="text-[13px] text-slate-400 leading-relaxed line-clamp-3 mb-4">
                       {featuredArticle.excerpt}
                     </p>
                   )}
-                  <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.05]">
-                    <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500 font-mono">
+                  <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06]">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500">
                       <Clock className="w-3 h-3" aria-hidden />
                       {featuredArticle.readingTime || '—'}
                       {featuredArticle.author ? ` · ${featuredArticle.author}` : ''}
@@ -378,7 +379,7 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                     <button
                       type="button"
                       onClick={() => onNavigate('analysis')}
-                      className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-fb-yellow hover:text-white transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-fb-yellow hover:text-white transition-colors cursor-pointer"
                     >
                       Oku <ArrowRight className="w-3.5 h-3.5" />
                     </button>
@@ -393,15 +394,16 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: 0.12 }}
-              className="lg:col-span-4 rounded-2xl border border-white/[0.08] bg-[#111625]/90 p-5 md:p-6 flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.35)] hover:border-fb-yellow/20 transition-colors"
+              className="lg:col-span-4 ui-surface ui-surface-hover rounded-2xl p-5 md:p-6 flex flex-col relative overflow-hidden"
             >
+              <div className="absolute top-0 inset-x-0 h-px ui-hairline opacity-60" />
               <div className="flex items-center justify-between gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 font-mono">
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-400">
                   <Vote className="w-3.5 h-3.5 text-fb-yellow" aria-hidden />
                   Anket
                 </span>
                 {totalVotes > 0 && (
-                  <span className="text-[9px] font-mono text-slate-500">{totalVotes} oy</span>
+                  <span className="text-[11px] text-slate-500 font-medium">{totalVotes} oy</span>
                 )}
               </div>
 
@@ -414,7 +416,7 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                 />
               ) : (
                 <>
-                  <h3 className="text-base md:text-lg font-display font-black text-white leading-snug mb-5">
+                  <h3 className="text-base md:text-lg font-display font-bold text-white leading-snug mb-5">
                     {poll.question || poll.title}
                   </h3>
                   <div className="space-y-2.5 flex-1" role="list">
@@ -433,7 +435,7 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                           className={`relative w-full text-left rounded-xl border px-3.5 py-3 overflow-hidden transition-all cursor-pointer disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow ${
                             selected
                               ? 'border-fb-yellow/50 bg-fb-yellow/10'
-                              : 'border-white/[0.06] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]'
+                              : 'border-white/[0.07] bg-white/[0.025] hover:border-white/15 hover:bg-white/[0.05]'
                           }`}
                         >
                           {showBars && (
@@ -445,14 +447,14 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                             />
                           )}
                           <div className="relative z-10 flex items-center justify-between gap-2">
-                            <span className="text-xs font-bold text-white flex items-center gap-2">
+                            <span className="text-[13px] font-semibold text-white flex items-center gap-2">
                               {selected && (
                                 <CheckCircle2 className="w-4 h-4 text-fb-yellow shrink-0" />
                               )}
                               {opt.label}
                             </span>
                             {showBars && (
-                              <span className="text-xs font-mono font-black text-fb-yellow tabular-nums">
+                              <span className="text-[13px] font-mono font-bold text-fb-yellow tabular-nums">
                                 %{pct}
                               </span>
                             )}
@@ -462,15 +464,15 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                     })}
                   </div>
                   {voteError && (
-                    <p className="mt-3 text-[11px] text-rose-400 font-medium" role="alert">
+                    <p className="mt-3 text-[12px] text-rose-400 font-medium" role="alert">
                       {voteError}
                     </p>
                   )}
-                  <div className="mt-4 pt-3 border-t border-white/[0.05] flex justify-end">
+                  <div className="mt-4 pt-3 border-t border-white/[0.06] flex justify-end">
                     <button
                       type="button"
                       onClick={() => onNavigate('fan-room')}
-                      className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-fb-yellow hover:text-white transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-fb-yellow hover:text-white transition-colors cursor-pointer"
                     >
                       Taraftar odası <ArrowRight className="w-3.5 h-3.5" />
                     </button>

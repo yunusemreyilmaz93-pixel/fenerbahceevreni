@@ -20,17 +20,18 @@ interface SectionHeaderProps {
 export const SectionHeader: React.FC<SectionHeaderProps> = ({ kicker, title, action, className = '' }) => (
   <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 ${className}`}>
     <div className="text-left">
-      <span className="text-[10px] font-black uppercase tracking-[0.25em] text-fb-yellow block mb-2 font-mono">
+      <span className="text-[11px] font-semibold tracking-wide text-fb-yellow block mb-2">
         {kicker}
       </span>
-      <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight italic">
+      <h2 className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">
         {title}
       </h2>
     </div>
     {action && (
       <button
+        type="button"
         onClick={action.onClick}
-        className="text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-fb-yellow transition-colors cursor-pointer self-start md:self-auto"
+        className="text-[13px] font-semibold text-slate-400 hover:text-fb-yellow transition-colors cursor-pointer self-start md:self-auto"
       >
         {action.label} →
       </button>
@@ -54,22 +55,23 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   if (variant === 'hero') {
     return (
-      <div className={`relative overflow-hidden rounded-3xl border border-white/[0.06] bg-gradient-to-br from-[#0E1526] via-fb-dark to-[#0E1526] p-10 md:p-16 text-center shadow-2xl ${className}`}>
+      <div className={`ui-surface relative overflow-hidden rounded-3xl p-10 md:p-14 text-center ${className}`}>
+        <div className="absolute top-0 inset-x-0 h-px ui-hairline opacity-80" />
         <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[420px] h-[420px] bg-fb-navy/40 rounded-full blur-[110px] pointer-events-none" />
-        <div className="relative z-10 max-w-xl mx-auto space-y-6">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-fb-yellow/10 border border-fb-yellow/20 flex items-center justify-center">
-            <Icon className="w-8 h-8 text-fb-yellow" />
+        <div className="relative z-10 max-w-xl mx-auto space-y-5">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-fb-yellow/10 border border-fb-yellow/25 flex items-center justify-center shadow-[0_0_40px_-8px_rgba(255,210,31,0.35)]">
+            <Icon className="w-7 h-7 text-fb-yellow" />
           </div>
-          <div className="space-y-3">
-            <h3 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tight">{title}</h3>
+          <div className="space-y-2.5">
+            <h3 className="text-xl md:text-2xl font-display font-bold text-white tracking-tight">{title}</h3>
             {description && (
-              <p className="text-sm text-slate-400 leading-relaxed font-medium">{description}</p>
+              <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
             )}
           </div>
           {action && (
             <button
               onClick={action.onClick}
-              className="px-6 py-3 bg-fb-yellow hover:bg-white text-fb-dark text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+              className="px-6 py-3 bg-fb-yellow hover:bg-white text-fb-dark text-sm font-bold rounded-xl transition-all cursor-pointer"
             >
               {action.label}
             </button>
@@ -79,14 +81,16 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     );
   }
   return (
-    <div className={`p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-3 ${className}`}>
-      <Icon className="w-8 h-8 text-slate-600 mx-auto" />
-      <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono leading-relaxed">{title}</p>
-      {description && <p className="text-[10px] text-slate-500 italic leading-relaxed">{description}</p>}
+    <div className={`ui-surface p-7 rounded-2xl text-center space-y-3 ${className}`}>
+      <div className="w-11 h-11 mx-auto rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center">
+        <Icon className="w-5 h-5 text-fb-yellow/80" />
+      </div>
+      <p className="text-sm font-semibold text-slate-200 leading-snug">{title}</p>
+      {description && <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">{description}</p>}
       {action && (
         <button
           onClick={action.onClick}
-          className="mt-1 px-4 py-2 bg-white/5 hover:bg-fb-yellow hover:text-fb-dark text-slate-300 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer"
+          className="mt-1 px-4 py-2 bg-fb-yellow/10 hover:bg-fb-yellow text-fb-yellow hover:text-fb-dark text-xs font-bold rounded-lg transition-all cursor-pointer border border-fb-yellow/20"
         >
           {action.label}
         </button>
