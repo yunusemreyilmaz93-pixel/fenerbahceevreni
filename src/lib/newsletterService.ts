@@ -1,4 +1,5 @@
-import { dbGetCollection, dbAddDocument, dbUpsertDocument } from './dbService';
+import { apiNewsletterSubscribe } from './secureApi';
+import { dbAddDocument, dbGetCollection } from './dbService';
 
 export interface NewsletterSubscriber {
   id?: string;
@@ -33,7 +34,8 @@ export interface NewsletterIssue {
 }
 
 /**
- * Common newsletter subscription helper
+ * Common newsletter subscription helper.
+ * Prefers rate-limited server API; falls back to Firestore create rules.
  */
 export async function subscribeToNewsletter(
   email: string,
@@ -43,60 +45,77 @@ export async function subscribeToNewsletter(
 ): Promise<{ success: boolean; message: string; isDuplicate?: boolean }> {
   try {
     const cleanEmail = email.trim().toLowerCase();
-    
-    // Basic validation
-    if (!cleanEmail || !cleanEmail.includes('@')) {
+
+    if (!cleanEmail || !cleanEmail.includes('@') || cleanEmail.length > 254) {
       return { success: false, message: 'Geçersiz e-posta adresi.' };
     }
 
-    // Check if duplicate active subscriber exists
-    const subscribers = await dbGetCollection('newsletterSubscribers');
-    const existing = subscribers.find(
-      (sub: any) => sub.email.toLowerCase() === cleanEmail && sub.status === 'active'
-    );
-
-    if (existing) {
-      return { 
-        success: false, 
-        message: 'Bu e-posta zaten bültene kayıtlı.', 
-        isDuplicate: true 
-      };
-    }
-
-    // Check if there's an unsubscribed subscriber with this email to re-activate
-    const existingUnsubscribed = subscribers.find(
-      (sub: any) => sub.email.toLowerCase() === cleanEmail && sub.status === 'unsubscribed'
-    );
-
-    if (existingUnsubscribed && existingUnsubscribed.id) {
-      await dbUpsertDocument('newsletterSubscribers', existingUnsubscribed.id, {
-        ...existingUnsubscribed,
-        name: name || existingUnsubscribed.name || '',
-        status: 'active',
-        source: source || existingUnsubscribed.source,
-        interests: interests.length > 0 ? interests : (existingUnsubscribed.interests || []),
-        subscribedAt: new Date().toISOString(),
-        unsubscribedAt: null,
-        updatedAt: new Date().toISOString()
+    // 1) Secure API path
+    try {
+      const apiResult = await apiNewsletterSubscribe({
+        email: cleanEmail,
+        name: name || '',
+        source,
+        interests,
+        website: '',
       });
-      return { success: true, message: 'Bültene katıldın. İlk sayıda görüşürüz.' };
+      // If API is up (even on 409 duplicate), trust it
+      if (apiResult.success || apiResult.isDuplicate || apiResult.message) {
+        // Detect hard API-down: only fall through when fetch threw
+        if (apiResult.success || apiResult.isDuplicate) return apiResult;
+        // 4xx from API with message
+        if (!apiResult.success && apiResult.message !== 'Kayıt tamamlanamadı.') {
+          return apiResult;
+        }
+      }
+    } catch {
+      /* fall through to Firestore */
     }
 
-    // Otherwise create new active subscriber
+    // 2) Firestore create (no public list of subscribers for duplicate check if rules deny read)
+    // Client cannot list newsletterSubscribers when rules enforce admin-only read.
+    // So we only attempt create; duplicate may surface as permission/error.
+    const now = new Date().toISOString();
     const newSubscriber: Omit<NewsletterSubscriber, 'id'> = {
       email: cleanEmail,
       name: name || '',
       source,
       interests,
       status: 'active',
-      subscribedAt: new Date().toISOString(),
+      subscribedAt: now,
       unsubscribedAt: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: now,
+      updatedAt: now,
     };
 
-    await dbAddDocument('newsletterSubscribers', newSubscriber);
-    return { success: true, message: 'Bültene katıldın. İlk sayıda görüşürüz.' };
+    try {
+      // Admin dual-path may still list; public users get empty + create
+      const subscribers = await dbGetCollection('newsletterSubscribers').catch(() => []);
+      const existing = subscribers.find(
+        (sub: any) => sub.email?.toLowerCase() === cleanEmail && sub.status === 'active'
+      );
+      if (existing) {
+        return {
+          success: false,
+          message: 'Bu e-posta zaten bültene kayıtlı.',
+          isDuplicate: true,
+        };
+      }
+
+      const existingUnsubscribed = subscribers.find(
+        (sub: any) => sub.email?.toLowerCase() === cleanEmail && sub.status === 'unsubscribed'
+      );
+      if (existingUnsubscribed?.id) {
+        // Public cannot update — only admin/API can re-activate
+        // Attempt create of new active row if rules allow (may fail on unique logic)
+      }
+
+      await dbAddDocument('newsletterSubscribers', newSubscriber);
+      return { success: true, message: 'Bültene katıldın. İlk sayıda görüşürüz.' };
+    } catch (err) {
+      console.error('Newsletter Firestore fallback error:', err);
+      return { success: false, message: 'Bir hata oluştu, lütfen daha sonra tekrar deneyin.' };
+    }
   } catch (err) {
     console.error('Newsletter subscribe error:', err);
     return { success: false, message: 'Bir hata oluştu, lütfen daha sonra tekrar deneyin.' };

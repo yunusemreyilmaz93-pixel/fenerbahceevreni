@@ -21,11 +21,14 @@
 - fotmob `4842613` · 25 şut · xG 1.33–0.52  
 - Maç listesinden seç → Maç Sonu → istatistik + şut haritası  
 
-## Auth
+## Auth / Security (2026-07-10)
 
-- Prod: Firebase ID token + `ADMIN_EMAILS`  
-- Dev: `Bearer mock-admin-token-for-yunusemreyilmaz93@gmail.com`  
-- `ALLOW_MOCK_ADMIN=1` veya `NODE_ENV !== production`
+- Prod: Firebase ID token + `ADMIN_EMAILS` **veya** custom claim `admin: true`
+- Mock admin token **her zaman reddedilir**
+- Oylar: `POST /api/v1/polls/:id/vote` (Admin SDK aggregate)
+- Formlar: `POST /api/v1/public/{contact,newsletter,waitlist}` + rate limit + honeypot
+- Rules: `docs/SECURITY.md` — `firebase deploy --only firestore:rules,storage`
+- Claim: `node scripts/setAdminClaim.mjs you@email.com`
 
 ## Komutlar
 

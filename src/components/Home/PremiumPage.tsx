@@ -21,8 +21,9 @@ import {
   Users,
   Target
 } from 'lucide-react';
-import { dbGetCollection, dbAddDocument } from '../../lib/dbService';
+import { dbGetCollection } from '../../lib/dbService';
 import { subscribeToNewsletter } from '../../lib/newsletterService';
+import { apiWaitlistSubmit } from '../../lib/secureApi';
 
 interface PremiumPageProps {
   onNavigate: (view: string) => void;
@@ -81,20 +82,18 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({ onNavigate }) => {
     setLoading(true);
 
     try {
-      const waitlistEntry = {
+      const wait = await apiWaitlistSubmit({
         name: name.trim(),
         email: email.trim(),
-        planInterest: selectedPlan || 'Genel Premium İlgi',
+        planInterest: selectedPlan || interest || 'Genel Premium İlgi',
         source: 'premium-page',
-        interestDetail: interest,
-        status: 'pending',
-        createdAt: new Date().toISOString()
-      };
+        website: '',
+      });
+      if (!wait.success) {
+        alert(wait.message || 'Bir hata oluştu, lütfen tekrar deneyiniz.');
+        return;
+      }
 
-      // 1. Save to premiumWaitlist collection
-      await dbAddDocument('premiumWaitlist', waitlistEntry);
-
-      // 2. Also save email to newsletterSubscribers with source: premium-page as requested
       await subscribeToNewsletter(email.trim(), name.trim(), 'premium-page', ['Premium içerikler']);
 
       setSuccess(true);

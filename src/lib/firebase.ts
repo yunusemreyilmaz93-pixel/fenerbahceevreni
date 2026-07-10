@@ -2,7 +2,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInAnonymously, signInWithPopup, signOut } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import firebaseInjectedConfig from '../../firebase-applet-config.json';
-import { isAdminEmail } from './envHelper';
+import { isAdminEmail, isAdminUser } from './envHelper';
 
 const injected = firebaseInjectedConfig as any;
 const metaEnv = (import.meta as any).env || {};
@@ -27,9 +27,11 @@ if (isFirebaseConfigured) {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     db = getFirestore(app, firebaseConfig.firestoreDatabaseId || undefined);
     auth = getAuth(app);
-    console.log("Firebase successfully initialized with live dynamic configuration:", firebaseConfig.projectId);
+    if (metaEnv.DEV) {
+      console.log('Firebase initialized (dev):', firebaseConfig.projectId);
+    }
   } catch (error) {
-    console.error("Failed to initialize Live Firebase SDK:", error);
+    console.error('Failed to initialize Firebase SDK');
   }
 }
 
@@ -67,14 +69,42 @@ export const logoutAdmin = async () => {
 
 export const getCurrentAdminUser = () => auth?.currentUser || null;
 export const getAdminUser = async () => getCurrentAdminUser();
-export const isAdminUserLoggedIn = async () => !!getCurrentAdminUser();
+
+/** True if current Firebase user has admin claim or allowlisted email. */
+export const isAdminUserLoggedIn = async () => {
+  const user = getCurrentAdminUser();
+  if (!user) return false;
+  try {
+    const token = await user.getIdTokenResult();
+    if (token?.claims?.admin === true) return true;
+  } catch {
+    /* fall through to email */
+  }
+  return isAdminEmail(user.email);
+};
 
 export const onAuthStateChangedAdmin = (callback: (user: any) => void) => {
   if (!auth) {
     callback(null);
     return () => {};
   }
-  return auth.onAuthStateChanged((user: any) => {
-    callback(user && isAdminEmail(user.email) ? user : null);
+  return auth.onAuthStateChanged(async (user: any) => {
+    if (!user) {
+      callback(null);
+      return;
+    }
+    try {
+      const token = await user.getIdTokenResult();
+      const adminFlag = token?.claims?.admin === true;
+      callback(
+        adminFlag || isAdminEmail(user.email)
+          ? { ...user, admin: adminFlag }
+          : null
+      );
+    } catch {
+      callback(isAdminEmail(user.email) ? user : null);
+    }
   });
 };
+
+export { isAdminUser };

@@ -2,20 +2,78 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Admin email whitelist check
-    // If admin emails change later, update both VITE_ADMIN_EMAILS and storage.rules, unless custom claims are implemented.
     function isAdmin() {
-      return request.auth != null &&
-        request.auth.token.email in [
-          "yunusemreyilmaz93@gmail.com"
-        ];
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        request.auth.token.email in ["yunusemreyilmaz93@gmail.com"]
+      );
     }
 
-    // Public static assets, news covers, scout report diagrams, and player photos are publicly readable.
-    // Uploads and mutations are restricted strictly to whitelisted admins.
-    match /{allPaths=**} {
+    function isImage() {
+      return request.resource != null
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.size < 8 * 1024 * 1024;
+    }
+
+    function isPdfOrImage() {
+      return request.resource != null
+        && request.resource.size < 15 * 1024 * 1024
+        && (
+          request.resource.contentType.matches('image/.*')
+          || request.resource.contentType == 'application/pdf'
+        );
+    }
+
+    // Paths used by Admin FirebaseImageUploader (AdminCommon.tsx)
+    match /article-covers/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAdmin() && isImage();
+    }
+
+    match /player-images/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage();
+    }
+
+    match /team-logos/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage();
+    }
+
+    match /sponsor-logos/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage();
+    }
+
+    // Optional legacy / future paths
+    match /covers/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage();
+    }
+
+    match /players/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage();
+    }
+
+    match /logos/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isImage();
+    }
+
+    match /media/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isPdfOrImage();
+    }
+
+    match /reports/{allPaths=**} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() && isPdfOrImage();
+    }
+
+    // Deny everything else (no open bucket write)
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }

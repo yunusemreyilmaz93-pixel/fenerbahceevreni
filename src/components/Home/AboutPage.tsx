@@ -23,7 +23,8 @@ import {
   DollarSign,
   Briefcase 
 } from 'lucide-react';
-import { dbGetCollection, dbAddDocument } from '../../lib/dbService';
+import { dbGetCollection } from '../../lib/dbService';
+import { apiContactSubmit } from '../../lib/secureApi';
 
 interface AboutPageProps {
   onNavigate: (view: string) => void;
@@ -70,13 +71,18 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
 
     setLoading(true);
     try {
-      await dbAddDocument('contact_messages', {
+      const result = await apiContactSubmit({
         name: contactName.trim(),
         email: contactEmail.trim(),
+        subject: 'Hakkında sayfası iletişim',
         message: contactMsg.trim(),
-        createdAt: new Date().toISOString(),
-        status: 'new'
+        messageType: 'genel',
+        website: '',
       });
+      if (!result.success) {
+        alert(result.message || 'Mesajınız iletilemedi, lütfen e-posta ile ulaşın.');
+        return;
+      }
       setContactSuccess(true);
       setContactName('');
       setContactEmail('');

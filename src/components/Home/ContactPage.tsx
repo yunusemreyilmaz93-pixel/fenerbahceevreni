@@ -20,7 +20,8 @@ import {
   Lightbulb,
   Check
 } from 'lucide-react';
-import { dbGetCollection, dbAddDocument } from '../../lib/dbService';
+import { dbGetCollection } from '../../lib/dbService';
+import { apiContactSubmit } from '../../lib/secureApi';
 
 interface ContactPageProps {
   onNavigate: (view: string) => void;
@@ -107,15 +108,13 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate, initialTyp
 
     setLoading(true);
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         name: name.trim(),
         email: email.trim(),
         subject: subject.trim(),
         messageType,
         message: message.trim(),
-        status: 'new',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        website: '', // honeypot — bots fill this; server rejects silently
       };
 
       if (messageType === 'sponsor-reklam') {
@@ -124,7 +123,11 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate, initialTyp
         payload.budgetRange = budgetRange;
       }
 
-      await dbAddDocument('contactMessages', payload);
+      const result = await apiContactSubmit(payload);
+      if (!result.success) {
+        setErrorMsg(result.message || 'Mesaj gönderilirken bir hata oluştu. Lütfen tekrar dene.');
+        return;
+      }
       setSuccess(true);
       
       // Clear values

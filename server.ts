@@ -3,6 +3,16 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import * as adminRaw from "firebase-admin";
+import {
+  applySecurityMiddleware,
+  adminApiLimiter,
+  createRequireAdmin,
+  createRequireAuth,
+  isProd,
+  publicErrorBody,
+  publicWriteLimiter,
+  voteLimiter,
+} from "./server/security";
 
 const admin = adminRaw as any;
 
@@ -20,81 +30,18 @@ try {
   console.warn("Firebase Admin standard initialization failed (safe mode active):", error.message);
 }
 
-const getAdminEmailAllowlist = (): string[] => {
-  const fromEnv = (process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  // Bilinen operatör (rules ile uyumlu); env boşsa en az bu
-  if (!fromEnv.includes("yunusemreyilmaz93@gmail.com")) {
-    fromEnv.push("yunusemreyilmaz93@gmail.com");
-  }
-  return fromEnv;
-};
-
-/**
- * Admin middleware:
- * 1) Gerçek Firebase ID token (Admin SDK hazırsa)
- * 2) Mock tokens are never accepted
- */
-const checkAdmin = async (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({
-      success: false,
-      message: "Yetkisiz erişim. Kimlik doğrulama token'ı sağlanmadı.",
-    });
-  }
-
-  const token = authHeader.slice("Bearer ".length).trim();
-  const allowlist = getAdminEmailAllowlist();
-
-  // Mock tokens are never accepted. Admin routes require a real Firebase ID token.
-  if (token.startsWith("mock-admin-token-for-")) {
-    return res.status(401).json({
-      success: false,
-      message: "Mock admin tokenları devre dışı. Gerçek Firebase ID token kullanın."
-    });
-  }
-
-  // Firebase Admin SDK
-  if (adminInitError || !adminApp) {
-    return res.status(503).json({
-      success: false,
-      message: "Firebase Admin yapılandırılmadı. Admin API geçici olarak kullanılamıyor."
-    });
-  }
-
+const getAdminAuth = () => {
+  if (adminInitError || !adminApp) return null;
   try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    const email = (decodedToken.email || "").trim().toLowerCase();
-    if (!email) {
-      return res.status(403).json({
-        success: false,
-        message: "Erişim engellendi. Geçerli bir e-posta adresi bulunamadı.",
-      });
-    }
-    if (!allowlist.includes(email)) {
-      console.warn(`Admin yetkisi reddedildi: ${email}`);
-      return res.status(403).json({
-        success: false,
-        message: "Erişim reddedildi. Bu işlemi yapmaya yetkiniz yok.",
-      });
-    }
-    (req as any).user = decodedToken;
-    next();
-  } catch (error: any) {
-    console.error("Firebase ID Token doğrulama hatası:", error.message);
-    return res.status(401).json({
-      success: false,
-      message: "Oturum geçersiz veya süresi dolmuş.",
-    });
+    return admin.auth();
+  } catch {
+    return null;
   }
 };
+
+/** Admin middleware: real Firebase ID token + admin claim or email allowlist. Mock tokens never accepted. */
+const checkAdmin = createRequireAdmin(getAdminAuth);
+const requireAuth = createRequireAuth(getAdminAuth);
 
 // Helper to make API-Sports call and handle non-JSON responses gracefully
 async function fetchFromApiSports(
@@ -140,21 +87,21 @@ async function fetchFromApiSports(
     if (!contentType.includes("application/json")) {
       const rawText = await response.text();
       console.error(`API response is not JSON. Action: ${action}, Status: ${statusCode}, Content-Type: ${contentType}. Raw response preview:`, rawText.substring(0, 200));
-      return {
-        statusCode: 502,
-        json: {
-          success: false,
-          message: "API-Football yanıtı JSON formatında değil.",
-          details: `API-Sports tarafından JSON dışı bir yanıt döndürüldü. Lütfen bağlantınızı ve API anahtarınızı kontrol edin.`,
-          debug: {
-            backendRoute,
-            externalEndpoint: externalUrl,
-            status: statusCode,
-            contentType,
-            errorPreview: rawText.substring(0, 300)
-          }
-        }
+      const json: Record<string, unknown> = {
+        success: false,
+        message: "API-Football yanıtı JSON formatında değil.",
+        details: "API-Sports tarafından JSON dışı bir yanıt döndürüldü.",
       };
+      if (!isProd()) {
+        json.debug = {
+          backendRoute,
+          externalEndpoint: externalUrl,
+          status: statusCode,
+          contentType,
+          errorPreview: rawText.substring(0, 300),
+        };
+      }
+      return { statusCode: 502, json };
     }
 
     const rawData = await response.json();
@@ -180,56 +127,54 @@ async function fetchFromApiSports(
     }
 
     if (!success) {
-      return {
-        statusCode: 200, // Return 200 with success: false to gracefully show error in UI with status
-        json: {
-          success: false,
-          isApiError: true,
-          message: turkishError,
-          data: rawData,
-          debug: {
-            backendRoute,
-            externalEndpoint: externalUrl,
-            status: statusCode,
-            contentType
-          },
-          headers: rateLimits
-        }
-      };
-    }
-
-    return {
-      statusCode: 200,
-      json: {
-        success: true,
-        message: "API bağlantısı başarılı.",
+      const json: Record<string, unknown> = {
+        success: false,
+        isApiError: true,
+        message: turkishError,
         data: rawData,
-        debug: {
+        headers: rateLimits,
+      };
+      if (!isProd()) {
+        json.debug = {
           backendRoute,
           externalEndpoint: externalUrl,
           status: statusCode,
-          contentType: "application/json"
-        },
-        headers: rateLimits
+          contentType,
+        };
       }
+      return { statusCode: 200, json };
+    }
+
+    const okJson: Record<string, unknown> = {
+      success: true,
+      message: "API bağlantısı başarılı.",
+      data: rawData,
+      headers: rateLimits,
     };
+    if (!isProd()) {
+      okJson.debug = {
+        backendRoute,
+        externalEndpoint: externalUrl,
+        status: statusCode,
+        contentType: "application/json",
+      };
+    }
+    return { statusCode: 200, json: okJson };
 
   } catch (error: any) {
     console.error(`Fetch exception for ${action} (${externalUrl}):`, error);
     return {
       statusCode: 500,
-      json: {
-        success: false,
-        message: "API bağlantısı başarısız.",
+      json: publicErrorBody("API bağlantısı başarısız.", {
         details: error?.message || "Bilinmeyen sunucu hatası",
         debug: {
           backendRoute,
           externalEndpoint: externalUrl,
           status: 500,
           contentType: "exception",
-          errorPreview: error?.stack || error?.message
-        }
-      }
+          errorPreview: error?.stack || error?.message,
+        },
+      }),
     };
   }
 }
@@ -238,7 +183,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  applySecurityMiddleware(app);
+  // Reject oversized bodies (DoS / payload abuse)
+  app.use(express.json({ limit: "100kb" }));
 
   // Health check endpoint
   app.get("/api/health", (req, res) => {
@@ -250,6 +197,7 @@ async function startServer() {
 
   // ── Public API v1 (Faz A2) — local JSON fallback + Firestore Admin ──
   const { createPublicV1Router } = await import("./server/v1/publicApi");
+  const { createSecurePublicHandlers } = await import("./server/v1/securePublic");
   const getAdminDb = () => {
     try {
       if (!adminApp) return null;
@@ -259,6 +207,7 @@ async function startServer() {
     }
   };
   const v1 = createPublicV1Router(getAdminDb);
+  const secure = createSecurePublicHandlers(getAdminDb);
   app.get("/api/v1/health", (req, res) => v1.health(req, res));
   app.get("/api/v1/standings", (req, res) => v1.standings(req, res));
   app.get("/api/v1/players", (req, res) => v1.players(req, res));
@@ -267,9 +216,32 @@ async function startServer() {
   app.get("/api/v1/matches/:id/advanced", (req, res) => v1.matchAdvanced(req, res));
   app.get("/api/v1/articles", (req, res) => v1.articles(req, res));
 
-  // ── Admin Jobs — checkAdmin zorunlu ──
+  // ── Secure public writes (rate-limited; Admin SDK aggregates) ──
+  app.post(
+    "/api/v1/polls/:pollId/vote",
+    voteLimiter,
+    requireAuth,
+    (req, res) => secure.vote(req, res)
+  );
+  app.post(
+    "/api/v1/public/contact",
+    publicWriteLimiter,
+    (req, res) => secure.contact(req, res)
+  );
+  app.post(
+    "/api/v1/public/newsletter",
+    publicWriteLimiter,
+    (req, res) => secure.newsletter(req, res)
+  );
+  app.post(
+    "/api/v1/public/waitlist",
+    publicWriteLimiter,
+    (req, res) => secure.waitlist(req, res)
+  );
+
+  // ── Admin Jobs — checkAdmin + rate limit ──
   const jobsDir = path.join(process.cwd(), "data-worker", "output", "scrapeJobs");
-  app.get("/api/admin/jobs", checkAdmin, async (req, res) => {
+  app.get("/api/admin/jobs", adminApiLimiter, checkAdmin, async (req, res) => {
     try {
       const fs = await import("fs");
       if (!fs.existsSync(jobsDir)) {
@@ -294,7 +266,7 @@ async function startServer() {
     }
   });
 
-  app.post("/api/admin/jobs/run", checkAdmin, async (req, res) => {
+  app.post("/api/admin/jobs/run", adminApiLimiter, checkAdmin, async (req, res) => {
     const type = req.body?.type as string;
     const season = (req.body?.season as string) || "2025-26";
     const allowed = [
@@ -354,7 +326,8 @@ async function startServer() {
     }
   });
 
-  app.get("/api/v1/entity-map", async (req, res) => {
+  // Entity map contains provider IDs — admin only
+  app.get("/api/v1/entity-map", adminApiLimiter, checkAdmin, async (req, res) => {
     try {
       const fs = await import("fs");
       const p = path.join(process.cwd(), "public", "data", "entity-map.json");
@@ -364,12 +337,12 @@ async function startServer() {
       const data = JSON.parse(fs.readFileSync(p, "utf-8"));
       res.json({ success: true, data });
     } catch (e: any) {
-      res.status(500).json({ success: false, message: e?.message });
+      res.status(500).json(publicErrorBody("entity-map okunamadı."));
     }
   });
 
   // API Proxy - Test Connection
-  app.get("/api/sports/test-connection", checkAdmin, async (req, res) => {
+  app.get("/api/sports/test-connection", adminApiLimiter, checkAdmin, async (req, res) => {
     const result = await fetchFromApiSports(
       "Test Connection",
       "/api/sports/test-connection",
@@ -379,7 +352,7 @@ async function startServer() {
   });
 
   // API Proxy - Türkiye Ligleri (Leagues)
-  app.get("/api/sports/leagues", checkAdmin, async (req, res) => {
+  app.get("/api/sports/leagues", adminApiLimiter, checkAdmin, async (req, res) => {
     const country = req.query.country || "Turkey";
     const externalUrl = `https://v3.football.api-sports.io/leagues?country=${encodeURIComponent(country as string)}`;
     const result = await fetchFromApiSports(
@@ -391,7 +364,7 @@ async function startServer() {
   });
 
   // API Proxy - Team Search (Fenerbahçe vb.)
-  app.get("/api/sports/teams", checkAdmin, async (req, res) => {
+  app.get("/api/sports/teams", adminApiLimiter, checkAdmin, async (req, res) => {
     const search = req.query.search || "Fenerbahce";
     const country = req.query.country || "Turkey";
     const externalUrl = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(search as string)}&country=${encodeURIComponent(country as string)}`;
@@ -404,7 +377,7 @@ async function startServer() {
   });
 
   // API Proxy - Squad
-  app.get("/api/sports/squad", checkAdmin, async (req, res) => {
+  app.get("/api/sports/squad", adminApiLimiter, checkAdmin, async (req, res) => {
     const teamId = req.query.teamId;
     if (!teamId) {
       return res.status(400).json({ 
@@ -422,7 +395,7 @@ async function startServer() {
   });
 
   // API Proxy - Fixtures
-  app.get("/api/sports/fixtures", checkAdmin, async (req, res) => {
+  app.get("/api/sports/fixtures", adminApiLimiter, checkAdmin, async (req, res) => {
     const teamId = req.query.teamId;
     const season = req.query.season || "2025";
     const leagueId = req.query.leagueId;
@@ -444,7 +417,7 @@ async function startServer() {
   });
 
   // API Proxy - Standings
-  app.get("/api/sports/standings", checkAdmin, async (req, res) => {
+  app.get("/api/sports/standings", adminApiLimiter, checkAdmin, async (req, res) => {
     const leagueId = req.query.leagueId || "203"; // default 203 (Süper Lig)
     const season = req.query.season || "2025";
 
