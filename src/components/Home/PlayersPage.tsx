@@ -28,6 +28,15 @@ import {
   Target
 } from 'lucide-react';
 import { dbGetCollection, dbAddDocument } from '../../lib/dbService';
+import { DataBadge, EmptyState } from '../ui';
+import {
+  formatRating,
+  hasRating,
+  hasSeasonStats,
+  parseMarketValueEuro,
+  parseOptionalMetric,
+  type SeasonStats,
+} from '../../lib/playerMetrics';
 
 interface Player {
   id: string;
@@ -37,8 +46,8 @@ interface Player {
   age: number;
   nationality: string;
   photo?: string;
-  formRating: number;
-  lastMatchRating: number;
+  formRating: number | null;
+  lastMatchRating: number | null;
   trend: 'yükselişte' | 'düşüşte' | 'stabil';
   strengths: string[];
   weaknesses: string[];
@@ -66,10 +75,9 @@ interface Player {
     dataSource?: string;
   } | null;
   recentMatches?: { opponent: string; score: string; result: string; competition: string; date?: string; note?: string }[];
-  seasonStats?: {
-    season: string; scope: string; appearances: number; goals: number; assists: number;
-    yellowCards: number; secondYellows: number; redCards: number; subOn: number; subOff: number; minutes: number; source?: string;
-  } | null;
+  seasonStats?: SeasonStats | null;
+  statsProvider?: string | null;
+  statsFetchedAt?: string | null;
 }
 
 interface PlayersPageProps {
@@ -137,9 +145,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             age: parseInt(p.age) || 0,
             nationality: p.nationality || '',
             photo: p.photoUrl || p.photo || '',
-            // 0 = "veri yok" — asla uydurma puan basılmaz, UI '—' gösterir.
-            formRating: parseFloat(p.formRating) || 0,
-            lastMatchRating: parseFloat(p.lastMatchRating) || 0,
+            // null = veri yok — asla uydurma rating basılmaz
+            formRating: parseOptionalMetric(p.formRating),
+            lastMatchRating: parseOptionalMetric(p.lastMatchRating),
+            statsProvider: p.statsProvider || p.seasonStats?.source || p.scout?.dataSource || null,
+            statsFetchedAt: p.statsFetchedAt || p.seasonStats?.fetchedAt || p.scout?.updatedAt || p.updatedAt || null,
             trend: (p.trend === 'yükselişte' || p.trend === 'düşüşte' || p.trend === 'stabil') ? p.trend : 'stabil',
             // Scout raporu varsa onu kullan (gerçek profil analizi); yoksa eski alanlara düş.
             strengths: (p.scout?.strengths && p.scout.strengths.length) ? p.scout.strengths
@@ -243,7 +253,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
   const totalPlayers = players.length;
   
   const inFormPlayers = useMemo(() => {
-    return players.filter(p => p.formRating >= 8.0).length;
+    return players.filter(p => hasRating(p.formRating) && (p.formRating as number) >= 8.0).length;
   }, [players]);
 
   const decliningPlayers = useMemo(() => {
@@ -252,23 +262,32 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
   const bestInLastMatch = useMemo(() => {
     // Puan verisi yoksa isim uydurma — null döner, UI '—' gösterir.
-    const rated = players.filter(p => p.lastMatchRating > 0);
+    const rated = players.filter(p => hasRating(p.lastMatchRating));
     if (rated.length === 0) return null;
-    return [...rated].sort((a, b) => b.lastMatchRating - a.lastMatchRating)[0]?.name || null;
+    return [...rated].sort((a, b) => (b.lastMatchRating as number) - (a.lastMatchRating as number))[0]?.name || null;
   }, [players]);
 
   const averageFormRating = useMemo(() => {
-    const rated = players.filter(p => p.formRating > 0);
+    const rated = players.filter(p => hasRating(p.formRating));
     if (rated.length === 0) return null;
-    const total = rated.reduce((acc, p) => acc + p.formRating, 0);
+    const total = rated.reduce((acc, p) => acc + (p.formRating as number), 0);
     return parseFloat((total / rated.length).toFixed(1));
   }, [players]);
 
-  // Featured Player: yalnızca GERÇEK form verisi varsa seçilir; yoksa modül gizlenir.
+  // Featured: first XI / piyasa değeri / gerçek form — asla uydurma form lideri
   const featuredPlayer = useMemo(() => {
-    const rated = players.filter(p => p.formRating > 0);
-    if (rated.length === 0) return null;
-    return [...rated].sort((a, b) => b.formRating - a.formRating)[0];
+    const withPhoto = players.filter(p => p.photo);
+    const xi = withPhoto.find(p => p.firstXI) || players.find(p => p.firstXI);
+    if (xi) return xi;
+    const byMv = [...withPhoto].sort(
+      (a, b) => parseMarketValueEuro(b.marketValue) - parseMarketValueEuro(a.marketValue)
+    );
+    if (byMv[0] && parseMarketValueEuro(byMv[0].marketValue) > 0) return byMv[0];
+    const rated = players.filter(p => hasRating(p.formRating));
+    if (rated.length) {
+      return [...rated].sort((a, b) => (b.formRating as number) - (a.formRating as number))[0];
+    }
+    return players[0] || null;
   }, [players]);
 
 
@@ -336,8 +355,8 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
     return [
       { label: 'Genel Form', left: currentPlayer.formRating, right: comparisonPlayer.formRating, suffix: '/10' },
       { label: 'Son Resmî Maç', left: currentPlayer.lastMatchRating, right: comparisonPlayer.lastMatchRating, suffix: '/10' },
-      { label: 'Yaş', left: currentPlayer.age, right: comparisonPlayer.age, suffix: '' }
-    ].filter((metric) => metric.left > 0 && metric.right > 0);
+      { label: 'Yaş', left: currentPlayer.age || null, right: comparisonPlayer.age || null, suffix: '' }
+    ].filter((metric) => hasRating(metric.left as any) && hasRating(metric.right as any));
   }, [currentPlayer, comparisonPlayer]);
   if (loading) {
     return (
@@ -431,10 +450,10 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                 
                 {[
                   { label: "Toplam Kadro", val: totalPlayers > 0 ? `${totalPlayers} Aktif` : '—', note: "Analiz Havuzu" },
-                  { label: "Formda Oyuncular (8.0+)", val: averageFormRating !== null ? inFormPlayers : '—', note: "Sınıf Üstü Form", highlight: true },
-                  { label: "Düşüş Trendinde", val: averageFormRating !== null ? decliningPlayers : '—', note: "Alarm Verenler", alert: decliningPlayers > 0 },
-                  { label: "Son Maçın En İyisi", val: bestInLastMatch ?? '—', note: "Maçın Kahramanı", truncate: true },
-                  { label: "Kanal Ortalama Formu", val: averageFormRating !== null ? `${averageFormRating} /10` : '—', note: "Aritmetik Ortalama" }
+                  { label: "Formda (8.0+)", val: averageFormRating !== null ? inFormPlayers : '—', note: averageFormRating !== null ? "Gerçek form verisi" : "Form verisi yok", highlight: true },
+                  { label: "Düşüş Trendinde", val: decliningPlayers > 0 ? decliningPlayers : '—', note: "Admin/trend alanı", alert: decliningPlayers > 0 },
+                  { label: "Son Maçın En İyisi", val: bestInLastMatch ?? '—', note: bestInLastMatch ? "Rating kaynağı var" : "Rating yok", truncate: true },
+                  { label: "Ort. Form", val: averageFormRating !== null ? `${averageFormRating}/10` : '—', note: "Yalnızca dolu kayıtlardan" }
                 ].map((stat, i) => (
                   <div key={i} className="p-4 rounded-xl bg-fb-card border border-white/[0.06] flex flex-col justify-between space-y-2">
                     <span className="text-xs font-extrabold uppercase tracking-wider text-fb-muted">{stat.label}</span>
@@ -500,11 +519,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                     <div className="flex gap-2 w-full justify-center">
                       <span className="px-3.5 py-1.5 rounded-xl bg-fb-dark border border-white/5 text-center flex-1">
                         <span className="text-xs font-black text-[#5C6F84] uppercase tracking-wider block">FORM FORMÜL</span>
-                        <span className="text-sm font-black text-white">{featuredPlayer.formRating > 0 ? featuredPlayer.formRating : '—'}</span>
+                        <span className="text-sm font-black text-white">{formatRating(featuredPlayer.formRating)}</span>
                       </span>
                       <span className="px-3.5 py-1.5 rounded-xl bg-fb-dark border border-white/5 text-center flex-1">
                         <span className="text-xs font-black text-[#5C6F84] uppercase tracking-wider block">SON MAÇ</span>
-                        <span className="text-xs font-black text-[#FFD21F]">{featuredPlayer.lastMatchRating > 0 ? featuredPlayer.lastMatchRating : '—'}</span>
+                        <span className="text-xs font-black text-[#FFD21F]">{formatRating(featuredPlayer.lastMatchRating)}</span>
                       </span>
                     </div>
                   </div>
@@ -712,11 +731,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         <div className="grid grid-cols-2 gap-2 py-2 border-t border-b border-white/[0.04] text-center bg-fb-dark/25 rounded-lg">
                           <div className="border-r border-white/5 py-1">
                             <span className="mb-1 block text-xs font-semibold text-fb-muted">Form Puanı</span>
-                            <span className="text-sm font-black text-white">{player.formRating > 0 ? player.formRating : '—'} <span className="text-xs text-slate-400">/10</span></span>
+                            <span className="text-sm font-black text-white">{hasRating(player.formRating) ? <>{formatRating(player.formRating)} <span className="text-xs text-slate-400">/10</span></> : '—'}</span>
                           </div>
                           <div className="py-1">
                             <span className="mb-1 block text-xs font-semibold text-fb-muted">Son Maç</span>
-                            <span className="text-sm font-black text-[#FFD21F]">{player.lastMatchRating > 0 ? player.lastMatchRating : '—'} <span className="text-xs text-[#FFD21F]/70">/10</span></span>
+                            <span className="text-sm font-black text-[#FFD21F]">{hasRating(player.lastMatchRating) ? <>{formatRating(player.lastMatchRating)} <span className="text-xs text-[#FFD21F]/70">/10</span></> : '—'}</span>
                           </div>
                         </div>
 
@@ -789,8 +808,8 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                           <span className="block text-xs font-medium text-fb-muted">{p.position}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs font-black text-emerald-400 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
-                          <span className="text-xs font-medium text-fb-muted">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
+                          <span className="text-xs font-black text-emerald-400 block">Form: {formatRating(p.formRating)}</span>
+                          <span className="text-xs font-medium text-fb-muted">Son: {formatRating(p.lastMatchRating)}</span>
                         </div>
                       </a>
                     ))}
@@ -822,8 +841,8 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                           <span className="block text-xs font-medium text-fb-muted">{p.position}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs font-black text-slate-300 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
-                          <span className="text-xs font-medium text-fb-muted">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
+                          <span className="text-xs font-black text-slate-300 block">Form: {formatRating(p.formRating)}</span>
+                          <span className="text-xs font-medium text-fb-muted">Son: {formatRating(p.lastMatchRating)}</span>
                         </div>
                       </a>
                     ))}
@@ -855,8 +874,8 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                           <span className="block text-xs font-medium text-fb-muted">{p.position}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-xs font-black text-rose-400 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
-                          <span className="text-xs font-medium text-fb-muted">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
+                          <span className="text-xs font-black text-rose-400 block">Form: {formatRating(p.formRating)}</span>
+                          <span className="text-xs font-medium text-fb-muted">Son: {formatRating(p.lastMatchRating)}</span>
                         </div>
                       </a>
                     ))}
@@ -874,7 +893,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
               <div className="mb-8">
                 <span className="text-xs font-black uppercase tracking-[0.25em] text-fb-yellow block mb-2">Metrik ve Temel Form Değerlendirme Yaklaşımı</span>
                 <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic">Oyuncu Puanları Nasıl Değerlendiriliyor?</h2>
-                <p className="text-xs text-[#8A99AD] mt-1">Oyuncu form durumu ve maç bülten puanlaması salt gol veya asist sayıları üstünden değil; çok yönlü veri matrisi felsefesiyle puanlanır.</p>
+                <p className="text-xs text-[#8A99AD] mt-1">Form puanı yalnızca gerçek provider/admin kaynağından geldiğinde gösterilir; yoksa — (veri yok). Sezon maç/gol/asist Transfermarkt seasonStats ile doldurulur — uydurma rating basılmaz.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1000,22 +1019,29 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                     </div>
                   </div>
 
-                  <dl className="grid w-full grid-cols-2 gap-3 sm:w-auto">
-                    <div className="min-w-[8rem] rounded-2xl border border-white/5 bg-fb-dark p-4 text-center">
-                      <dt className="mb-2 text-xs font-semibold text-fb-muted">Form Puanı</dt>
-                      <dd className="tabular-nums text-2xl font-black leading-none text-emerald-400">
-                        {currentPlayer.formRating > 0 ? currentPlayer.formRating : '—'}
-                      </dd>
-                      <dd className="mt-2 text-xs text-slate-400">{currentPlayer.formRating > 0 ? '/10' : 'Veri yok'}</dd>
-                    </div>
-                    <div className="min-w-[8rem] rounded-2xl border border-white/5 bg-fb-dark p-4 text-center">
-                      <dt className="mb-2 text-xs font-semibold text-fb-muted">Son Maç</dt>
-                      <dd className="tabular-nums text-2xl font-black leading-none text-fb-yellow">
-                        {currentPlayer.lastMatchRating > 0 ? currentPlayer.lastMatchRating : '—'}
-                      </dd>
-                      <dd className="mt-2 text-xs text-slate-400">{currentPlayer.lastMatchRating > 0 ? '/10' : 'Veri yok'}</dd>
-                    </div>
-                  </dl>
+                  <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto">
+                    <DataBadge
+                      provider={currentPlayer.statsProvider || currentPlayer.seasonStats?.source || currentPlayer.scout?.dataSource}
+                      fetchedAt={currentPlayer.statsFetchedAt}
+                      showMissing
+                    />
+                    <dl className="grid grid-cols-2 gap-3">
+                      <div className="min-w-[8rem] rounded-2xl border border-white/5 bg-fb-dark p-4 text-center">
+                        <dt className="mb-2 text-xs font-semibold text-fb-muted">Form Puanı</dt>
+                        <dd className="tabular-nums text-2xl font-black leading-none text-emerald-400">
+                          {formatRating(currentPlayer.formRating)}
+                        </dd>
+                        <dd className="mt-2 text-xs text-slate-400">{hasRating(currentPlayer.formRating) ? '/10' : 'Veri yok'}</dd>
+                      </div>
+                      <div className="min-w-[8rem] rounded-2xl border border-white/5 bg-fb-dark p-4 text-center">
+                        <dt className="mb-2 text-xs font-semibold text-fb-muted">Son Maç</dt>
+                        <dd className="tabular-nums text-2xl font-black leading-none text-fb-yellow">
+                          {formatRating(currentPlayer.lastMatchRating)}
+                        </dd>
+                        <dd className="mt-2 text-xs text-slate-400">{hasRating(currentPlayer.lastMatchRating) ? '/10' : 'Veri yok'}</dd>
+                      </div>
+                    </dl>
+                  </div>
                 </div>
 
                 <dl className="relative grid grid-cols-2 gap-3 pt-6 sm:grid-cols-3 lg:grid-cols-6">
@@ -1039,6 +1065,50 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                   ))}
                 </dl>
               </header>
+
+
+              {/* D4 — Sezon istatistikleri (gerçek TM / provider) */}
+              {hasSeasonStats(currentPlayer.seasonStats) ? (
+                <section className="ui-card rounded-2xl border border-white/[0.06] bg-[#0E121E] p-5 md:p-6 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-fb-yellow mb-1">Sezon verisi</p>
+                      <h2 className="text-lg font-display font-black text-white uppercase italic">
+                        {currentPlayer.seasonStats?.season || 'Sezon'} · {currentPlayer.seasonStats?.scope || 'İstatistik'}
+                      </h2>
+                    </div>
+                    <DataBadge
+                      provider={currentPlayer.seasonStats?.source || currentPlayer.statsProvider || 'transfermarkt'}
+                      fetchedAt={currentPlayer.statsFetchedAt}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Maç', value: currentPlayer.seasonStats?.appearances },
+                      { label: 'Dakika', value: currentPlayer.seasonStats?.minutes },
+                      { label: 'Gol', value: currentPlayer.seasonStats?.goals },
+                      { label: 'Asist', value: currentPlayer.seasonStats?.assists },
+                      { label: 'Sarı', value: currentPlayer.seasonStats?.yellowCards },
+                      { label: 'Kırmızı', value: currentPlayer.seasonStats?.redCards },
+                      { label: 'Oyuna girdi', value: currentPlayer.seasonStats?.subOn },
+                      { label: 'Çıktı', value: currentPlayer.seasonStats?.subOff },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded-xl border border-white/5 bg-white/[0.02] p-3 text-center">
+                        <div className="text-lg font-mono font-black text-white tabular-nums">
+                          {s.value != null ? s.value : '—'}
+                        </div>
+                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-500 mt-1">{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : (
+                <EmptyState
+                  icon={Activity}
+                  title="Sezon istatistik paketi yok"
+                  description="Appearances / gol / asist provider sync sonrası burada görünür. Uydurma form notu basılmaz."
+                />
+              )}
 
               {/* Detailed Breakdown Tabs */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -1172,9 +1242,9 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                           )}
 
                           <p className="rounded-xl border border-white/5 bg-slate-950/50 p-4 text-sm leading-relaxed text-fb-muted">
-                            {currentPlayer.formRating > 0 && comparisonPlayer.formRating > 0
-                              ? `${currentPlayer.name} ile ${comparisonPlayer.name} arasındaki form puanı farkı ${Math.abs(currentPlayer.formRating - comparisonPlayer.formRating).toFixed(1)}.`
-                              : 'Form puanları yayınlandığında sayısal fark burada gösterilecek.'}
+                            {hasRating(currentPlayer.formRating) && hasRating(comparisonPlayer.formRating)
+                              ? `${currentPlayer.name} ile ${comparisonPlayer.name} arasındaki form puanı farkı ${Math.abs((currentPlayer.formRating as number) - (comparisonPlayer.formRating as number)).toFixed(1)}.`
+                              : 'Form puanları yayınlandığında sayısal fark burada gösterilecek — uydurma fark basılmaz.'}
                           </p>
                         </div>
                       ) : (

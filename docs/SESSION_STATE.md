@@ -37,11 +37,18 @@
 - Bitmiş maç → varsayılan **İstatistik** sekmesi
 - DataBadge / XG / shotmap / EmptyState hiyerarşisi
 
+### D4 — Oyuncu null disiplin + sezon stats
+- `playerMetrics.ts`: parseOptionalMetric, hasRating, formatRating
+- formRating/lastMatchRating: `null` = veri yok (0 uydurma yok)
+- Featured: firstXI / MV öncelik
+- Detay: DataBadge + gerçek seasonStats paneli (TM)
+- KPI şeridi: form yoksa — 
+
 ## Sonraki
 
-1. Oyuncu formRating null disiplini + DataBadge  
-2. Transfer/analiz okuma deneyimi sakinleştir  
-3. MacMerkeziPage kalan god-file parçalama (hero/fixtures)
+1. Transfer/analiz okuma deneyimi sakinleştir  
+2. MacMerkeziPage kalan god-file parçalama  
+3. PWA / push (daha sonra)
 
 ## Komutlar
 
