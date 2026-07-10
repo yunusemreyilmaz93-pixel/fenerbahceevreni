@@ -76,7 +76,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onEnterUniverse, onNavigate, 
   }, []);
 
   return (
-    <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-24 pb-12 bg-[#0B0F19]">
+    <section className="relative min-h-[min(72vh,640px)] flex items-center justify-center overflow-hidden pt-20 pb-8 md:pb-10 bg-[#0B0F19]">
       
       {/* Premium Tactical Pitch Background Outline */}
       <div className="absolute inset-0 opacity-[0.04] pointer-events-none z-0">
