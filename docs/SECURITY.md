@@ -18,11 +18,13 @@ Bu belge, Fenerbahçe Evreni güvenlik modelini ve **deploy sonrası zorunlu ad�
 ### 1. Rules deploy
 
 ```bash
-firebase deploy --only firestore:rules,storage
-# veya Console → Rules yapıştır
+npm run rules:deploy
+# veya
+npx firebase deploy --only firestore:rules,storage --project fenerbahceevreni-a4280
 ```
 
-`firestore.rules` ve `storage.rules` repodaki dosyalarla birebir olmalı.
+`firestore.rules` ve `storage.rules` repodaki dosyalarla birebir olmalı.  
+Job yazmaları **Admin SDK + service account** ile yapılır (rules bypass); detay: `docs/OPS_FIRESTORE_AND_CRON.md`.
 
 ### 2. Admin custom claim (önerilen)
 

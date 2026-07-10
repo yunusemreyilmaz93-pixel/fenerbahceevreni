@@ -353,5 +353,13 @@ service cloud.firestore {
     match /rateLimitBuckets/{bucketId} {
       allow read, write: if isAdmin();
     }
+
+    // ==========================================
+    // 34. metadata — system flags (seed/ops); admin only
+    // Admin SDK (jobs) bypasses rules; this is for client safety.
+    // ==========================================
+    match /metadata/{docId} {
+      allow read, write: if isAdmin();
+    }
   }
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { ShieldCheck, Plus, Trash2, Edit2, Link as LinkIcon, Star, HelpCircle } from 'lucide-react';
-import { dbGetCollection, dbUpsertDocument } from '../../lib/dbService';
+import { dbGetCollection, dbUpsertDocument, dbDeleteDocument } from '../../lib/dbService';
 import { FirebaseImageUploader } from './AdminCommon';
 
 interface AgencySource {
@@ -114,14 +114,12 @@ export const AdminSources: React.FC<AdminSourcesProps> = ({ showToast }) => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Bu kaynağı silmek istediğinizden emin misiniz?')) return;
     try {
-      const stored = await dbGetCollection('sources');
-      const remains = stored.filter((s: any) => s.id !== id);
-      localStorage.setItem('cms_sources', JSON.stringify(remains));
-      
+      await dbDeleteDocument('sources', id);
       setSources(prev => prev.filter(s => s.id !== id));
       if (showToast) showToast('Kaynak silindi.', 'success');
     } catch (err) {
       console.error(err);
+      if (showToast) showToast('Kaynak silinirken hata oluştu.', 'error');
     }
   };
 

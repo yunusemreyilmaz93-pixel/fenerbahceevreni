@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Layers, Plus, Trash2, Edit2, Save, X, Settings } from 'lucide-react';
-import { dbGetCollection, dbUpsertDocument } from '../../lib/dbService';
+import { dbGetCollection, dbUpsertDocument, dbDeleteDocument } from '../../lib/dbService';
 
 interface Category {
   id: string;
@@ -132,15 +132,12 @@ export const AdminCategories: React.FC<AdminCategoriesProps> = ({ showToast }) =
   const handleDelete = async (id: string) => {
     if (!window.confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) return;
     try {
-      // Complete deletion from db and memory
-      const stored = await dbGetCollection('categories');
-      const remains = stored.filter((c: any) => c.id !== id);
-      localStorage.setItem('cms_categories', JSON.stringify(remains));
-      
+      await dbDeleteDocument('categories', id);
       setCategories(prev => prev.filter(c => c.id !== id));
       if (showToast) showToast('Kategori silindi.', 'success');
     } catch (err) {
       console.error(err);
+      if (showToast) showToast('Kategori silinirken hata oluştu.', 'error');
     }
   };
 

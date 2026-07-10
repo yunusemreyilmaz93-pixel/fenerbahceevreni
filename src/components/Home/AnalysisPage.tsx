@@ -124,17 +124,9 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onNavigate }) => {
       setLoading(true);
       try {
         const fetched = await dbGetCollection('articles');
-        // Only show published articles on public page
+        // Only show published articles on public page (A5: no localStorage seed heuristic)
         const publishedOnly = fetched.filter(art => art.status === 'published');
-        
-        const isSeeded = localStorage.getItem("cms_firebase_seeded_done") === "true" || !!localStorage.getItem("cms_articles");
-        
-        if (publishedOnly && (publishedOnly.length > 0 || isSeeded)) {
-          setArticles(publishedOnly);
-        } else {
-          // If Firestore is empty, use elegant fallback mock data
-          setArticles(fallbackArticles);
-        }
+        setArticles(publishedOnly.length > 0 ? publishedOnly : fallbackArticles);
       } catch (e) {
         console.error("Firestore articles retrieval error, fallbacks loaded:", e);
         setArticles(fallbackArticles);

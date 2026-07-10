@@ -13,7 +13,37 @@
   runTransaction
 } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured } from './firebase';
+import {
+  computeLocalCmsEnabled,
+  readForceLocalCmsFlag,
+} from './localCms';
 import { DataProvider, AdvancedPlayerStats, AdvancedMatchStats, ExternalPlayerMapping, DataSyncRun } from '../types/soccerdata';
+
+export { computeLocalCmsEnabled } from './localCms';
+
+/**
+ * A5: prod path never uses localStorage for CMS collections.
+ * - Firebase configured → Firestore only
+ * - Offline / no Firebase → localStorage + /data/*.json bootstrap
+ * - Escape hatch: VITE_FORCE_LOCAL_CMS=true (dev emergency only)
+ *
+ * Non-CMS prefs (cookieConsent, fan_alias, squad_builder UI) may still use localStorage.
+ */
+export function isLocalCmsEnabled(): boolean {
+  const metaEnv = (import.meta as any).env || {};
+  return computeLocalCmsEnabled({
+    firebaseConfigured: isFirebaseConfigured,
+    forceLocalCms: readForceLocalCmsFlag(metaEnv),
+  });
+}
+
+function assertLocalCmsOrThrow(op: string): void {
+  if (!isLocalCmsEnabled()) {
+    throw new Error(
+      `CMS localStorage kapalı (A5). "${op}" için Firestore gerekli. VITE_FORCE_LOCAL_CMS yalnızca acil dev içindir.`
+    );
+  }
+}
 
 // Firestore Error Handler requested by Section 3 of Firebase-Integration Skill
 export enum OperationType {
@@ -51,11 +81,13 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Local-first bootstrap: legacy key migrations + real configuration defaults only.
-// Content collections (articles, matches, players, transfers, polls, ...) are NEVER
-// seeded with fabricated data — they start empty and are filled via the admin panel,
-// JSON import or future API integrations. UI must render premium empty states.
+// Local-only bootstrap: legacy key migrations + configuration defaults.
+// Content collections are NEVER seeded with fabricated sports data.
+// A5: no-op when Firebase is the source of truth.
 const seedDatabaseLocal = () => {
+  if (!isLocalCmsEnabled()) return;
+  if (typeof localStorage === 'undefined') return;
+
   // --- Legacy localStorage key migrations (snake_case -> camelCase) ---
   if (localStorage.getItem("cms_match_reports") && !localStorage.getItem("cms_matchReports")) {
     localStorage.setItem("cms_matchReports", localStorage.getItem("cms_match_reports")!);
@@ -100,14 +132,14 @@ const seedDatabaseLocal = () => {
   }
 };
 
-// Seed storage straight away
+// Seed local CMS only when allowed (A5: no-op in Firebase/prod path)
 seedDatabaseLocal();
 
-// Local-first real-data bootstrap: load the scraped squad file into the players
-// collection when it is empty. This is REAL club data (Transfermarkt snapshot),
-// not fabricated content — and it is replaced automatically once admin/API data exists.
+// Local-only real-data bootstrap from /data/*.json into localStorage.
+// A5: never writes cms_* when Firebase is configured.
 let squadBootstrapPromise: Promise<void> | null = null;
 export const bootstrapSquadFromLocalFile = (): Promise<void> => {
+  if (!isLocalCmsEnabled()) return Promise.resolve();
   if (!squadBootstrapPromise) {
     squadBootstrapPromise = (async () => {
       try {
@@ -140,9 +172,10 @@ export const bootstrapSquadFromLocalFile = (): Promise<void> => {
 };
 
 
-// Gerçek maç verisi bootstrap'ı (hazırlık maçları / fikstür). Kadro ile aynı desen.
+// Gerçek maç verisi bootstrap'ı (hazırlık maçları / fikstür). A5: local CMS only.
 let matchesBootstrapPromise: Promise<void> | null = null;
 export const bootstrapMatchesFromLocalFile = (): Promise<void> => {
+  if (!isLocalCmsEnabled()) return Promise.resolve();
   if (!matchesBootstrapPromise) {
     matchesBootstrapPromise = (async () => {
       try {
@@ -177,9 +210,10 @@ export const bootstrapMatchesFromLocalFile = (): Promise<void> => {
 };
 
 
-// Editoryal makale bootstrap'ı (gerçek maç/fikstür verisine dayalı yazılar). Aynı desen.
+// Editoryal makale bootstrap'ı. A5: local CMS only.
 let articlesBootstrapPromise: Promise<void> | null = null;
 export const bootstrapArticlesFromLocalFile = (): Promise<void> => {
+  if (!isLocalCmsEnabled()) return Promise.resolve();
   if (!articlesBootstrapPromise) {
     articlesBootstrapPromise = (async () => {
       try {
@@ -207,9 +241,10 @@ export const bootstrapArticlesFromLocalFile = (): Promise<void> => {
 };
 
 
-// Gerçek puan durumu bootstrap'ı (Transfermarkt scrape → standings.json). Aynı desen.
+// Gerçek puan durumu bootstrap'ı. A5: local CMS only.
 let standingsBootstrapPromise: Promise<void> | null = null;
 export const bootstrapStandingsFromLocalFile = (): Promise<void> => {
+  if (!isLocalCmsEnabled()) return Promise.resolve();
   if (!standingsBootstrapPromise) {
     standingsBootstrapPromise = (async () => {
       try {
@@ -246,25 +281,35 @@ export const bootstrapStandingsFromLocalFile = (): Promise<void> => {
 
 let firebaseSeedingPromise: Promise<void> | null = null;
 
+/**
+ * A5: Browser localStorage → Firestore auto-seed is DISABLED on the Firebase path.
+ * Production must never push random visitor CMS cache into the database.
+ * Intentional migration: Admin → Import/Export.
+ * Legacy one-shot seed only when local CMS mode is explicitly active.
+ */
 export const seedDatabaseFirebase = async (): Promise<void> => {
   if (!isFirebaseConfigured || !db) return;
-  if (localStorage.getItem("cms_firebase_seeded_done") === "true") return;
+  // Prod / normal Firebase path: no-op (single source of truth = Firestore)
+  if (!isLocalCmsEnabled()) return;
+  if (typeof localStorage !== 'undefined' && localStorage.getItem("cms_firebase_seeded_done") === "true") {
+    return;
+  }
 
   if (!firebaseSeedingPromise) {
     firebaseSeedingPromise = (async () => {
       try {
-        // Fetch to check if system is already seeded
         const metaRef = doc(db, "metadata", "system");
         const metaSnap = await getDoc(metaRef);
         if (metaSnap.exists() && metaSnap.data().seeded === true) {
-          localStorage.setItem("cms_firebase_seeded_done", "true");
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem("cms_firebase_seeded_done", "true");
+          }
           console.log("Firebase has already been seeded before.");
           return;
         }
 
-        console.log("Firebase not seeded yet. Starting auto-seeding of database tracking...");
-        
-        // Let's iterate all local collections and upload them
+        console.log("Local-CMS mode: optional one-shot seed into Firestore...");
+
         const collectionsToSeed = [
           { localKey: 'cms_articles', colName: 'articles' },
           { localKey: 'cms_matches', colName: 'matches' },
@@ -292,7 +337,6 @@ export const seedDatabaseFirebase = async (): Promise<void> => {
                   }
                 }
               } else if (parsed && typeof parsed === 'object') {
-                // Like homeSettings or siteSettings
                 await setDoc(doc(db, target.colName, 'main'), parsed);
               }
             } catch (err) {
@@ -301,10 +345,11 @@ export const seedDatabaseFirebase = async (): Promise<void> => {
           }
         }
 
-        // Set seeded true
         await setDoc(metaRef, { seeded: true, seededAt: new Date().toISOString() });
-        localStorage.setItem("cms_firebase_seeded_done", "true");
-        console.log("Firebase successfully seeded and synchronized with premium blueprints!");
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem("cms_firebase_seeded_done", "true");
+        }
+        console.log("Firebase successfully seeded from local CMS snapshot.");
       } catch (err) {
         console.error("Failed to seed Firebase Firestore dynamically:", err);
       }
@@ -339,11 +384,12 @@ export const normalizeCollectionName = (colName: string): string => {
   return norm;
 };
 
-// Generic high-performance local/cloud operations
+// Generic cloud-first operations. A5: localStorage only when isLocalCmsEnabled().
 export const dbGetCollection = async (rawCollectionName: string): Promise<any[]> => {
   const collectionName = normalizeCollectionName(rawCollectionName);
-  if (isFirebaseConfigured && db) {
+  if (isFirebaseConfigured && db && !isLocalCmsEnabled()) {
     try {
+      // seedDatabaseFirebase is a no-op on Firebase path (A5)
       await seedDatabaseFirebase();
       const snap = await getDocs(collection(db, collectionName));
       return snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -351,29 +397,34 @@ export const dbGetCollection = async (rawCollectionName: string): Promise<any[]>
       handleFirestoreError(e, OperationType.LIST, collectionName);
       return [];
     }
-  } else {
-    // Real-data bootstrap: fill players/matches collections from local files once.
-    if (collectionName === 'players') {
-      await bootstrapSquadFromLocalFile();
-    }
-    if (collectionName === 'matches') {
-      await bootstrapMatchesFromLocalFile();
-    }
-    if (collectionName === 'standings') {
-      await bootstrapStandingsFromLocalFile();
-    }
-    if (collectionName === 'articles') {
-      await bootstrapArticlesFromLocalFile();
-    }
-    const dataStr = localStorage.getItem(`cms_${collectionName}`);
-    if (!dataStr) return [];
-    const parsed = JSON.parse(dataStr);
-    if (Array.isArray(parsed)) return parsed;
-    // Singleton documents (homeSettings, siteSettings) are stored as objects —
-    // expose them consistently as a one-element collection with id 'main'.
-    if (parsed && typeof parsed === 'object') return [{ id: 'main', ...parsed }];
+  }
+
+  if (!isLocalCmsEnabled()) {
+    console.warn(`dbGetCollection(${collectionName}): Firestore unavailable and local CMS disabled (A5).`);
     return [];
   }
+
+  // Offline / force-local: bootstrap real JSON snapshots into localStorage once.
+  if (collectionName === 'players') {
+    await bootstrapSquadFromLocalFile();
+  }
+  if (collectionName === 'matches') {
+    await bootstrapMatchesFromLocalFile();
+  }
+  if (collectionName === 'standings') {
+    await bootstrapStandingsFromLocalFile();
+  }
+  if (collectionName === 'articles') {
+    await bootstrapArticlesFromLocalFile();
+  }
+  const dataStr = localStorage.getItem(`cms_${collectionName}`);
+  if (!dataStr) return [];
+  const parsed = JSON.parse(dataStr);
+  if (Array.isArray(parsed)) return parsed;
+  // Singleton documents (homeSettings, siteSettings) are stored as objects —
+  // expose them consistently as a one-element collection with id 'main'.
+  if (parsed && typeof parsed === 'object') return [{ id: 'main', ...parsed }];
+  return [];
 };
 
 export const dbUpsertDocument = async (rawCollectionName: string, id: string, data: any): Promise<void> => {
@@ -383,22 +434,24 @@ export const dbUpsertDocument = async (rawCollectionName: string, id: string, da
     updatedAt: new Date().toISOString()
   };
 
-  if (isFirebaseConfigured && db) {
+  if (isFirebaseConfigured && db && !isLocalCmsEnabled()) {
     try {
       await setDoc(doc(db, collectionName, id), timestamped, { merge: true });
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, `${collectionName}/${id}`);
     }
-  } else {
-    const list = await dbGetCollection(collectionName);
-    const existingIdx = list.findIndex(item => item.id === id);
-    if (existingIdx > -1) {
-      list[existingIdx] = { ...list[existingIdx], ...timestamped };
-    } else {
-      list.push({ id, ...timestamped });
-    }
-    localStorage.setItem(`cms_${collectionName}`, JSON.stringify(list));
+    return;
   }
+
+  assertLocalCmsOrThrow(`dbUpsertDocument(${collectionName})`);
+  const list = await dbGetCollection(collectionName);
+  const existingIdx = list.findIndex(item => item.id === id);
+  if (existingIdx > -1) {
+    list[existingIdx] = { ...list[existingIdx], ...timestamped };
+  } else {
+    list.push({ id, ...timestamped });
+  }
+  localStorage.setItem(`cms_${collectionName}`, JSON.stringify(list));
 };
 
 export const dbAddDocument = async (rawCollectionName: string, data: any): Promise<string> => {
@@ -411,7 +464,7 @@ export const dbAddDocument = async (rawCollectionName: string, data: any): Promi
     updatedAt: new Date().toISOString()
   };
 
-  if (isFirebaseConfigured && db) {
+  if (isFirebaseConfigured && db && !isLocalCmsEnabled()) {
     try {
       await setDoc(doc(db, collectionName, finalId), finalData);
       return finalId;
@@ -419,27 +472,30 @@ export const dbAddDocument = async (rawCollectionName: string, data: any): Promi
       handleFirestoreError(e, OperationType.CREATE, collectionName);
       return finalId;
     }
-  } else {
-    const list = await dbGetCollection(collectionName);
-    list.push(finalData);
-    localStorage.setItem(`cms_${collectionName}`, JSON.stringify(list));
-    return finalId;
   }
+
+  assertLocalCmsOrThrow(`dbAddDocument(${collectionName})`);
+  const list = await dbGetCollection(collectionName);
+  list.push(finalData);
+  localStorage.setItem(`cms_${collectionName}`, JSON.stringify(list));
+  return finalId;
 };
 
 export const dbDeleteDocument = async (rawCollectionName: string, id: string): Promise<void> => {
   const collectionName = normalizeCollectionName(rawCollectionName);
-  if (isFirebaseConfigured && db) {
+  if (isFirebaseConfigured && db && !isLocalCmsEnabled()) {
     try {
       await deleteDoc(doc(db, collectionName, id));
     } catch (e) {
       handleFirestoreError(e, OperationType.DELETE, `${collectionName}/${id}`);
     }
-  } else {
-    const list = await dbGetCollection(collectionName);
-    const filtered = list.filter(item => item.id !== id);
-    localStorage.setItem(`cms_${collectionName}`, JSON.stringify(filtered));
+    return;
   }
+
+  assertLocalCmsOrThrow(`dbDeleteDocument(${collectionName})`);
+  const list = await dbGetCollection(collectionName);
+  const filtered = list.filter(item => item.id !== id);
+  localStorage.setItem(`cms_${collectionName}`, JSON.stringify(filtered));
 };
 
 // --- SOCCERDATA ADVANCED STATS COLLECTIONS HELPERS ---
@@ -550,22 +606,24 @@ export const dbUpsertExternalPlayerMapping = async (
     updatedAt: new Date().toISOString()
   };
 
-  if (isFirebaseConfigured && db) {
+  if (isFirebaseConfigured && db && !isLocalCmsEnabled()) {
     try {
       await setDoc(doc(db, COLL_EXT_PLAYER_MAPPINGS, docId), timestamped, { merge: true });
     } catch (e) {
       handleFirestoreError(e, OperationType.WRITE, `${COLL_EXT_PLAYER_MAPPINGS}/${docId}`);
     }
-  } else {
-    const list = await dbGetCollection(COLL_EXT_PLAYER_MAPPINGS);
-    const existingIdx = list.findIndex(item => item.id === docId);
-    if (existingIdx > -1) {
-      list[existingIdx] = { ...list[existingIdx], ...timestamped };
-    } else {
-      list.push({ id: docId, ...timestamped });
-    }
-    localStorage.setItem(`cms_${COLL_EXT_PLAYER_MAPPINGS}`, JSON.stringify(list));
+    return;
   }
+
+  assertLocalCmsOrThrow('dbUpsertExternalPlayerMapping');
+  const list = await dbGetCollection(COLL_EXT_PLAYER_MAPPINGS);
+  const existingIdx = list.findIndex(item => item.id === docId);
+  if (existingIdx > -1) {
+    list[existingIdx] = { ...list[existingIdx], ...timestamped };
+  } else {
+    list.push({ id: docId, ...timestamped });
+  }
+  localStorage.setItem(`cms_${COLL_EXT_PLAYER_MAPPINGS}`, JSON.stringify(list));
 };
 
 export const dbGetDataSyncRuns = async (

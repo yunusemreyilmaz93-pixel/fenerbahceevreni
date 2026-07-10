@@ -18,7 +18,9 @@ fenerbahceevreni-main/
 ├── data-worker/
 │   ├── contracts.py
 │   ├── run_job.py                 # Job runner CLI
-│   ├── requirements.txt
+│   ├── firestore_io.py            # A4 SA credentials + upsert + lockedFields
+│   ├── test_firestore_io.py       # A4 pure unit tests
+│   ├── requirements.txt           # + firebase-admin (optional write)
 │   ├── fetch_squad.py             # TM kadro
 │   ├── fetch_standings.py         # TM puan
 │   ├── providers/

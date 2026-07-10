@@ -5,8 +5,8 @@
 | A1 Sözleşme + rules | ✅ | contracts.ts/py, scrapeJobs/providerIds rules |
 | A2 Public API v1 | ✅ | `/api/v1/*` local fallback |
 | A3 Job runner | ✅ kısmi | `run_job.py`: health, squad, standings |
-| A4 Firestore write | ⚠️ | Service account varsa yazar; yoksa local JSON |
-| A5 localStorage prod kapat | ⏳ | Sonraki adım |
+| A4 Firestore write | ✅ | `firestore_io.py` + SA env; lockedFields; `--require-firestore` |
+| A5 localStorage prod kapat | ✅ | Firebase path: CMS localStorage kapalı; `isLocalCmsEnabled()` |
 
 ## Çalıştırma
 

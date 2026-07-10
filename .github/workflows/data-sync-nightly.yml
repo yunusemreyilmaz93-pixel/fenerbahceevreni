@@ -1,0 +1,100 @@
+# Nightly data pipeline — Fenerbahçe Evreni (A4+)
+#
+# Secrets (GitHub → Settings → Secrets and variables → Actions):
+#   FIREBASE_SERVICE_ACCOUNT_JSON  — full service account JSON text (or path not available in CI)
+#
+# Optional repository variables:
+#   SYNC_SEASON_STANDINGS  default 2025
+#   SYNC_SEASON_SQUAD      default 2026
+#   FOTMOB_MATCH_LIMIT     default 5
+
+name: Data sync nightly
+
+on:
+  schedule:
+    # 03:15 UTC ≈ 06:15 TR (yaz) — lig dışı trafik düşük
+    - cron: "15 3 * * *"
+  workflow_dispatch:
+    inputs:
+      require_firestore:
+        description: "Fail if Firestore write skipped"
+        type: boolean
+        default: true
+      run_advanced:
+        description: "Also run sync_match_advanced + entity ids"
+        type: boolean
+        default: true
+
+concurrency:
+  group: data-sync-nightly
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: data-worker/requirements.txt
+
+      - name: Install worker deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r data-worker/requirements.txt
+
+      - name: Write service account
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$SA_JSON" ]; then
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT_JSON is missing. Add the Firebase service account JSON in repo Actions secrets."
+            exit 1
+          fi
+          echo "$SA_JSON" > "$RUNNER_TEMP/firebase-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+          echo "FIREBASE_SERVICE_ACCOUNT_JSON=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+
+      - name: Health probe (require Firestore)
+        run: |
+          python data-worker/run_job.py --type health_probe --trigger scheduler --require-firestore
+
+      - name: Sync standings
+        env:
+          SEASON: ${{ vars.SYNC_SEASON_STANDINGS }}
+        run: |
+          SEASON="${SEASON:-2025}"
+          python data-worker/run_job.py --type sync_standings --season "$SEASON" --trigger scheduler --require-firestore
+
+      - name: Sync squad
+        env:
+          SEASON: ${{ vars.SYNC_SEASON_SQUAD }}
+        run: |
+          SEASON="${SEASON:-2026}"
+          python data-worker/run_job.py --type sync_squad --season "$SEASON" --trigger scheduler --require-firestore
+
+      - name: Sync match advanced + entity map
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_advanced }}
+        env:
+          FOTMOB_MATCH_LIMIT: ${{ vars.FOTMOB_MATCH_LIMIT }}
+          FOTMOB_TEAM_ID: "8695"
+        run: |
+          export FOTMOB_MATCH_LIMIT="${FOTMOB_MATCH_LIMIT:-5}"
+          python data-worker/run_job.py --type sync_match_advanced --season 2025-26 --trigger scheduler --require-firestore
+          python data-worker/run_job.py --type sync_entity_ids --trigger scheduler --require-firestore
+
+      - name: Upload job logs (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scrapeJobs-${{ github.run_id }}
+          path: data-worker/output/scrapeJobs/
+          if-no-files-found: ignore
+          retention-days: 14

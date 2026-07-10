@@ -1,5 +1,31 @@
 # Fenerbahçe Spor Kulübü - Veri Boru Hattı (data-worker)
 
+## A4 — Firestore yazma (service account)
+
+Job runner (`run_job.py`) local JSON üretir ve **service account varsa** Firestore’a upsert eder.
+
+| Env | Anlam |
+|-----|--------|
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | SA JSON dosya yolu **veya** ham JSON string |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Standart Google ADC path |
+| `FIREBASE_SERVICE_ACCOUNT_JSON_B64` | CI için base64 SA JSON |
+
+```bash
+pip install -r data-worker/requirements.txt
+# SA path (örnek):
+set FIREBASE_SERVICE_ACCOUNT_JSON=C:\secrets\fb-evreni-sa.json
+python data-worker/run_job.py --type health_probe --require-firestore
+python data-worker/run_job.py --type sync_standings --season 2025 --require-firestore
+```
+
+- `lockedFields` admin alanları job tarafından **ezilmez** (`firestore_io.apply_locked_fields`).
+- SA yoksa: local JSON OK; job log’da `meta.firestoreStatus=skipped_no_credentials`.
+- `--require-firestore`: SA yoksa veya write fail → exit ≠ 0.
+
+Unit: `python data-worker/test_firestore_io.py`
+
+---
+
 ## Kadro Fetcher — `fetch_squad.py` (Scrapling, önerilen akış)
 
 Uygulamanın kullandığı `public/data/squad.json` dosyasını yeniden üreten, **yeniden

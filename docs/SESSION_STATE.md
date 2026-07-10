@@ -1,54 +1,39 @@
 # SESSION STATE — Fenerbahçe Evreni
 
-> **Son güncelleme:** 2026-07-09  
-> **Durum:** Faz A + B + C (çekirdek) operasyonel
+> **Son güncelleme:** 2026-07-10  
+> **Durum:** A4+A5+rules deploy+nightly workflow · SA secret kullanıcıda
 
-## Bu tur (hepsi sırayla)
+## Bu tur
 
-| # | İş | Durum |
-|---|-----|--------|
-| 1 | Job API `checkAdmin` + mock token (dev) | ✅ |
-| 2 | AdminJobs Bearer auth | ✅ |
-| 3 | Shotmap SVG UI | ✅ `ShotmapPitch.tsx` |
-| 4 | Maç Merkezi shotmap + advanced resolve | ✅ |
-| 5 | FBref + Edge binary | ⚠️ hâlâ "Chrome not found" / 403 — FotMob fallback |
-| 6 | Entity Map Admin UI | ✅ |
-| 7 | Faz C ops dokümantasyonu | ✅ PHASE_C_STATUS |
+| İş | Durum |
+|----|--------|
+| A5 localStorage prod kapat | ✅ |
+| A4 firestore_io + job write | ✅ |
+| Firestore + Storage rules deploy | ✅ `fenerbahceevreni-a4280` (CLI login) |
+| Nightly GH Actions workflow | ✅ `.github/workflows/data-sync-nightly.yml` |
+| `npm run rules:deploy` | ✅ script |
+| Service account JSON | ⏳ **kullanıcı yapıştırır** (GitHub secret + opsiyonel local) |
 
-## Demo maç (shotmap)
+## “Hata” açıklaması
 
-- `fb-eyupspor-2026-lig` — Fenerbahçe 3-3 Eyüpspor  
-- fotmob `4842613` · 25 şut · xG 1.33–0.52  
-- Maç listesinden seç → Maç Sonu → istatistik + şut haritası  
+`Firestore credentials: missing` = SA yok, **rules hatası değil**.  
+Admin SDK rules’ı bypass eder. Detay: `docs/OPS_FIRESTORE_AND_CRON.md`
 
-## Auth / Security (2026-07-10)
+## Senin tek zorunlu adımın
 
-- Prod: Firebase ID token + `ADMIN_EMAILS` **veya** custom claim `admin: true`
-- Mock admin token **her zaman reddedilir**
-- Oylar: `POST /api/v1/polls/:id/vote` (Admin SDK aggregate)
-- Formlar: `POST /api/v1/public/{contact,newsletter,waitlist}` + rate limit + honeypot
-- Rules: `docs/SECURITY.md` — `firebase deploy --only firestore:rules,storage`
-- Claim: `node scripts/setAdminClaim.mjs you@email.com`
+1. Firebase Console → Service accounts → Generate private key  
+2. GitHub → Secrets → `FIREBASE_SERVICE_ACCOUNT_JSON` = JSON içeriği  
+3. Actions → Data sync nightly → Run workflow  
 
-## Komutlar
+## Sonraki (kod)
 
-```bash
-npm run dev
-# Admin → Scraper Jobs / Entity Map
-python data-worker/run_job.py --type sync_match_advanced
-python data-worker/run_job.py --type sync_entity_ids
-```
-
-## Sonraki (opsiyonel)
-
-- Google Chrome kur → FBref gerçek oyuncu sezon  
-- Firestore service account  
-- Premium ödeme  
-- Shotmap koordinat kalibrasyonu (FotMob pitch)
+- SA gelince: ilk gerçek `sync_standings` + `sync_squad` smoke (istersen buradan)
+- Veri doluluğu (son 10 maç advanced)
+- UI/UX 200 (Faz D) — omurga sonrası
 
 ## Context prompt
 
 ```
-docs/SESSION_STATE.md + PHASE_C_STATUS.md oku.
-checkAdmin, shotmap, entity UI hazır.
+docs/SESSION_STATE.md + OPS_FIRESTORE_AND_CRON.md oku.
+Rules deploy edildi. Nightly workflow hazır. SA secret kullanıcıda.
 ```

@@ -89,13 +89,9 @@ export const TransferRadarPage: React.FC<TransferRadarPageProps> = ({ onNavigate
       setLoading(true);
       try {
         const list = await dbGetCollection('transferReports');
-        // Only show published publicly
+        // Only show published publicly (A5: no localStorage seed heuristic)
         const published = list.filter((r: any) => r.status === 'published');
-        
-        const isSeeded = localStorage.getItem("cms_firebase_seeded_done") === "true" || !!localStorage.getItem("cms_articles");
-        
-        if (published && (published.length > 0 || isSeeded)) {
-          // Normalize firebase array fields just in case they are saved as string
+        if (published.length > 0) {
           const normalized = published.map((report: any) => ({
             ...report,
             strengths: Array.isArray(report.strengths) 

@@ -25,7 +25,7 @@ import {
   ThumbsDown,
   Plus
 } from 'lucide-react';
-import { castPollVote, dbGetCollection } from '../../lib/dbService';
+import { castPollVote, dbGetCollection, isLocalCmsEnabled } from '../../lib/dbService';
 import { ensureAnonymousUser } from '../../lib/firebase';
 import { apiNewsletterSubscribe } from '../../lib/secureApi';
 import SEO from './SEO';
@@ -481,13 +481,18 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
           }
         ];
         
-        // Try getting comments/topics from LocalStorage if available
-        const storedTopics = localStorage.getItem('cms_discussion_topics');
-        if (storedTopics) {
-          setTopics(JSON.parse(storedTopics));
+        // Discussion topics: CMS localStorage only in offline mode (A5).
+        // Firebase path keeps topics in-memory until a real discussion collection exists.
+        if (isLocalCmsEnabled()) {
+          const storedTopics = localStorage.getItem('cms_discussion_topics');
+          if (storedTopics) {
+            setTopics(JSON.parse(storedTopics));
+          } else {
+            setTopics(initialTopics);
+            localStorage.setItem('cms_discussion_topics', JSON.stringify(initialTopics));
+          }
         } else {
           setTopics(initialTopics);
-          localStorage.setItem('cms_discussion_topics', JSON.stringify(initialTopics));
         }
 
         // 4. Retrive voting status from localStorage to maintain persistence
@@ -765,7 +770,10 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
     });
 
     setTopics(updatedTopics);
-    localStorage.setItem('cms_discussion_topics', JSON.stringify(updatedTopics));
+    // A5: do not persist cms_* discussion cache when Firestore is source of truth
+    if (isLocalCmsEnabled()) {
+      localStorage.setItem('cms_discussion_topics', JSON.stringify(updatedTopics));
+    }
     setNewCommentText('');
     setTopicToast("Görüşünüz başarıyla eklendi ve paylaşıldı!");
     setTimeout(() => setTopicToast(null), 3000);

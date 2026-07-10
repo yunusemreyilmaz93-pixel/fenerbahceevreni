@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Menu, Plus, Trash2, Edit2, Save, MoveUp, MoveDown, Check, X, SlidersHorizontal, Eye, EyeOff } from 'lucide-react';
-import { dbGetCollection, dbUpsertDocument } from '../../lib/dbService';
+import { dbGetCollection, dbUpsertDocument, dbDeleteDocument } from '../../lib/dbService';
 
 interface MenuItem {
   id: string;
@@ -150,22 +150,12 @@ export const AdminMenus: React.FC<AdminMenusProps> = ({ showToast }) => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Bu menü elemanını silmek istediğinizden emin misiniz?')) return;
     try {
-      const list = menuItems.filter(i => i.id !== id);
-      setMenuItems(list);
-      // We can overwrite or remove using custom code
-      // We overwrite localStorage cms_menus, for cloud we can delete
-      const deletedItem = menuItems.find(i => i.id === id);
-      if (deletedItem) {
-        // Let's use a deleteDoc equivalent via local state wipe or standard call
-        // Overwriting is easiest via localStorage cms_menus or dbService deletion
-        // We'll write to dbService
-        const stored = await dbGetCollection('menus');
-        const remains = stored.filter((item: any) => item.id !== id);
-        localStorage.setItem('cms_menus', JSON.stringify(remains));
-      }
+      await dbDeleteDocument('menus', id);
+      setMenuItems(prev => prev.filter(i => i.id !== id));
       if (showToast) showToast('Menü elemanı silindi.', 'success');
     } catch (err) {
       console.error(err);
+      if (showToast) showToast('Menü silinirken hata oluştu.', 'error');
     }
   };
 

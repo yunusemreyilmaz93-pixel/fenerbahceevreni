@@ -1,28 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Faz A3 — Job runner (CLI).
+Faz A3/A4 — Job runner (CLI).
 
 Kullanım:
   python data-worker/run_job.py --type sync_standings --season 2025
   python data-worker/run_job.py --type sync_squad --season 2026
   python data-worker/run_job.py --type health_probe
+  python data-worker/run_job.py --type health_probe --require-firestore
 
 - Job log: data-worker/output/scrapeJobs/<jobId>.json
-- İsteğe bağlı Firestore: FIREBASE_SERVICE_ACCOUNT_JSON env (path) set ise yazar.
-- sync_* mevcut fetch script'lerini subprocess ile çağırır.
+- Firestore (A4): FIREBASE_SERVICE_ACCOUNT_JSON | GOOGLE_APPLICATION_CREDENTIALS
+  | FIREBASE_SERVICE_ACCOUNT_JSON_B64
+- --require-firestore: credentials yoksa veya write fail ise exit 1
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import traceback
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 WORKER = Path(__file__).resolve().parent
 REPO = WORKER.parent
@@ -35,6 +39,13 @@ from contracts import (  # noqa: E402
     JOB_TYPES,
     PROVIDERS,
     new_scrape_job,
+)
+from firestore_io import (  # noqa: E402
+    UpsertResult,
+    credentials_available,
+    firestore_status_probe,
+    upsert_collection,
+    write_scrape_job,
 )
 
 OUT_JOBS = WORKER / "output" / "scrapeJobs"
@@ -68,103 +79,84 @@ def run_subprocess(args: list[str]) -> tuple[int, str]:
         return 1, str(e)
 
 
-def try_firestore_write_job(doc: dict, job_id: str) -> bool:
-    sa = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON") or os.environ.get(
-        "GOOGLE_APPLICATION_CREDENTIALS"
-    )
-    if not sa or not Path(sa).exists():
-        return False
-    try:
-        import firebase_admin
-        from firebase_admin import credentials, firestore
-
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(sa)
-            firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        db.collection(COLLECTIONS["scrape_jobs"]).document(job_id).set(doc)
-        return True
-    except Exception as e:
-        print(f"[warn] Firestore job write failed: {e}", file=sys.stderr)
-        return False
+def fs_meta(result: UpsertResult) -> dict[str, Any]:
+    return {
+        "firestoreStatus": result.status,
+        "firestoreRecordsWritten": result.firestore_count,
+        "localRecords": result.local_count,
+        "firestoreError": result.error,
+        **(result.details or {}),
+    }
 
 
-def try_firestore_upsert_collection(collection: str, docs: list[dict]) -> int:
-    sa = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON") or os.environ.get(
-        "GOOGLE_APPLICATION_CREDENTIALS"
-    )
-    if not sa or not Path(sa).exists():
+def records_for_job(result: UpsertResult, *, code: int) -> int:
+    """
+    recordsWritten semantics (A4):
+    - Firestore written → firestore_count (source of truth path)
+    - No credentials → local_count still counts pipeline success (local JSON)
+    - Firestore failed → 0 on hard fail path; runner sets failed if require-firestore
+    """
+    if code != 0:
         return 0
-    try:
-        import firebase_admin
-        from firebase_admin import credentials, firestore
-
-        if not firebase_admin._apps:
-            cred = credentials.Certificate(sa)
-            firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        batch = db.batch()
-        n = 0
-        for d in docs:
-            doc_id = d.get("id") or d.get("slug")
-            if not doc_id:
-                continue
-            ref = db.collection(collection).document(str(doc_id))
-            payload = {k: v for k, v in d.items() if k != "id"}
-            payload["updatedAt"] = utc_now()
-            batch.set(ref, payload, merge=True)
-            n += 1
-            if n % 400 == 0:
-                batch.commit()
-                batch = db.batch()
-        if n % 400:
-            batch.commit()
-        return n
-    except Exception as e:
-        print(f"[warn] Firestore upsert {collection}: {e}", file=sys.stderr)
+    if result.status == "written":
+        return result.firestore_count
+    if result.status == "failed":
         return 0
+    return result.local_count
 
 
-def job_sync_standings(season: str) -> tuple[int, int, str]:
+def job_sync_standings(season: str) -> tuple[int, int, str, dict[str, Any]]:
     code, out = run_subprocess(
         [py(), str(WORKER / "fetch_standings.py"), "--season", season]
     )
+    meta: dict[str, Any] = {}
     written = 0
     path = REPO / "public" / "data" / "standings.json"
     if path.exists() and code == 0:
         data = json.loads(path.read_text(encoding="utf-8"))
-        # Tek belge: season key id
         doc = {
             "id": f"super-lig-{data.get('season', season)}",
             **data,
+            "provider": data.get("source") or "transfermarkt",
+            "fetchedAt": data.get("updatedAt") or utc_now(),
         }
-        written = try_firestore_upsert_collection("standings", [doc])
-        if written == 0:
-            written = 1  # local success counts as 1 record
-    return code, written, out[-2000:] if out else ""
+        result = upsert_collection(COLLECTIONS["standings"], [doc])
+        meta = fs_meta(result)
+        written = records_for_job(result, code=code)
+    return code, written, out[-2000:] if out else "", meta
 
 
-def job_sync_squad(season: str) -> tuple[int, int, str]:
-    # fetch_squad --season expects full year like 2026
+def job_sync_squad(season: str) -> tuple[int, int, str, dict[str, Any]]:
     code, out = run_subprocess(
         [py(), str(WORKER / "fetch_squad.py"), "--season", season]
     )
+    meta: dict[str, Any] = {}
     written = 0
     path = REPO / "public" / "data" / "squad.json"
     if path.exists() and code == 0:
         data = json.loads(path.read_text(encoding="utf-8"))
         players = data.get("players") or []
-        # Normalize for players collection
         docs = []
+        fetched = data.get("updatedAt") or data.get("scrapedAt") or utc_now()
         for p in players:
             pid = p.get("id") or p.get("slug")
-            docs.append({**p, "id": pid})
-        n = try_firestore_upsert_collection("players", docs)
-        written = n if n else len(docs)
-    return code, written, out[-2000:] if out else ""
+            if not pid:
+                continue
+            docs.append(
+                {
+                    **p,
+                    "id": pid,
+                    "provider": data.get("source") or "transfermarkt",
+                    "fetchedAt": p.get("fetchedAt") or fetched,
+                }
+            )
+        result = upsert_collection(COLLECTIONS["players"], docs)
+        meta = fs_meta(result)
+        written = records_for_job(result, code=code)
+    return code, written, out[-2000:] if out else "", meta
 
 
-def job_health_probe() -> tuple[int, int, str]:
+def job_health_probe() -> tuple[int, int, str, dict[str, Any]]:
     checks = []
     for name, path in [
         ("squad.json", REPO / "public" / "data" / "squad.json"),
@@ -173,7 +165,6 @@ def job_health_probe() -> tuple[int, int, str]:
     ]:
         ok = path.exists()
         checks.append({"file": name, "ok": ok, "bytes": path.stat().st_size if ok else 0})
-    # Provider module import smoke
     providers_ok = True
     try:
         import contracts as c
@@ -181,47 +172,81 @@ def job_health_probe() -> tuple[int, int, str]:
         assert "sync_squad" in c.JOB_TYPES
     except Exception:
         providers_ok = False
+
+    fs_probe = firestore_status_probe()
+    payload = {
+        "checks": checks,
+        "contracts": providers_ok,
+        "firestore": fs_probe,
+    }
+    # Local files + contracts must pass; Firestore optional unless --require-firestore
     code = 0 if providers_ok and all(c["ok"] for c in checks[:2]) else 1
-    return code, len(checks), json.dumps({"checks": checks, "contracts": providers_ok}, ensure_ascii=False)
+    meta = {
+        "firestoreStatus": (
+            "written"
+            if fs_probe.get("clientReady")
+            else (
+                "skipped_no_credentials"
+                if not fs_probe.get("credentialsResolved")
+                else "failed"
+            )
+        ),
+        "firestoreRecordsWritten": 0,
+        "localRecords": len(checks),
+        **{f"probe_{k}": v for k, v in fs_probe.items()},
+    }
+    return code, len(checks), json.dumps(payload, ensure_ascii=False), meta
 
 
-def job_sync_player_season_stats(season: str) -> tuple[int, int, str]:
+def job_sync_player_season_stats(season: str) -> tuple[int, int, str, dict[str, Any]]:
     """FBref Super Lig player season stats; fallback FotMob league xG table."""
-    # season may be "2025" from CLI default — normalize to 2025-26
-    if re_full_season := __import__("re").match(r"^(\d{4})$", str(season)):
-        y = int(re_full_season.group(1))
+    if m := re.match(r"^(\d{4})$", str(season)):
+        y = int(m.group(1))
         season = f"{y}-{str(y + 1)[-2:]}"
     code, out = run_subprocess(
         [py(), str(WORKER / "fetch_fbref_stats.py"), "--season", str(season)]
     )
-    written = 0
+    meta: dict[str, Any] = {}
     if code == 0:
         adv = WORKER / "output" / "fbref" / f"advanced_players_{season}.json"
         if adv.exists():
             docs = json.loads(adv.read_text(encoding="utf-8"))
-            written = try_firestore_upsert_collection("advancedPlayerStats", docs) or len(docs)
+            if isinstance(docs, dict):
+                docs = docs.get("players") or docs.get("docs") or []
+            result = upsert_collection(
+                COLLECTIONS["advanced_player_stats"],
+                docs if isinstance(docs, list) else [],
+                respect_locked_fields=True,
+            )
+            meta = fs_meta(result)
+            written = records_for_job(result, code=0)
         else:
             written = 1
-        return code, written, out[-2000:] if out else ""
+            meta = {"firestoreStatus": "skipped_no_file", "localRecords": 1}
+        return code, written, out[-2000:] if out else "", meta
 
-    # Fallback: FotMob Super Lig xG table (Chrome gerektirmez)
+    # Fallback: FotMob Super Lig xG table (Chrome gerektirmez) — local only table
     try:
-        sys.path.insert(0, str(WORKER))
         from providers.fotmob import export_league_xg_table
 
         xg = export_league_xg_table(71)
         teams = xg.get("teams") or []
         written = len(teams) or (1 if xg.get("fenerbahce") else 0)
         summary = f"FBref failed; FotMob xG table ok teams={written} fb={xg.get('fenerbahce')}"
-        # partial success
-        return 0, written, summary + " | " + (out[-500:] if out else "")
+        meta = {
+            "firestoreStatus": "skipped_fallback_local_only",
+            "localRecords": written,
+            "firestoreRecordsWritten": 0,
+            "note": "FotMob xG table is league aggregate; not advancedPlayerStats docs",
+        }
+        return 0, written, summary + " | " + (out[-500:] if out else ""), meta
     except Exception as e:
-        return code, 0, (out[-1500:] if out else "") + f" | fotmob xg fallback: {e}"
+        return code, 0, (out[-1500:] if out else "") + f" | fotmob xg fallback: {e}", meta
 
 
-def job_sync_match_advanced(season: str) -> tuple[int, int, str]:
-    """FotMob last matches xG/shotmap (provider override via env FOTMOB_TEAM_ID)."""
-    team_id = os.environ.get("FOTMOB_TEAM_ID", "8695")  # Fenerbahçe FotMob id
+def job_sync_match_advanced(season: str) -> tuple[int, int, str, dict[str, Any]]:
+    """FotMob last matches xG/shotmap."""
+    team_id = os.environ.get("FOTMOB_TEAM_ID", "8695")
     limit = os.environ.get("FOTMOB_MATCH_LIMIT", "5")
     code, out = run_subprocess(
         [
@@ -233,17 +258,85 @@ def job_sync_match_advanced(season: str) -> tuple[int, int, str]:
             str(limit),
         ]
     )
+    meta: dict[str, Any] = {}
     written = 0
     if code == 0:
-        summary_path = WORKER / "output" / "fotmob" / "last_run_summary.json"
-        if summary_path.exists():
-            summary = json.loads(summary_path.read_text(encoding="utf-8"))
-            matches = summary.get("matches") or []
-            n = try_firestore_upsert_collection("advancedMatchStats", matches)
-            written = n if n else len(matches)
+        # Prefer full advanced files under output/advanced/
+        adv_dir = WORKER / "output" / "advanced"
+        docs: list[dict[str, Any]] = []
+        if adv_dir.is_dir():
+            for p in sorted(adv_dir.glob("*__fotmob.json")):
+                try:
+                    d = json.loads(p.read_text(encoding="utf-8"))
+                    if isinstance(d, dict) and (d.get("id") or d.get("matchDocumentId")):
+                        if not d.get("id") and d.get("matchDocumentId"):
+                            d["id"] = f"{d['matchDocumentId']}__{d.get('provider') or 'fotmob'}"
+                        if not d.get("fetchedAt"):
+                            d["fetchedAt"] = utc_now()
+                        if not d.get("provider"):
+                            d["provider"] = "fotmob"
+                        docs.append(d)
+                except Exception:
+                    continue
+        if not docs:
+            summary_path = WORKER / "output" / "fotmob" / "last_run_summary.json"
+            if summary_path.exists():
+                summary = json.loads(summary_path.read_text(encoding="utf-8"))
+                matches = summary.get("matches") or []
+                for m in matches:
+                    if isinstance(m, dict):
+                        if not m.get("id") and m.get("matchDocumentId"):
+                            m["id"] = f"{m['matchDocumentId']}__{m.get('provider') or 'fotmob'}"
+                        docs.append(m)
+        result = upsert_collection(
+            COLLECTIONS["advanced_match_stats"],
+            docs,
+            respect_locked_fields=True,
+        )
+        meta = fs_meta(result)
+        written = records_for_job(result, code=0)
+    return code, written, out[-2000:] if out else "", meta
+
+
+def job_sync_entity_ids() -> tuple[int, int, str, dict[str, Any]]:
+    code, out = run_subprocess([py(), str(WORKER / "sync_entity_map.py")])
+    meta: dict[str, Any] = {}
+    written = 0
+    if code == 0:
+        em = WORKER / "output" / "entity_map.json"
+        docs: list[dict[str, Any]] = []
+        if em.exists():
+            data = json.loads(em.read_text(encoding="utf-8"))
+            players = data.get("playerMappings") or []
+            for p in players:
+                if not isinstance(p, dict):
+                    continue
+                pid = p.get("playerDocumentId") or p.get("id") or p.get("slug")
+                if not pid:
+                    continue
+                docs.append({**p, "id": pid, "fetchedAt": data.get("fetchedAt") or utc_now()})
+            # Also accept flat providerIds export
+            if not docs and isinstance(data.get("providerIds"), list):
+                for p in data["providerIds"]:
+                    if isinstance(p, dict) and (p.get("id") or p.get("playerDocumentId")):
+                        pid = p.get("id") or p.get("playerDocumentId")
+                        docs.append({**p, "id": pid})
+        result = upsert_collection(
+            COLLECTIONS["provider_ids"],
+            docs,
+            respect_locked_fields=True,
+        )
+        meta = fs_meta(result)
+        if result.local_count == 0 and em.exists():
+            # Map file existed but no player docs — still count enrichment signal
+            try:
+                written = int(json.loads(em.read_text(encoding="utf-8")).get("matchesEnriched") or 0)
+            except Exception:
+                written = 0
+            meta["note"] = "entity_map had no playerMappings; firestore player upsert empty"
         else:
-            written = 1
-    return code, written, out[-2000:] if out else ""
+            written = records_for_job(result, code=0)
+    return code, written, out[-2000:] if out else "", meta
 
 
 def main() -> int:
@@ -252,6 +345,11 @@ def main() -> int:
     ap.add_argument("--season", default="2025", help="Sezon anahtarı (job'a göre)")
     ap.add_argument("--provider", default=None)
     ap.add_argument("--trigger", default="cli", choices=["admin", "scheduler", "cli", "api"])
+    ap.add_argument(
+        "--require-firestore",
+        action="store_true",
+        help="Service account yoksa veya Firestore write fail ise job failed",
+    )
     args = ap.parse_args()
 
     provider_map = {
@@ -268,6 +366,14 @@ def main() -> int:
         print(f"Geçersiz provider: {provider}", file=sys.stderr)
         return 2
 
+    if args.require_firestore and not credentials_available():
+        print(
+            "[job] --require-firestore: credentials missing "
+            "(set FIREBASE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS)",
+            file=sys.stderr,
+        )
+        return 2
+
     job_id = f"{args.job_type}_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}_{uuid.uuid4().hex[:6]}"
     doc = new_scrape_job(
         job_type=args.job_type,
@@ -280,47 +386,57 @@ def main() -> int:
     doc["updatedAt"] = now
     doc["status"] = "running"
     doc["startedAt"] = now
+    doc["id"] = job_id
 
     job_path = OUT_JOBS / f"{job_id}.json"
     atomic_write_json(job_path, doc)
+    # Best-effort running status to Firestore
+    write_scrape_job(COLLECTIONS["scrape_jobs"], job_id, doc)
     print(f"[job] {job_id} running ({args.job_type})...")
+    if credentials_available():
+        print("[job] Firestore credentials: resolved")
+    else:
+        print("[job] Firestore credentials: missing (local JSON only)")
 
     code, written, summary = 1, 0, ""
+    job_meta: dict[str, Any] = {}
     try:
         if args.job_type == "sync_standings":
-            code, written, summary = job_sync_standings(args.season)
+            code, written, summary, job_meta = job_sync_standings(args.season)
         elif args.job_type == "sync_squad":
-            # Transfermarkt saison_id for 2026-27 roster is often 2026
-            code, written, summary = job_sync_squad(args.season)
+            code, written, summary, job_meta = job_sync_squad(args.season)
         elif args.job_type == "health_probe":
-            code, written, summary = job_health_probe()
+            code, written, summary, job_meta = job_health_probe()
         elif args.job_type == "sync_player_season_stats":
-            code, written, summary = job_sync_player_season_stats(args.season)
+            code, written, summary, job_meta = job_sync_player_season_stats(args.season)
         elif args.job_type == "sync_match_advanced":
-            code, written, summary = job_sync_match_advanced(args.season)
+            code, written, summary, job_meta = job_sync_match_advanced(args.season)
         elif args.job_type == "sync_entity_ids":
-            code, out = run_subprocess([py(), str(WORKER / "sync_entity_map.py")])
-            written = 0
-            if code == 0:
-                em = WORKER / "output" / "entity_map.json"
-                if em.exists():
-                    try:
-                        written = int(json.loads(em.read_text(encoding="utf-8")).get("matchesEnriched") or 0)
-                    except Exception:
-                        written = 1
-                else:
-                    written = 1
-            summary = out[-2000:] if out else ""
+            code, written, summary, job_meta = job_sync_entity_ids()
         else:
-            code, written, summary = (
+            code, written, summary, job_meta = (
                 1,
                 0,
                 f"Job tipi henüz implement edilmedi: {args.job_type} (sonraki sprint)",
+                {},
             )
     except Exception as e:
         code = 1
         summary = f"{e}"
         traceback.print_exc()
+
+    # A4: optional hard fail when Firestore was required but not written
+    fs_status = (job_meta or {}).get("firestoreStatus")
+    if args.require_firestore and code == 0:
+        if fs_status in (None, "skipped_no_credentials", "failed", "empty"):
+            # health_probe: clientReady is enough
+            if args.job_type == "health_probe":
+                if not (job_meta or {}).get("probe_clientReady"):
+                    code = 1
+                    summary = (summary or "") + " | require-firestore: client not ready"
+            elif fs_status != "written":
+                code = 1
+                summary = (summary or "") + f" | require-firestore: status={fs_status}"
 
     finished = utc_now()
     doc["finishedAt"] = finished
@@ -330,17 +446,25 @@ def main() -> int:
     doc["failedCount"] = 0 if code == 0 else 1
     doc["recordsWritten"] = written if code == 0 else 0
     doc["status"] = "success" if code == 0 else "failed"
-    # No secrets / stack in errorSummary
     if code != 0:
         clean = summary.replace("\\", "/").split("\n")[-1][:300]
         doc["errorSummary"] = clean or f"exit {code}"
     else:
         doc["errorSummary"] = None
-        doc["meta"] = {"note": summary[:500] if isinstance(summary, str) else ""}
+
+    # Meta: no secrets / paths with private keys
+    safe_meta = {
+        "note": summary[:500] if isinstance(summary, str) else "",
+        **{k: v for k, v in (job_meta or {}).items() if k not in ("credPath",)},
+    }
+    doc["meta"] = safe_meta
 
     atomic_write_json(job_path, doc)
-    fs_ok = try_firestore_write_job(doc, job_id)
-    print(f"[job] status={doc['status']} recordsWritten={doc['recordsWritten']} firestore={fs_ok}")
+    fs_ok = write_scrape_job(COLLECTIONS["scrape_jobs"], job_id, doc)
+    print(
+        f"[job] status={doc['status']} recordsWritten={doc['recordsWritten']} "
+        f"firestoreJobLog={fs_ok} firestoreData={fs_status or 'n/a'}"
+    )
     print(f"[job] log={job_path}")
     return 0 if code == 0 else 1
 

@@ -124,13 +124,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             .sort((a: any, b: any) => new Date(b.publishedAt || b.createdAt || 0).getTime() - new Date(a.publishedAt || a.createdAt || 0).getTime())
             .slice(0, 3)
         );
-        // Filter by active, loan, target status
+        // Filter by active, loan, target status (A5: no localStorage seed heuristic)
         const validStatuses = ['active', 'loan', 'target'];
         const filtered = list.filter((p: any) => validStatuses.includes(p.status));
         
-        const isSeeded = localStorage.getItem("cms_firebase_seeded_done") === "true" || !!localStorage.getItem("cms_articles");
-        
-        if (filtered && (filtered.length > 0 || isSeeded)) {
+        if (filtered.length > 0) {
           const mapped = filtered.map((p: any) => ({
             id: p.id,
             name: p.name,

@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "security:set-admin": "node scripts/setAdminClaim.mjs",
-    "security:test": "vitest run tests"
+    "security:test": "vitest run tests",
+    "rules:deploy": "node scripts/deploy-rules.mjs",
+    "rules:deploy:indexes": "node scripts/deploy-rules.mjs --indexes"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
