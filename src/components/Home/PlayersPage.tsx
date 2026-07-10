@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useDeferredValue } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import SEO from './SEO';
 import { 
@@ -85,6 +85,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [selectedPosition, setSelectedPosition] = useState('Tümü'); // Tümü, Kaleci, Defans, Orta Saha, Kanat, Forvet
   const [selectedTrend, setSelectedTrend] = useState('Tümü'); // Tümü, Yükselişte, Düşüşte, Stabil
 
@@ -113,16 +114,16 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
     const fetchPlayers = async () => {
       setLoading(true);
       try {
-        const list = await dbGetCollection('players');
-        try {
-          const arts = await dbGetCollection('articles');
-          setPlayerArticles(
-            (arts || [])
-              .filter((a: any) => a.status === 'published')
-              .sort((a: any, b: any) => new Date(b.publishedAt || b.createdAt || 0).getTime() - new Date(a.publishedAt || a.createdAt || 0).getTime())
-              .slice(0, 3)
-          );
-        } catch { setPlayerArticles([]); }
+        const [list, arts] = await Promise.all([
+          dbGetCollection('players'),
+          dbGetCollection('articles').catch(() => [])
+        ]);
+        setPlayerArticles(
+          (arts || [])
+            .filter((a: any) => a.status === 'published')
+            .sort((a: any, b: any) => new Date(b.publishedAt || b.createdAt || 0).getTime() - new Date(a.publishedAt || a.createdAt || 0).getTime())
+            .slice(0, 3)
+        );
         // Filter by active, loan, target status
         const validStatuses = ['active', 'loan', 'target'];
         const filtered = list.filter((p: any) => validStatuses.includes(p.status));
@@ -201,6 +202,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handlePlayerLinkClick = (event: React.MouseEvent<HTMLAnchorElement>, slug: string) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    handleSelectPlayer(slug);
+  };
   const handleBackToList = () => {
     setSelectedPlayerSlug(null);
     onPlayerRoute?.(null);
@@ -272,11 +278,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
   const filteredPlayers = useMemo(() => {
     return players.filter(p => {
       // 1. Text Search query matching name, position, or nationality
-      const q = searchQuery.toLowerCase();
+      const q = deferredSearchQuery.trim().toLocaleLowerCase('tr-TR');
       const matchesSearch = 
-        p.name.toLowerCase().includes(q) || 
-        p.position.toLowerCase().includes(q) || 
-        p.nationality.toLowerCase().includes(q);
+        p.name.toLocaleLowerCase('tr-TR').includes(q) ||
+        p.position.toLocaleLowerCase('tr-TR').includes(q) ||
+        p.nationality.toLocaleLowerCase('tr-TR').includes(q);
 
       // 2. Position pill filter
       let matchesPosition = false;
@@ -308,7 +314,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
       return matchesSearch && matchesPosition && matchesTrend;
     });
-  }, [players, searchQuery, selectedPosition, selectedTrend]);
+  }, [players, deferredSearchQuery, selectedPosition, selectedTrend]);
 
   // Trend Columns division for FormTrendSection
   const risingPlayersList = useMemo(() => players.filter(p => p.trend === 'yükselişte'), [players]);
@@ -323,10 +329,10 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#070b13]">
+      <div className="min-h-screen flex items-center justify-center bg-[#070b13]" role="status" aria-live="polite">
         <div className="space-y-4 text-center">
           <div className="w-12 h-12 border-4 border-fb-yellow border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs font-black uppercase text-fb-yellow tracking-[0.2em] animate-pulse">SQUAD INDEKS & PERFORMANS ANALIZLERI YÜKLENIYOR...</p>
+          <p className="text-sm font-bold text-fb-yellow tracking-wide animate-pulse">Kadro ve performans analizleri yükleniyor…</p>
         </div>
       </div>
     );
@@ -339,7 +345,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
           title={`${currentPlayer.name} Oyuncu Analizi | Fenerbahçe Evreni`}
           description={`${currentPlayer.name} oyuncu performans analizi, form durumu, güçlü ve zayıf yönler ve son maç istatistik değerlendirmesi.`}
           canonical={`https://fenerbahceevreni.com/oyuncular/${currentPlayer.slug}`}
-          ogImage={currentPlayer.imageUrl}
+          ogImage={currentPlayer.photo}
         />
       ) : (
         <SEO 
@@ -356,7 +362,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className={`fixed bottom-6 right-6 z-[200] max-w-sm p-4 rounded-xl shadow-2xl border text-xs font-bold flex items-center gap-3 ${
+            role="status" aria-live="polite" className={`fixed bottom-6 right-6 z-[200] max-w-sm p-4 rounded-xl shadow-2xl border text-xs font-bold flex items-center gap-3 ${
               toastMsg.type === 'success' 
                 ? 'bg-emerald-950/90 border-emerald-500/30 text-emerald-400' 
                 : 'bg-rose-950/90 border-rose-500/30 text-rose-400'
@@ -384,7 +390,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             {/* HERO MODULE */}
             <header className="relative pt-28 pb-12 bg-gradient-to-b from-fb-navy/30 to-transparent border-b border-white/[0.04]">
               <div className="container mx-auto px-6 max-w-6xl space-y-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-[10px] uppercase font-black tracking-widest">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-xs uppercase font-black tracking-widest">
                   <Activity size={12} className="animate-pulse" /> Profesyonel Form & Performans Departmanı
                 </div>
                 
@@ -399,7 +405,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                 {/* Info pills inside hero header */}
                 <div className="flex flex-wrap gap-2 pt-2">
                   {['Form Durumu', 'Son Maç Puanı', 'Oyuncu Analizi', 'Güçlü Yönler', 'Zayıf Yönler', 'Trend Takibi'].map((inf) => (
-                    <span key={inf} className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-slate-300">
+                    <span key={inf} className="text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-white/5 border border-white/5 text-slate-300">
                       • {inf}
                     </span>
                   ))}
@@ -419,14 +425,14 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                   { label: "Kanal Ortalama Formu", val: averageFormRating !== null ? `${averageFormRating} /10` : '—', note: "Aritmetik Ortalama" }
                 ].map((stat, i) => (
                   <div key={i} className="p-4 rounded-xl bg-fb-card border border-white/[0.06] flex flex-col justify-between space-y-2">
-                    <span className="text-[9px] font-extrabold uppercase tracking-wider text-fb-muted">{stat.label}</span>
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-fb-muted">{stat.label}</span>
                     <div>
                       <span className={`text-xl md:text-2xl font-display font-black leading-none block truncate ${
                         stat.highlight ? 'text-emerald-400' : (stat.alert ? 'text-amber-400' : 'text-white')
                       }`}>
                         {stat.val}
                       </span>
-                      <span className="text-[10px] text-fb-muted font-bold block mt-1">{stat.note}</span>
+                      <span className="text-xs text-fb-muted font-bold block mt-1">{stat.note}</span>
                     </div>
                   </div>
                 ))}
@@ -438,13 +444,14 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             {featuredPlayer && (
               <section className="container mx-auto px-6 max-w-6xl py-8">
                 <div className="mb-4">
-                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-fb-yellow block">Haftanın En Yüksek Ortalama Form Puanı</span>
+                  <span className="text-xs font-black uppercase tracking-[0.25em] text-fb-yellow block">Haftanın En Yüksek Ortalama Form Puanı</span>
                   <h2 className="text-xl font-display font-black text-white uppercase italic">Zirvedeki Performans</h2>
                 </div>
 
-                <div 
-                  onClick={() => handleSelectPlayer(featuredPlayer.slug)}
-                  className="group rounded-3xl bg-fb-card border border-white/[0.08] hover:border-fb-yellow/30 transition-all cursor-pointer overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-2xl bg-gradient-to-r from-fb-card to-[#121826]"
+                <a
+                  href={`/oyuncular/${featuredPlayer.slug}`}
+                  onClick={(event) => handlePlayerLinkClick(event, featuredPlayer.slug)}
+                  className="group rounded-3xl bg-fb-card border border-white/[0.08] hover:border-fb-yellow/30 transition-colors overflow-hidden grid grid-cols-1 lg:grid-cols-12 shadow-2xl bg-gradient-to-r from-fb-card to-[#121826] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/70"
                 >
                   {/* Left portion */}
                   <div className="lg:col-span-4 p-8 flex flex-col justify-between items-center text-center bg-fb-dark/45 border-r border-white/[0.04]">
@@ -454,7 +461,10 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         <div className="w-24 h-24 rounded-2xl bg-fb-dark border-2 border-fb-yellow/40 overflow-hidden shadow-xl mx-auto group-hover:scale-105 transition-transform">
                           <img 
                             src={featuredPlayer.photo} 
-                            alt={featuredPlayer.name} 
+                            alt={featuredPlayer.name}
+                            width={96}
+                            height={96}
+                            loading="lazy"
                             className="w-full h-full object-cover" 
                             referrerPolicy="no-referrer"
                           />
@@ -477,11 +487,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
                     <div className="flex gap-2 w-full justify-center">
                       <span className="px-3.5 py-1.5 rounded-xl bg-fb-dark border border-white/5 text-center flex-1">
-                        <span className="text-[8px] font-black text-[#5C6F84] uppercase tracking-wider block">FORM FORMÜL</span>
+                        <span className="text-xs font-black text-[#5C6F84] uppercase tracking-wider block">FORM FORMÜL</span>
                         <span className="text-sm font-black text-white">{featuredPlayer.formRating > 0 ? featuredPlayer.formRating : '—'}</span>
                       </span>
                       <span className="px-3.5 py-1.5 rounded-xl bg-fb-dark border border-white/5 text-center flex-1">
-                        <span className="text-[8px] font-black text-[#5C6F84] uppercase tracking-wider block">SON MAÇ</span>
+                        <span className="text-xs font-black text-[#5C6F84] uppercase tracking-wider block">SON MAÇ</span>
                         <span className="text-xs font-black text-[#FFD21F]">{featuredPlayer.lastMatchRating > 0 ? featuredPlayer.lastMatchRating : '—'}</span>
                       </span>
                     </div>
@@ -495,13 +505,13 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                           <span>Yaş: <strong className="text-slate-100">{featuredPlayer.age}</strong></span>
                           <span>Uyruk: <strong className="text-slate-100">{featuredPlayer.nationality}</strong></span>
                         </div>
-                        <span className="px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <span className="px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-widest flex items-center gap-1">
                           <TrendingUp size={11} /> YÜKSELİŞTE
                         </span>
                       </div>
 
                       <div className="space-y-2">
-                        <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase flex items-center gap-1.5"> TAKTİKSEL MAÇ ANALİZ DOSYASI</span>
+                        <span className="text-xs font-black text-[#FFD21F] tracking-widest uppercase flex items-center gap-1.5"> TAKTİKSEL MAÇ ANALİZ DOSYASI</span>
                         <p className="text-sm text-slate-300 leading-relaxed font-semibold">
                           {featuredPlayer.analysis}
                         </p>
@@ -511,80 +521,99 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                     <div className="pt-4 border-t border-white/[0.04] flex gap-2 flex-wrap items-center justify-between">
                       <div className="flex gap-1.5">
                         {featuredPlayer.strengths.slice(0, 3).map((st, i) => (
-                          <span key={i} className="text-[9px] font-black uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-md">
+                          <span key={i} className="text-xs font-black uppercase bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-md">
                             + {st}
                           </span>
                         ))}
                       </div>
 
-                      <span className="px-4 py-2.5 bg-fb-yellow hover:bg-white text-fb-navy text-[10px] font-black uppercase rounded-lg tracking-wider transition-all flex items-center gap-1.5 shadow-lg shrink-0">
+                      <span className="px-4 py-2.5 bg-fb-yellow hover:bg-white text-fb-navy text-xs font-black uppercase rounded-lg tracking-wider transition-colors flex items-center gap-1.5 shadow-lg shrink-0">
                         Oyuncu Profilini Gör <ArrowRight size={12} />
                       </span>
                     </div>
                   </div>
-                </div>
+                </a>
               </section>
             )}
 
-            {/* SEPARATE FILTER & ARTIFACT CONTROLLER */}
-            <section className="container mx-auto px-6 max-w-6xl py-4">
-              <div className="p-6 rounded-2xl bg-fb-card border border-white/[0.06] space-y-4">
-                
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                  {/* Text search widget */}
-                  <div className="relative w-full md:w-80">
-                    <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-fb-muted" />
-                    <input 
-                      type="text" 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Oyuncu ara (isim, mevki, uyruk...)"
-                      className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-fb-dark border border-white/10 text-xs text-white focus:outline-none focus:border-fb-yellow placeholder-fb-muted font-bold"
-                    />
-                  </div>
+            {/* SQUAD FILTERS */}
+            <section className="container mx-auto px-6 max-w-6xl py-4" aria-labelledby="squad-filters-title">
+              <div className="ui-card p-5 md:p-6 space-y-5">
+                <div className="flex flex-col gap-1">
+                  <h2 id="squad-filters-title" className="text-lg font-bold text-white">Kadroyu Filtrele</h2>
+                  <p className="text-sm text-fb-muted">İsim, mevki veya form trendine göre oyuncuları bulun.</p>
+                </div>
 
-                  {/* Trend filtering tabs (Tümü, Yükselişte, Düşüşte, Stabil) */}
-                  <div className="flex flex-wrap gap-2 items-center justify-end w-full md:w-auto">
-                    <span className="text-[10px] font-black text-fb-muted uppercase tracking-widest mr-2 flex items-center gap-1"><Sliders size={11} /> Trend Durumu:</span>
-                    
-                    {['Tümü', 'Yükselişte', 'Stabil', 'Düşüşte'].map((tr) => (
+                <div className="grid gap-5 lg:grid-cols-[minmax(16rem,1fr)_2fr]">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-200">Oyuncu Ara</span>
+                    <span className="relative block">
+                      <Search size={18} aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-fb-muted" />
+                      <input
+                        type="search"
+                        name="player-search"
+                        autoComplete="off"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Örn. İrfan Can, kaleci…"
+                        className="min-h-11 w-full rounded-xl border border-white/10 bg-fb-dark py-3 pl-11 pr-4 text-base text-white placeholder:text-fb-muted focus-visible:border-fb-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/30"
+                      />
+                    </span>
+                  </label>
+
+                  <fieldset>
+                    <legend className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-200">
+                      <Sliders size={16} aria-hidden="true" /> Form Trendi
+                    </legend>
+                    <div className="flex flex-wrap gap-2">
+                      {['Tümü', 'Yükselişte', 'Stabil', 'Düşüşte'].map((trend) => (
+                        <button
+                          type="button"
+                          key={trend}
+                          aria-pressed={selectedTrend === trend}
+                          onClick={() => setSelectedTrend(trend)}
+                          className={`min-h-11 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/60 ${
+                            selectedTrend === trend
+                              ? 'border-white/30 bg-white/15 text-white'
+                              : 'border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/25 hover:bg-white/[0.07]'
+                          }`}
+                        >
+                          {trend}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+                </div>
+
+                <fieldset className="border-t border-white/[0.06] pt-4">
+                  <legend className="mb-2 text-sm font-semibold text-slate-200">Mevki</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {['Tümü', 'Kaleci', 'Defans', 'Orta Saha', 'Kanat', 'Forvet'].map((position) => (
                       <button
-                        key={tr}
-                        onClick={() => setSelectedTrend(tr)}
-                        className={`text-[10px] font-bold px-3 py-1.5 rounded-lg border transition-all ${
-                          selectedTrend === tr 
-                            ? 'bg-white/14 text-white border-white/30 font-extrabold' 
-                            : 'bg-white/[0.02] text-slate-400 border-transparent hover:border-white/10'
+                        type="button"
+                        key={position}
+                        aria-pressed={selectedPosition === position}
+                        onClick={() => setSelectedPosition(position)}
+                        className={`min-h-11 rounded-lg border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/60 ${
+                          selectedPosition === position
+                            ? 'border-fb-yellow bg-fb-yellow text-fb-navy'
+                            : 'border-white/10 bg-white/5 text-slate-300 hover:border-fb-yellow/30 hover:bg-white/[0.08]'
                         }`}
                       >
-                        {tr}
+                        {position}
                       </button>
                     ))}
                   </div>
-                </div>
-
-                {/* Position Row buttons */}
-                <div className="flex flex-wrap gap-2 pt-3 border-t border-white/[0.04]">
-                  {['Tümü', 'Kaleci', 'Defans', 'Orta Saha', 'Kanat', 'Forvet'].map((pos) => (
-                    <button
-                      key={pos}
-                      onClick={() => setSelectedPosition(pos)}
-                      className={`text-[9px] font-black uppercase tracking-widest px-3.5 py-2 rounded-lg border transition-all ${
-                        selectedPosition === pos 
-                          ? 'bg-fb-yellow border-fb-yellow text-fb-navy font-bold shadow-lg shadow-fb-yellow/5' 
-                          : 'bg-white/5 border-white/5 text-slate-300 hover:border-fb-yellow/30 hover:bg-white/[0.08]'
-                      }`}
-                    >
-                      {pos}
-                    </button>
-                  ))}
-                </div>
-
+                </fieldset>
               </div>
             </section>
 
             {/* SQUAD PLAYERS RESPONSIVE GRID */}
-            <section className="container mx-auto px-6 max-w-6xl py-6">
+            <section className="container mx-auto px-6 max-w-6xl py-6" aria-labelledby="squad-results-title">
+              <div className="mb-4 flex items-end justify-between gap-4">
+                <h2 id="squad-results-title" className="text-xl font-bold text-white">Oyuncular</h2>
+                <p className="text-sm text-fb-muted" aria-live="polite">{filteredPlayers.length} oyuncu gösteriliyor</p>
+              </div>
               {filteredPlayers.length === 0 ? (
                 <div className="py-20 text-center max-w-sm mx-auto space-y-4">
                   <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-fb-muted mx-auto">
@@ -600,7 +629,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                       setSelectedPosition('Tümü');
                       setSelectedTrend('Tümü');
                     }}
-                    className="px-4 py-2 bg-fb-yellow hover:bg-white text-fb-navy text-[10px] font-black uppercase rounded-lg transition-all"
+                    className="px-4 py-2 bg-fb-yellow hover:bg-white text-fb-navy text-xs font-black uppercase rounded-lg transition-colors"
                   >
                     Filtreleri Sıfırla
                   </button>
@@ -608,13 +637,14 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredPlayers.map((player, idx) => (
-                    <motion.div
+                    <motion.a
                       key={player.id}
+                      href={`/oyuncular/${player.slug}`}
                       initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: Math.min(idx * 0.05, 0.4) }}
-                      onClick={() => handleSelectPlayer(player.slug)}
-                      className="group rounded-2xl bg-fb-card border border-white/[0.06] hover:border-fb-yellow/20 flex flex-col justify-between transition-all cursor-pointer overflow-hidden p-6"
+                      onClick={(event) => handlePlayerLinkClick(event, player.slug)}
+                      className="ui-card-interactive group flex flex-col justify-between overflow-hidden p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/70 md:p-6"
                     >
                       <div className="text-left space-y-4">
                         
@@ -624,7 +654,10 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                             <div className="w-14 h-14 rounded-xl border border-white/10 overflow-hidden shrink-0 bg-fb-dark">
                               <img 
                                 src={player.photo} 
-                                alt={player.name} 
+                                alt={player.name}
+                                width={56}
+                                height={56}
+                                loading="lazy"
                                 className="w-full h-full object-cover" 
                                 referrerPolicy="no-referrer"
                               />
@@ -636,22 +669,22 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                           )}
                           
                           <div className="min-w-0 flex-1">
-                            <h3 className="text-base font-black text-white uppercase group-hover:text-fb-yellow transition-colors italic leading-tight truncate">
+                            <h3 className="truncate text-lg font-bold leading-tight text-white transition-colors group-hover:text-fb-yellow">
                               {player.shirtNumber && <span className="text-fb-yellow font-mono mr-1">#{player.shirtNumber}</span>}
                               {player.name}
                             </h3>
-                            <span className="text-[10px] font-bold text-fb-muted uppercase tracking-wider block mt-0.5 truncate">
+                            <span className="mt-1 block truncate text-sm font-medium text-fb-muted">
                               {player.position} {player.secondaryPosition ? `(${player.secondaryPosition})` : ''}
                             </span>
                             {player.marketValue && (
-                              <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-white/5 text-[9px] text-[#FFD21F] font-black">
+                              <span className="mt-2 inline-block rounded bg-white/5 px-2 py-1 text-xs font-semibold text-fb-yellow">
                                 {player.marketValue}
                               </span>
                             )}
                           </div>
 
                           {/* Trend badge */}
-                          <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded border flex items-center gap-1 shrink-0 ${
+                          <span className={`text-xs font-semibold px-2 py-1 rounded border flex items-center gap-1 shrink-0 ${
                             player.trend === 'yükselişte' 
                               ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
                               : (player.trend === 'düşüşte' ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-slate-500/10 border-slate-500/20 text-slate-300')
@@ -666,22 +699,22 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         {/* Ratings dual board */}
                         <div className="grid grid-cols-2 gap-2 py-2 border-t border-b border-white/[0.04] text-center bg-fb-dark/25 rounded-lg">
                           <div className="border-r border-white/5 py-1">
-                            <span className="text-[8px] text-[#5C6F84] font-extrabold uppercase block mb-0.5">FORM PUANI</span>
-                            <span className="text-sm font-black text-white">{player.formRating > 0 ? player.formRating : '—'} <span className="text-[10px] text-slate-400">/10</span></span>
+                            <span className="mb-1 block text-xs font-semibold text-fb-muted">Form Puanı</span>
+                            <span className="text-sm font-black text-white">{player.formRating > 0 ? player.formRating : '—'} <span className="text-xs text-slate-400">/10</span></span>
                           </div>
                           <div className="py-1">
-                            <span className="text-[8px] text-[#5C6F84] font-extrabold uppercase block mb-0.5">SON MAÇ PUANI</span>
-                            <span className="text-sm font-black text-[#FFD21F]">{player.lastMatchRating > 0 ? player.lastMatchRating : '—'} <span className="text-[10px] text-[#FFD21F]/70">/10</span></span>
+                            <span className="mb-1 block text-xs font-semibold text-fb-muted">Son Maç</span>
+                            <span className="text-sm font-black text-[#FFD21F]">{player.lastMatchRating > 0 ? player.lastMatchRating : '—'} <span className="text-xs text-[#FFD21F]/70">/10</span></span>
                           </div>
                         </div>
 
                         {/* Short Analysis */}
                         {player.analysis ? (
-                          <p className="text-xs text-fb-muted leading-relaxed line-clamp-3 italic">
+                          <p className="line-clamp-3 text-sm leading-relaxed text-slate-300">
                             "{player.analysis}"
                           </p>
                         ) : (
-                          <p className="text-[10px] text-slate-500 leading-relaxed italic">
+                          <p className="text-sm leading-relaxed text-fb-muted">
                             Scout raporu henüz yayınlanmadı.
                           </p>
                         )}
@@ -690,7 +723,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         {player.strengths && player.strengths.length > 0 && (
                           <div className="flex flex-wrap gap-1 pt-1">
                             {player.strengths.slice(0, 3).map((st, i) => (
-                              <span key={i} className="text-[8.5px] font-black uppercase px-2 py-0.5 bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded">
+                              <span key={i} className="text-xs font-semibold px-2 py-1 bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded">
                                 + {st}
                               </span>
                             ))}
@@ -702,11 +735,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                       {/* Footer */}
                       <div className="pt-4 mt-6 border-t border-white/[0.04] flex items-center justify-between text-xs font-bold text-fb-muted">
                         <span>{player.age} Yaşında • {player.nationality}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-fb-yellow flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                        <span className="flex items-center gap-1 text-sm font-semibold text-fb-yellow transition-transform group-hover:translate-x-1">
                           Profili Gör <ChevronRight size={13} />
                         </span>
                       </div>
-                    </motion.div>
+                    </motion.a>
                   ))}
                 </div>
               )}
@@ -715,7 +748,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             {/* FORM TRENDS COLUMNS (3 columns/cards) */}
             <section className="container mx-auto px-6 max-w-6xl py-12 border-t border-white/[0.03]">
               <div className="mb-8">
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-fb-yellow block mb-2">Sezon İçi Gidişat Grafiği</span>
+                <span className="text-xs font-black uppercase tracking-[0.25em] text-fb-yellow block mb-2">Sezon İçi Gidişat Grafiği</span>
                 <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic">Anlık Kadro Form Trendleri</h2>
                 <p className="text-xs text-[#8A99AD] mt-1">İvmesini yukarı çevirenler, gücünü koruyanlar ve toparlanması gerekenlerin taktiksel bölüşümü.</p>
               </div>
@@ -728,25 +761,26 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                     <h3 className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
                       <TrendingUp size={14} /> Yükselişte Olanlar
                     </h3>
-                    <span className="text-[10.5px] font-black px-2 py-0.5 bg-emerald-500/10 rounded-full text-emerald-400">{risingPlayersList.length}</span>
+                    <span className="text-xs font-black px-2 py-0.5 bg-emerald-500/10 rounded-full text-emerald-400">{risingPlayersList.length}</span>
                   </div>
 
                   <div className="space-y-2.5">
                     {risingPlayersList.slice(0, 5).map((p) => (
-                      <div 
-                        key={p.id} 
-                        onClick={() => handleSelectPlayer(p.slug)}
-                        className="p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/5 hover:border-emerald-500/20 transition-all cursor-pointer flex justify-between items-center"
+                      <a
+                        key={p.id}
+                        href={`/oyuncular/${p.slug}`}
+                        onClick={(event) => handlePlayerLinkClick(event, p.slug)}
+                        className="p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/5 hover:border-emerald-500/20 transition-colors flex justify-between items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/60"
                       >
                         <div>
                           <span className="text-xs text-slate-100 font-extrabold block">{p.name}</span>
-                          <span className="text-[9px] text-[#A1B0CB] uppercase font-bold block">{p.position}</span>
+                          <span className="block text-xs font-medium text-fb-muted">{p.position}</span>
                         </div>
                         <div className="text-right">
                           <span className="text-xs font-black text-emerald-400 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
-                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
+                          <span className="text-xs font-medium text-fb-muted">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
                         </div>
-                      </div>
+                      </a>
                     ))}
                     {risingPlayersList.length === 0 && (
                       <p className="text-xs text-fb-muted italic pt-1 text-center">Formunu yükselten oyuncu bulunamadı.</p>
@@ -760,25 +794,26 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                     <h3 className="text-xs font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
                       <Minus size={14} /> Stabil Gidenler
                     </h3>
-                    <span className="text-[10.5px] font-black px-2 py-0.5 bg-white/5 rounded-full text-slate-300">{stablePlayersList.length}</span>
+                    <span className="text-xs font-black px-2 py-0.5 bg-white/5 rounded-full text-slate-300">{stablePlayersList.length}</span>
                   </div>
 
                   <div className="space-y-2.5">
                     {stablePlayersList.slice(0, 5).map((p) => (
-                      <div 
-                        key={p.id} 
-                        onClick={() => handleSelectPlayer(p.slug)}
-                        className="p-3 rounded-lg bg-white/[0.01] border border-white/5 hover:border-white/10 transition-all cursor-pointer flex justify-between items-center"
+                      <a
+                        key={p.id}
+                        href={`/oyuncular/${p.slug}`}
+                        onClick={(event) => handlePlayerLinkClick(event, p.slug)}
+                        className="p-3 rounded-lg bg-white/[0.01] border border-white/5 hover:border-white/10 transition-colors flex justify-between items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/60"
                       >
                         <div>
                           <span className="text-xs text-slate-100 font-extrabold block">{p.name}</span>
-                          <span className="text-[9px] text-[#A1B0CB] uppercase font-bold block">{p.position}</span>
+                          <span className="block text-xs font-medium text-fb-muted">{p.position}</span>
                         </div>
                         <div className="text-right">
                           <span className="text-xs font-black text-slate-300 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
-                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
+                          <span className="text-xs font-medium text-fb-muted">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
                         </div>
-                      </div>
+                      </a>
                     ))}
                     {stablePlayersList.length === 0 && (
                       <p className="text-xs text-fb-muted italic pt-1 text-center">Performansı stabil devam eden bulunamadı.</p>
@@ -792,25 +827,26 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                     <h3 className="text-xs font-black text-rose-400 uppercase tracking-widest flex items-center gap-1.5">
                       <TrendingDown size={14} /> Düşüşte Olanlar
                     </h3>
-                    <span className="text-[10.5px] font-black px-2 py-0.5 bg-rose-500/10 rounded-full text-rose-400">{decliningPlayersList.length}</span>
+                    <span className="text-xs font-black px-2 py-0.5 bg-rose-500/10 rounded-full text-rose-400">{decliningPlayersList.length}</span>
                   </div>
 
                   <div className="space-y-2.5">
                     {decliningPlayersList.slice(0, 5).map((p) => (
-                      <div 
-                        key={p.id} 
-                        onClick={() => handleSelectPlayer(p.slug)}
-                        className="p-3 rounded-lg bg-rose-950/30 border border-rose-500/5 hover:border-rose-500/20 transition-all cursor-pointer flex justify-between items-center"
+                      <a
+                        key={p.id}
+                        href={`/oyuncular/${p.slug}`}
+                        onClick={(event) => handlePlayerLinkClick(event, p.slug)}
+                        className="p-3 rounded-lg bg-rose-950/30 border border-rose-500/5 hover:border-rose-500/20 transition-colors flex justify-between items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/60"
                       >
                         <div>
                           <span className="text-xs text-slate-100 font-extrabold block">{p.name}</span>
-                          <span className="text-[9px] text-[#A1B0CB] uppercase font-bold block">{p.position}</span>
+                          <span className="block text-xs font-medium text-fb-muted">{p.position}</span>
                         </div>
                         <div className="text-right">
                           <span className="text-xs font-black text-rose-400 block">Form: {p.formRating > 0 ? p.formRating : '—'}</span>
-                          <span className="text-[9px] text-[#A1B0CB] font-bold">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
+                          <span className="text-xs font-medium text-fb-muted">Son: {p.lastMatchRating > 0 ? p.lastMatchRating : '—'}</span>
                         </div>
-                      </div>
+                      </a>
                     ))}
                     {decliningPlayersList.length === 0 && (
                       <p className="text-xs text-fb-muted italic pt-1 text-center">Herhangi bir performans düşüşü tespit edilmedi. Sevindirici!</p>
@@ -824,7 +860,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             {/* PLAYER RATING LOGIC EXPLANATION */}
             <section className="container mx-auto px-6 max-w-6xl py-12 border-t border-white/[0.03]">
               <div className="mb-8">
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-fb-yellow block mb-2">Metrik ve Temel Form Değerlendirme Yaklaşımı</span>
+                <span className="text-xs font-black uppercase tracking-[0.25em] text-fb-yellow block mb-2">Metrik ve Temel Form Değerlendirme Yaklaşımı</span>
                 <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic">Oyuncu Puanları Nasıl Değerlendiriliyor?</h2>
                 <p className="text-xs text-[#8A99AD] mt-1">Oyuncu form durumu ve maç bülten puanlaması salt gol veya asist sayıları üstünden değil; çok yönlü veri matrisi felsefesiyle puanlanır.</p>
               </div>
@@ -851,7 +887,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             {/* LATEST PLAYER ANALYSIS STRIP (Read from articles of category 'Oyuncu Analizi') */}
             <section className="container mx-auto px-6 max-w-6xl py-12 border-t border-white/[0.03]">
               <div className="mb-6">
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-fb-yellow block">Taktik Kurul Odası Raporları</span>
+                <span className="text-xs font-black uppercase tracking-[0.25em] text-fb-yellow block">Taktik Kurul Odası Raporları</span>
                 <h2 className="text-xl font-display font-black text-white uppercase italic">Son Oyuncu Analizleri</h2>
               </div>
 
@@ -860,7 +896,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                   <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
                     Yayınlanmış oyuncu analizi henüz yok
                   </p>
-                  <p className="text-[10px] text-slate-500 italic">
+                  <p className="text-xs text-slate-500 italic">
                     Taktik kurul raporları yayınlandıkça en güncel üç analiz burada listelenir.
                   </p>
                 </div>
@@ -870,16 +906,16 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                   <div 
                     key={art.id || i} 
                     onClick={() => onNavigate('analysis')}
-                    className="p-6 rounded-2xl bg-[#121724]/90 border border-white/[0.05] hover:border-fb-yellow/20 transition-all cursor-pointer space-y-3 flex flex-col justify-between"
+                    className="p-6 rounded-2xl bg-[#121724]/90 border border-white/[0.05] hover:border-fb-yellow/20 transition-colors cursor-pointer space-y-3 flex flex-col justify-between"
                   >
                     <div className="space-y-2">
-                      <span className="text-[8.5px] font-black text-fb-yellow tracking-widest uppercase block">{art.category || 'Analiz'}</span>
+                      <span className="text-xs font-black text-fb-yellow tracking-widest uppercase block">{art.category || 'Analiz'}</span>
                       <h4 className="text-sm font-black text-white hover:text-fb-yellow transition-colors">{art.title}</h4>
                       <p className="text-xs text-fb-muted leading-relaxed line-clamp-3">
                         {art.excerpt}
                       </p>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#FFD21F] flex items-center gap-1 pt-2 border-t border-white/5 mt-3">
+                    <span className="text-xs font-black uppercase tracking-widest text-[#FFD21F] flex items-center gap-1 pt-2 border-t border-white/5 mt-3">
                       Detayları Oku <ChevronRight size={11} />
                     </span>
                   </div>
@@ -959,15 +995,15 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                   {/* Right Dual ratings */}
                   <div className="flex gap-4">
                     <div className="p-4 rounded-2xl bg-fb-dark border border-white/5 text-center min-w-[90px]">
-                      <span className="text-[8px] font-black text-[#5C6F84] uppercase tracking-wider block mb-1">FORM PUANI</span>
+                      <span className="text-xs font-black text-[#5C6F84] uppercase tracking-wider block mb-1">FORM PUANI</span>
                       <span className="text-2xl font-display font-black text-emerald-400 leading-none">{currentPlayer.formRating}</span>
-                      <span className="text-[10px] text-slate-400 block mt-1">/ 10.0</span>
+                      <span className="text-xs text-slate-400 block mt-1">/ 10.0</span>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-fb-dark border border-white/5 text-center min-w-[90px]">
-                      <span className="text-[8px] font-black text-[#5C6F84] uppercase tracking-wider block mb-1">SON MAÇ</span>
+                      <span className="text-xs font-black text-[#5C6F84] uppercase tracking-wider block mb-1">SON MAÇ</span>
                       <span className="text-2xl font-display font-black text-fb-yellow leading-none">{currentPlayer.lastMatchRating}</span>
-                      <span className="text-[10px] text-slate-400 block mt-1">/ 10.0</span>
+                      <span className="text-xs text-slate-400 block mt-1">/ 10.0</span>
                     </div>
                   </div>
 
@@ -975,7 +1011,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-6 text-xs text-slate-300 border-t border-white/[0.04]">
                   <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-[9px] font-black text-fb-muted block mb-1">TREND DURUMU</span>
+                    <span className="text-xs font-black text-fb-muted block mb-1">TREND DURUMU</span>
                     <span className={`inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider ${
                       currentPlayer.trend === 'yükselişte' 
                         ? 'text-emerald-400' 
@@ -989,35 +1025,35 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                   </div>
 
                   <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-[9px] font-black text-fb-muted block mb-1">BOY</span>
+                    <span className="text-xs font-black text-fb-muted block mb-1">BOY</span>
                     <span className="text-[11px] font-black text-white">
                       {currentPlayer.height ? `${currentPlayer.height} cm` : '182 cm'}
                     </span>
                   </div>
 
                   <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-[9px] font-black text-fb-muted block mb-1">TERCİH EDİLEN AYAK</span>
+                    <span className="text-xs font-black text-fb-muted block mb-1">TERCİH EDİLEN AYAK</span>
                     <span className="text-[11px] font-black text-white">
                       {currentPlayer.preferredFoot || 'Sağ Ayak'}
                     </span>
                   </div>
 
                   <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-[9px] font-black text-fb-muted block mb-1">PİYASA DEĞERİ</span>
+                    <span className="text-xs font-black text-fb-muted block mb-1">PİYASA DEĞERİ</span>
                     <span className="text-[11px] font-black text-fb-yellow">
                       {currentPlayer.marketValue || '€12.5M'}
                     </span>
                   </div>
 
                   <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-[9px] font-black text-fb-muted block mb-1">SÖZLEŞME BİTİŞ</span>
+                    <span className="text-xs font-black text-fb-muted block mb-1">SÖZLEŞME BİTİŞ</span>
                     <span className="text-[11px] font-black text-white">
                       {currentPlayer.contractEndDate || '30.06.2027'}
                     </span>
                   </div>
 
                   <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-[9px] font-black text-fb-muted block mb-1">ROLU / SEZON</span>
+                    <span className="text-xs font-black text-fb-muted block mb-1">ROLU / SEZON</span>
                     <span className="text-[11px] font-black text-[#5C6F84]">
                       {currentPlayer.status === 'active' ? (currentPlayer.firstXI ? 'AS (İLK XI)' : 'A TAKIM') : 'KİRALIK'} ({currentPlayer.season || '2026-27'})
                     </span>
@@ -1038,7 +1074,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                     
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.04]">
                       <div className="space-y-1">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-[9px] uppercase font-black tracking-wider">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-xs uppercase font-black tracking-wider">
                           <Sliders size={11} /> FİZİKSEL & TEKNİK KÜNYE
                         </span>
                         <h3 className="text-lg font-display font-black text-white italic uppercase tracking-tight leading-none">
@@ -1047,7 +1083,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                       </div>
                       {currentPlayer.marketValue && (
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black text-fb-muted uppercase tracking-widest">PİYASA DEĞERİ:</span>
+                          <span className="text-xs font-black text-fb-muted uppercase tracking-widest">PİYASA DEĞERİ:</span>
                           <span className="font-mono text-base font-black px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                             {currentPlayer.marketValue}
                           </span>
@@ -1068,7 +1104,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         { label: 'Sözleşme', val: currentPlayer.contractEndDate },
                       ].filter(f => f.val).map((f, i) => (
                         <div key={i} className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                          <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-500 font-mono block mb-1">{f.label}</span>
+                          <span className="text-xs font-black uppercase tracking-widest text-slate-500 font-mono block mb-1">{f.label}</span>
                           <span className="text-xs font-black text-white leading-tight block truncate">{f.val}</span>
                         </div>
                       ))}
@@ -1076,9 +1112,9 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
                     {currentPlayer.subPositions && currentPlayer.subPositions.length > 0 && (
                       <div className="flex flex-wrap items-center gap-2 pt-1">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-fb-muted font-mono">Oynayabildiği Mevkiler:</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-fb-muted font-mono">Oynayabildiği Mevkiler:</span>
                         {currentPlayer.subPositions.map((sp, i) => (
-                          <span key={i} className="text-[9px] font-bold px-2 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow">{sp}</span>
+                          <span key={i} className="text-xs font-bold px-2 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow">{sp}</span>
                         ))}
                       </div>
                     )}
@@ -1090,7 +1126,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.04]">
                       <div className="space-y-1">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-[9px] uppercase font-black tracking-wider">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-xs uppercase font-black tracking-wider">
                           <Activity size={10} /> TAKTİKSEL KARŞILAŞTIRMA MATRİSİ
                         </span>
                         <h3 className="text-base font-display font-black text-white italic uppercase tracking-tight leading-none">
@@ -1126,14 +1162,14 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                             {/* Comparison Side By Side Header info */}
                             <div className="grid grid-cols-2 gap-4 pb-4 border-b border-white/[0.04] text-center">
                               <div className="p-3.5 rounded-2xl bg-fb-navy/20 border border-fb-yellow/15 relative">
-                                <span className="absolute top-2 left-3 text-[8px] font-black text-fb-yellow tracking-widest">HEDEF SEÇİM</span>
+                                <span className="absolute top-2 left-3 text-xs font-black text-fb-yellow tracking-widest">HEDEF SEÇİM</span>
                                 <span className="text-xs font-black text-white block mt-1.5 uppercase italic truncate">{currentPlayer.name}</span>
-                                <span className="text-[10px] text-emerald-400 font-bold block">İndeks: {currentPlayer.formRating} Form</span>
+                                <span className="text-xs text-emerald-400 font-bold block">İndeks: {currentPlayer.formRating} Form</span>
                               </div>
                               <div className="p-3.5 rounded-2xl bg-[#1A1F2C]/40 border border-white/5 relative">
-                                <span className="absolute top-2 left-3 text-[8px] font-black text-slate-400 tracking-widest">KIYAS MAKAM</span>
+                                <span className="absolute top-2 left-3 text-xs font-black text-slate-400 tracking-widest">KIYAS MAKAM</span>
                                 <span className="text-xs font-black text-white block mt-1.5 uppercase italic truncate">{companion.name}</span>
-                                <span className="text-[10px] text-fb-yellow font-bold block">İndeks: {companion.formRating} Form</span>
+                                <span className="text-xs text-fb-yellow font-bold block">İndeks: {companion.formRating} Form</span>
                               </div>
                             </div>
 
@@ -1277,14 +1313,14 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         {currentPlayer.recentMatches.map((m, i) => (
                           <div key={i} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-[#0b101c] border border-white/[0.04]">
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <span className={`w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-[10px] font-black font-mono ${m.result === 'G' ? 'bg-emerald-500/15 text-emerald-400' : m.result === 'M' ? 'bg-rose-500/15 text-rose-400' : 'bg-white/10 text-slate-300'}`}>{m.result}</span>
+                              <span className={`w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-xs font-black font-mono ${m.result === 'G' ? 'bg-emerald-500/15 text-emerald-400' : m.result === 'M' ? 'bg-rose-500/15 text-rose-400' : 'bg-white/10 text-slate-300'}`}>{m.result}</span>
                               <div className="min-w-0">
                                 <div className="text-[11px] font-black text-white truncate">vs {m.opponent} <span className="font-mono text-fb-yellow">{m.score}</span></div>
-                                <div className="text-[9px] text-slate-500 font-mono uppercase truncate">{m.competition}</div>
+                                <div className="text-xs text-slate-500 font-mono uppercase truncate">{m.competition}</div>
                               </div>
                             </div>
                             {m.note && (
-                              <span className="shrink-0 text-[9px] font-black uppercase tracking-wider text-fb-yellow bg-fb-yellow/10 border border-fb-yellow/20 rounded px-2 py-0.5">{m.note}</span>
+                              <span className="shrink-0 text-xs font-black uppercase tracking-wider text-fb-yellow bg-fb-yellow/10 border border-fb-yellow/20 rounded px-2 py-0.5">{m.note}</span>
                             )}
                           </div>
                         ))}
@@ -1294,7 +1330,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
                           Bu oyuncu için maç kaydı henüz yok
                         </p>
-                        <p className="text-[10px] text-slate-500 italic">
+                        <p className="text-xs text-slate-500 italic">
                           Oyuncu forma giydikçe son karşılaşmaları burada listelenecek.
                         </p>
                       </div>
@@ -1308,7 +1344,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         {currentPlayer.seasonStats ? `${currentPlayer.seasonStats.season} Sezon İstatistikleri` : 'Sezon İstatistikleri'}
                       </h3>
                       {currentPlayer.seasonStats && (
-                        <span className="text-[9px] text-slate-400 font-mono uppercase tracking-wider">{currentPlayer.seasonStats.scope}</span>
+                        <span className="text-xs text-slate-400 font-mono uppercase tracking-wider">{currentPlayer.seasonStats.scope}</span>
                       )}
                     </div>
 
@@ -1323,7 +1359,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                           ].map(s => (
                             <div key={s.label} className="p-4 rounded-xl bg-[#0b101c] border border-white/[0.05] text-center">
                               <div className={`text-2xl font-display font-black italic ${s.accent}`}>{s.value}</div>
-                              <div className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-1 font-mono">{s.label}</div>
+                              <div className="text-xs text-slate-400 font-black uppercase tracking-widest mt-1 font-mono">{s.label}</div>
                             </div>
                           ))}
                         </div>
@@ -1334,14 +1370,14 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                           <span>Oyuna Girdi: <strong className="text-white">{currentPlayer.seasonStats.subOn}</strong></span>
                           <span>Oyundan Çıktı: <strong className="text-white">{currentPlayer.seasonStats.subOff}</strong></span>
                         </div>
-                        <p className="text-[9px] text-slate-500 font-mono">Kaynak: {currentPlayer.seasonStats.source || 'Transfermarkt'} • {currentPlayer.seasonStats.season} sezonu, tüm resmi maçlar</p>
+                        <p className="text-xs text-slate-500 font-mono">Kaynak: {currentPlayer.seasonStats.source || 'Transfermarkt'} • {currentPlayer.seasonStats.season} sezonu, tüm resmi maçlar</p>
                       </>
                     ) : (
                       <div className="p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
                         <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
                           Geçmiş sezon istatistiği bulunmuyor
                         </p>
-                        <p className="text-[10px] text-slate-500 italic">
+                        <p className="text-xs text-slate-500 italic">
                           Oyuncu geçen sezon kulüpte forma giymedi ya da veri kaynağında kaydı yok. Yeni sezon verileri maçlar oynandıkça eklenecek.
                         </p>
                       </div>
@@ -1378,7 +1414,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         <button 
                           type="submit" 
                           disabled={waitlistLoading}
-                          className="w-full py-2 bg-fb-yellow hover:bg-white text-fb-navy text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer"
+                          className="w-full py-2 bg-fb-yellow hover:bg-white text-fb-navy text-xs font-black uppercase rounded-lg transition-colors cursor-pointer"
                         >
                           {waitlistLoading ? 'EKLENİYOR...' : 'ÖNCÜ LİSTEYE BÖLÜN'}
                         </button>
@@ -1405,7 +1441,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                               onNavigate(item.view);
                             }
                           }}
-                          className="p-3 rounded bg-fb-dark/80 border border-white/5 hover:border-fb-yellow/20 cursor-pointer transition-all flex items-center justify-between text-xs font-bold text-slate-100"
+                          className="p-3 rounded bg-fb-dark/80 border border-white/5 hover:border-fb-yellow/20 cursor-pointer transition-colors flex items-center justify-between text-xs font-bold text-slate-100"
                         >
                           <span className="truncate pr-2">{item.title}</span>
                           <ChevronRight size={14} className="shrink-0 text-fb-yellow" />
