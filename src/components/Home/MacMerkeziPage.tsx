@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { dbGetCollection } from '../../lib/dbService';
 import ShotmapPitch from './ShotmapPitch';
+import { DataBadge, EmptyState, XGCompare } from '../ui';
 
 interface MacMerkeziPageProps {
   onNavigate: (view: string) => void;
@@ -466,6 +467,7 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
           return null;
         };
         // Match'te yoksa overlay ile doldur
+        const fetchedAt = adv.fetchedAt || m.statsFetchedAt || null;
         if (m.possessionHome == null && m.xGHome == null) {
           setAdvancedOverlay({
             possessionHome: num(H, ['Ball possession', 'possession']),
@@ -480,13 +482,17 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
             foulsAway: num(A, ['Fouls committed', 'Fouls']),
             xGHome: num(H, ['expectedGoals', 'Expected goals', 'xG']),
             xGAway: num(A, ['expectedGoals', 'Expected goals', 'xG']),
-            statsProvider: 'fotmob',
+            statsProvider: adv.provider || 'fotmob',
+            statsFetchedAt: fetchedAt,
             shotmapCount: Array.isArray(adv.shotmap) ? adv.shotmap.length : 0,
           });
         } else {
           setAdvancedOverlay({
-            statsProvider: m.statsProvider || 'fotmob',
+            statsProvider: m.statsProvider || adv.provider || 'fotmob',
+            statsFetchedAt: fetchedAt,
             shotmapCount: Array.isArray(adv.shotmap) ? adv.shotmap.length : m.shotmapCount,
+            xGHome: m.xGHome ?? num(H, ['expectedGoals', 'Expected goals', 'xG']),
+            xGAway: m.xGAway ?? num(A, ['expectedGoals', 'Expected goals', 'xG']),
           });
         }
         if (Array.isArray(adv.shotmap) && adv.shotmap.length) {
@@ -1343,10 +1349,21 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                   </>
                 ) : null}
 
-                {/* Detaylı istatistik — varsa gerçek, yoksa dürüst boş durum */}
+                {/* Detaylı istatistik — varsa gerçek, yoksa dürüst EmptyState + DataBadge */}
                 {hasDetailedStats ? (
                   <div className="p-6 md:p-8 rounded-2xl bg-[#0b101c] border border-white/[0.08] space-y-5 max-w-3xl">
-                    <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase block border-b border-white/5 pb-2.5 font-mono">Maç İstatistikleri</span>
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2.5">
+                      <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase font-mono">Maç İstatistikleri</span>
+                      <DataBadge
+                        provider={resolvedActiveMatch.statsProvider}
+                        fetchedAt={resolvedActiveMatch.statsFetchedAt}
+                        extra={
+                          resolvedActiveMatch.shotmapCount
+                            ? `${resolvedActiveMatch.shotmapCount} şut noktası`
+                            : null
+                        }
+                      />
+                    </div>
                     {[
                       { label: 'Topa Sahip Olma (%)', h: resolvedActiveMatch.possessionHome, a: resolvedActiveMatch.possessionAway, pct: true },
                       { label: 'Toplam Şut', h: resolvedActiveMatch.shotsHome, a: resolvedActiveMatch.shotsAway },
@@ -1371,48 +1388,51 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
                         </div>
                       );
                     })}
-                    {(resolvedActiveMatch.xGHome != null || resolvedActiveMatch.xGAway != null || resolvedActiveMatch.xG) && (
-                      <div className="p-3 bg-emerald-500/10 rounded-lg space-y-1">
-                        <div className="text-xs uppercase text-emerald-400 font-black">Gol Beklentisi (xG)</div>
-                        <div className="text-xl font-mono font-black text-white mt-1">
-                          {resolvedActiveMatch.xGHome != null || resolvedActiveMatch.xGAway != null
-                            ? `${resolvedActiveMatch.xGHome ?? '—'} – ${resolvedActiveMatch.xGAway ?? '—'}`
-                            : resolvedActiveMatch.xG}
-                        </div>
-                        {resolvedActiveMatch.statsProvider && (
-                          <div className="text-[9px] font-mono text-emerald-500/80 uppercase tracking-wider">
-                            Kaynak: {resolvedActiveMatch.statsProvider}
-                            {resolvedActiveMatch.shotmapCount ? ` · ${resolvedActiveMatch.shotmapCount} şut haritası noktası` : ''}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <XGCompare
+                      home={resolvedActiveMatch.xGHome}
+                      away={resolvedActiveMatch.xGAway}
+                      homeLabel={resolvedActiveMatch.homeTeam}
+                      awayLabel={resolvedActiveMatch.awayTeam}
+                    />
                   </div>
                 ) : (
-                  <div className="p-6 rounded-2xl bg-[#0b101c] border border-white/[0.06] flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 text-slate-400">
-                      <BarChart3 className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-1">
-                      <h3 className="text-sm font-black text-white uppercase">Detaylı istatistik verisi bulunmuyor</h3>
-                      <p className="text-xs text-slate-400 leading-relaxed max-w-xl">
-                        Bu karşılaşma için topa sahip olma, şut ve xG gibi detaylı istatistikler veri sağlayıcılar tarafından yayınlanmadı.
-                        {isCompleted && activeGoals.length > 0 ? ' Yukarıdaki gol zaman çizelgesi ve skor akışı gerçek maç kayıtlarından üretilmiştir.' : ''}
-                      </p>
-                    </div>
-                  </div>
+                  <EmptyState
+                    icon={BarChart3}
+                    title="Detaylı istatistik verisi yok"
+                    description={
+                      isCompleted && activeGoals.length > 0
+                        ? 'Topa sahip olma, şut ve xG sağlayıcıdan gelmedi. Gol zaman çizelgesi gerçek maç kayıtlarından üretilmiştir — uydurma metrik basılmadı.'
+                        : 'Bu karşılaşma için topa sahip olma, şut ve xG gibi detaylı istatistikler henüz yok.'
+                    }
+                    className="max-w-3xl"
+                  />
                 )}
 
-                {/* Şut haritası (FotMob advanced) */}
-                {shotmapShots.length > 0 && resolvedActiveMatch && (
-                  <motion.div {...fadeUp} className="max-w-4xl">
+                {/* Şut haritası (FotMob advanced) veya dürüst boş */}
+                {shotmapShots.length > 0 && resolvedActiveMatch ? (
+                  <motion.div {...fadeUp} className="max-w-4xl space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase font-mono">Şut Haritası</span>
+                      <DataBadge
+                        provider={resolvedActiveMatch.statsProvider || 'fotmob'}
+                        fetchedAt={resolvedActiveMatch.statsFetchedAt}
+                        extra={`${shotmapShots.length} nokta`}
+                      />
+                    </div>
                     <ShotmapPitch
                       shots={shotmapShots}
                       homeTeam={resolvedActiveMatch.homeTeam}
                       awayTeam={resolvedActiveMatch.awayTeam}
                     />
                   </motion.div>
-                )}
+                ) : isCompleted ? (
+                  <EmptyState
+                    icon={Activity}
+                    title="Şut haritası yok"
+                    description="Bu maç için shotmap koordinatları sağlayıcıda yok veya henüz çekilmedi. Sıfır uydurma nokta basılmaz."
+                    className="max-w-3xl"
+                  />
+                ) : null}
 
                 {/* İki takım kadroları — gerçek ilk 11'ler */}
                 {(Array.isArray(resolvedActiveMatch.lineupHome) && resolvedActiveMatch.lineupHome.length > 0) && (

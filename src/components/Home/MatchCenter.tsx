@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, AlertTriangle, Vote } from 'lucide-react';
 import { dbGetCollection } from '../../lib/dbService';
+import { DataBadge, EmptyState, XGCompare } from '../ui';
 
 interface MatchCenterProps {
   onNavigate: (view: string) => void;
@@ -153,12 +154,13 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
             Veriler Alınıyor…
           </div>
         ) : !matchData ? (
-          <div className="p-16 rounded-2xl bg-[#111625] border border-white/[0.08] text-center space-y-4">
-            <Calendar className="w-12 h-12 text-slate-500 mx-auto opacity-60" />
-            <p className="text-slate-400 text-sm font-bold uppercase tracking-wider">
-              Yaklaşan maç bilgisi henüz eklenmedi.
-            </p>
-          </div>
+          <EmptyState
+            variant="hero"
+            icon={Calendar}
+            title="Maç verisi henüz yok"
+            description="Yaklaşan veya featured maç CMS / sync ile eklendiğinde burada görünür. Uydurma fikstür basılmaz."
+            action={{ label: 'Maç Merkezi Arşivi', onClick: () => onNavigate('match-center') }}
+          />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             
@@ -167,10 +169,17 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500 via-transparent to-red-500 opacity-65" />
               
               <div>
-                <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/[0.05]">
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/[0.05] gap-2">
                   <div className="text-[11px] font-black text-slate-400 uppercase font-mono tracking-wider">
                     {matchData.competition || 'Trendyol Süper Lig'}
                   </div>
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                  {(matchData.statsProvider || matchData.statsFetchedAt) && (
+                    <DataBadge
+                      provider={matchData.statsProvider}
+                      fetchedAt={matchData.statsFetchedAt}
+                    />
+                  )}
                   {matchData.status === 'live' ? (
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[9px] font-black text-red-400 font-mono">
                       <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
@@ -185,6 +194,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                       YAKLAŞAN MAÇ
                     </div>
                   )}
+                  </div>
                 </div>
 
                 {/* Matchup row */}
@@ -324,6 +334,15 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                           Bu karşılaşma için maç önü analizi henüz yayınlanmadı. Analiz ekibinin değerlendirmesi
                           maç haftasında bu alanda yer alacak.
                         </p>
+                      )}
+
+                      {isFinished && (matchData.xGHome != null || matchData.xGAway != null) && (
+                        <XGCompare
+                          home={matchData.xGHome}
+                          away={matchData.xGAway}
+                          homeLabel={matchData.homeTeam}
+                          awayLabel={matchData.awayTeam}
+                        />
                       )}
 
                       {matchData.tacticalNotes && matchData.tacticalNotes.length > 0 && (

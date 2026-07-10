@@ -15,6 +15,11 @@
   --color-fb-warning: #FFB020;
   --color-fb-muted: #AAB2C0;
   --color-fb-text: #F5F7FA;
+
+  /* D1 design tokens — tek dil (kart / chip / kontrol) */
+  --radius-card: 1rem;      /* 16px — rounded-2xl */
+  --radius-chip: 0.5rem;    /* 8px — rounded-lg */
+  --radius-control: 0.75rem; /* 12px — rounded-xl */
 }
 
 @layer base {

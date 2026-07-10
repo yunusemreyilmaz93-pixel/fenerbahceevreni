@@ -127,7 +127,8 @@ const ACCENTS: Record<NonNullable<StatChipProps['accent']>, string> = {
 };
 
 export const StatChip: React.FC<StatChipProps> = ({ label, value, hint, accent = 'neutral', className = '' }) => {
-  const hasValue = value !== null && value !== undefined && value !== '' && value !== 0 && value !== '0';
+  // 0 is valid sports data (e.g. 0 goals) — only null/undefined/'' mean "no data"
+  const hasValue = value !== null && value !== undefined && value !== '';
   return (
     <div className={`p-4 rounded-xl bg-fb-card/60 border border-white/[0.06] ${className}`}>
       <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 font-mono block mb-1">{label}</span>
@@ -135,6 +136,156 @@ export const StatChip: React.FC<StatChipProps> = ({ label, value, hint, accent =
         {hasValue ? value : '—'}
       </span>
       {hint && <span className="text-[9px] text-slate-500 block mt-0.5">{hint}</span>}
+    </div>
+  );
+};
+
+// ── DataBadge (provider + fetchedAt) — world-class kaynak şeffaflığı ────────
+export function formatFetchedAtRelative(iso?: string | null): string {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return '';
+  const diffMs = Date.now() - t;
+  if (diffMs < 0) return 'az önce';
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'az önce';
+  if (mins < 60) return `${mins} dk önce`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return `${hours} sa önce`;
+  const days = Math.floor(hours / 24);
+  if (days < 14) return `${days} g önce`;
+  try {
+    return new Date(iso).toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return '';
+  }
+}
+
+export function formatProviderLabel(provider?: string | null): string {
+  if (!provider) return '';
+  const p = String(provider).toLowerCase().trim();
+  const map: Record<string, string> = {
+    fotmob: 'FotMob',
+    transfermarkt: 'Transfermarkt',
+    fbref: 'FBref',
+    sofascore: 'SofaScore',
+    api_football: 'API-Football',
+    manual: 'Manuel',
+  };
+  return map[p] || provider;
+}
+
+interface DataBadgeProps {
+  provider?: string | null;
+  fetchedAt?: string | null;
+  /** Extra short note e.g. "25 şut noktası" */
+  extra?: string | null;
+  /** When true, show "veri yok" style if no provider */
+  showMissing?: boolean;
+  className?: string;
+}
+
+/**
+ * Kaynak etiketi: provider + ne zaman çekildi.
+ * Sahte metrik basmaz; sadece şeffaflık.
+ */
+export const DataBadge: React.FC<DataBadgeProps> = ({
+  provider,
+  fetchedAt,
+  extra,
+  showMissing = false,
+  className = '',
+}) => {
+  const label = formatProviderLabel(provider);
+  const when = formatFetchedAtRelative(fetchedAt);
+  if (!label && !when && !extra) {
+    if (!showMissing) return null;
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-white/[0.06] bg-white/[0.02] text-[9px] font-mono font-bold uppercase tracking-wider text-slate-500 ${className}`}
+        title="Bu blok için kaynak bilgisi yok"
+      >
+        kaynak yok
+      </span>
+    );
+  }
+  return (
+    <span
+      className={`inline-flex flex-wrap items-center gap-x-2 gap-y-0.5 px-2 py-0.5 rounded-md border border-emerald-500/15 bg-emerald-500/[0.06] text-[9px] font-mono font-bold uppercase tracking-wider text-emerald-400/90 ${className}`}
+      title={[label && `Kaynak: ${label}`, fetchedAt && `Çekim: ${fetchedAt}`, extra]
+        .filter(Boolean)
+        .join(' · ')}
+    >
+      {label && <span>{label}</span>}
+      {when && (
+        <>
+          {label && <span className="text-emerald-500/40" aria-hidden>·</span>}
+          <span className="text-emerald-500/80 normal-case tracking-normal">{when}</span>
+        </>
+      )}
+      {extra && (
+        <>
+          {(label || when) && <span className="text-emerald-500/40" aria-hidden>·</span>}
+          <span className="text-slate-400 normal-case tracking-normal font-semibold">{extra}</span>
+        </>
+      )}
+    </span>
+  );
+};
+
+// ── XGCompare bar (honest null) ────────────────────────────────────────────
+interface XGCompareProps {
+  home: number | null | undefined;
+  away: number | null | undefined;
+  homeLabel?: string;
+  awayLabel?: string;
+  className?: string;
+}
+
+export const XGCompare: React.FC<XGCompareProps> = ({
+  home,
+  away,
+  homeLabel = 'Ev',
+  awayLabel = 'Dep',
+  className = '',
+}) => {
+  const has = home != null || away != null;
+  if (!has) {
+    return (
+      <div className={`p-3 rounded-lg bg-white/[0.02] border border-dashed border-white/[0.08] ${className}`}>
+        <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">
+          xG verisi yok
+        </p>
+      </div>
+    );
+  }
+  const h = Number(home) || 0;
+  const a = Number(away) || 0;
+  const total = h + a || 1;
+  const hw = (h / total) * 100;
+  return (
+    <div className={`p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/15 space-y-2 ${className}`}>
+      <div className="flex justify-between items-baseline gap-2">
+        <span className="text-lg font-mono font-black text-white tabular-nums">
+          {home != null ? h.toFixed(2) : '—'}
+        </span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">xG</span>
+        <span className="text-lg font-mono font-black text-white tabular-nums">
+          {away != null ? a.toFixed(2) : '—'}
+        </span>
+      </div>
+      <div className="h-2 rounded-full bg-white/5 overflow-hidden flex" role="img" aria-label={`xG ${homeLabel} ${home ?? 'yok'}, ${awayLabel} ${away ?? 'yok'}`}>
+        <div className="bg-fb-yellow transition-all" style={{ width: `${hw}%` }} />
+        <div className="bg-slate-600 transition-all" style={{ width: `${100 - hw}%` }} />
+      </div>
+      <div className="flex justify-between text-[9px] font-mono text-slate-500 uppercase tracking-wider">
+        <span>{homeLabel}</span>
+        <span>{awayLabel}</span>
+      </div>
     </div>
   );
 };

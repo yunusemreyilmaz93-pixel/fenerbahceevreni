@@ -21,11 +21,17 @@
 - CMS maçlar: `public/data/matches.json` (~10; skorlu advanced stub + upcoming)
 - TM scrape CI’da 403 → cache snapshot upsert (partial)
 
+## Son tamamlanan (D1)
+
+- `DataBadge`, `XGCompare`, EmptyState wire (Maç Merkezi + homepage MatchCenter)
+- StatChip: 0 geçerli metrik (artık “—” sayılmaz)
+- CSS radius tokens (`--radius-card/chip/control`)
+
 ## Sonraki
 
-1. **UI/UX 200** (Faz D): design system + homepage nabız + Maç Merkezi polish  
-2. DataBadge (provider + fetchedAt) her advanced blokta  
-3. Sahte formRating temizliği oyuncu UI  
+1. **D2** Homepage “bugünün nabzı” (scroll kısalt, 1 maç + 1 analiz + 1 anket)  
+2. Oyuncu sayfası formRating null disiplini  
+3. Design system genişletme (daha fazla sayfa)
 
 ## Komutlar
 
