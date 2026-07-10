@@ -24,6 +24,9 @@ import { dbGetCollection } from '../../lib/dbService';
 import { useMatchAdvanced } from '../../hooks/useMatchAdvanced';
 import MatchStatsTab from './match/MatchStatsTab';
 import { GoalTimeline } from './match/MatchGoalViz';
+import { TeamBadge, getInitials } from './match/TeamBadge';
+import { MatchCenterHero, MATCH_CENTER_KPI_ICONS } from './match/MatchCenterHero';
+import MatchFixturesStandings from './match/MatchFixturesStandings';
 
 interface MacMerkeziPageProps {
   onNavigate: (view: string) => void;
@@ -32,26 +35,6 @@ interface MacMerkeziPageProps {
 /* ------------------------------------------------------------------ */
 /* Küçük yardımcı bileşenler                                           */
 /* ------------------------------------------------------------------ */
-
-const getInitials = (name: string) => {
-  if (!name) return 'FB';
-  return name
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .slice(0, 3)
-    .toUpperCase();
-};
-
-const TeamBadge: React.FC<{ src: string | null; name: string; size?: string }> = ({ src, name, size = 'w-12 h-12' }) => (
-  src ? (
-    <img src={src} alt={name} className={`${size} object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.55)]`} referrerPolicy="no-referrer" />
-  ) : (
-    <div className={`${size} rounded-full bg-slate-800/80 border border-white/10 flex items-center justify-center text-xs font-black font-mono text-slate-300`}>
-      {getInitials(name)}
-    </div>
-  )
-);
 
 /** Yükleme iskeleti — sayfa verisi gelene dek. */
 const HeroSkeleton: React.FC = () => (
@@ -445,80 +428,57 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
         canonical="https://fenerbahceevreni.com/mac-merkezi"
       />
 
-      {/* ============ 1. SİNEMATİK SAYFA GİRİŞİ ============ */}
-      <section className="relative -mx-4 md:-mx-8 px-4 md:px-8 pt-10 pb-2 overflow-hidden">
-        {/* katmanlı arka plan */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -left-32 w-[560px] h-[560px] bg-[#002F6C]/25 rounded-full blur-[130px]" />
-          <div className="absolute -top-24 right-0 w-[420px] h-[420px] bg-[#FFD21F]/[0.05] rounded-full blur-[110px]" />
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'repeating-linear-gradient(115deg, #fff 0px, #fff 1px, transparent 1px, transparent 14px)' }} />
-        </div>
-
-        <div className="relative z-10 space-y-3 max-w-4xl">
-          <div className="flex items-center gap-3">
-            {isLive && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-[10px] font-black uppercase text-red-400 tracking-widest animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Canlı veri aktif
-              </span>
-            )}
-            <span className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">2026-27 Sezonu • Hazırlık Dönemi</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-display font-black text-white uppercase tracking-tight leading-[0.9] italic">
-            Maç <span className="inline-block pr-3 text-transparent bg-clip-text bg-gradient-to-r from-[#FFD21F] to-[#ffe680]">Merkezi</span>
-          </h1>
-        </div>
-
-        {/* özet şeridi */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-10">
-          {[
-            {
-              label: 'SIRADAKİ MAÇ', icon: Calendar, accent: 'text-[#FFD21F]',
-              main: nextMatchItem ? `vs ${nextMatchItem.awayTeam === 'Fenerbahçe' ? nextMatchItem.homeTeam : nextMatchItem.awayTeam}` : null,
-              sub: nextMatchItem ? `${formattedDate(nextMatchItem.matchDate)} • ${formattedTime(nextMatchItem.matchDate)}` : null,
-              empty: 'Planlı maç bulunmuyor'
-            },
-            {
-              label: 'SON MAÇ', icon: Trophy, accent: 'text-emerald-400',
-              main: lastMatchItem ? `${lastMatchItem.scoreHome} - ${lastMatchItem.scoreAway}` : null,
-              sub: lastMatchItem ? `vs ${lastMatchItem.homeTeam === 'Fenerbahçe' ? lastMatchItem.awayTeam : lastMatchItem.homeTeam}` : null,
-              empty: 'Oynanmış maç bulunmuyor'
-            },
-            {
-              label: standingsMeta?.season ? `PUAN DURUMU (${standingsMeta.season}${standingsMeta.isFinal ? ' FİNAL' : ''})` : 'PUAN DURUMU', icon: BarChart3, accent: 'text-sky-400',
-              main: fenerbahceStanding ? `${fenerbahceStanding.rank}. Sıra` : null,
-              sub: fenerbahceStanding ? `${fenerbahceStanding.points} Puan • ${fenerbahceStanding.played} Maç • Avr +${fenerbahceStanding.goalsDiff}` : null,
-              empty: 'Sezon henüz başlamadı'
-            },
-            {
-              label: 'MAÇ RAPORLARI', icon: FileText, accent: 'text-[#FFD21F]',
-              main: matchReports.length > 0 ? `${matchReports.length} Analiz` : null,
-              sub: matchReports.length > 0 ? 'Uzun-form taktik rapor' : null,
-              empty: 'Henüz rapor eklenmedi'
-            }
-          ].map((box, i) => (
-            <motion.div
-              key={box.label}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 * i, duration: 0.5 }}
-              className="bg-[#0b101c]/80 backdrop-blur border border-white/[0.06] p-4 rounded-2xl shadow-lg hover:border-[#FFD21F]/20 transition-colors group"
-            >
-              <div className="flex items-center justify-between mb-2.5">
-                <span className="text-[8.5px] font-black tracking-widest text-slate-400 uppercase font-mono">{box.label}</span>
-                <box.icon className={`w-3.5 h-3.5 ${box.accent} opacity-60 group-hover:opacity-100 transition-opacity`} />
-              </div>
-              {box.main ? (
-                <div className="space-y-0.5">
-                  <div className="text-base font-display font-black text-white italic leading-none truncate">{box.main}</div>
-                  <div className="text-[10px] text-slate-400 font-mono truncate">{box.sub}</div>
-                </div>
-              ) : (
-                <div className="text-xs text-slate-500 font-bold italic">{box.empty}</div>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      {/* ============ 1. HERO + KPI ============ */}
+      <MatchCenterHero
+        isLive={!!isLive}
+        seasonLabel="2026-27 Sezonu"
+        boxes={[
+          {
+            label: 'Sıradaki maç',
+            icon: MATCH_CENTER_KPI_ICONS.Calendar,
+            accent: 'text-[#FFD21F]',
+            main: nextMatchItem
+              ? `vs ${nextMatchItem.awayTeam === 'Fenerbahçe' ? nextMatchItem.homeTeam : nextMatchItem.awayTeam}`
+              : null,
+            sub: nextMatchItem
+              ? `${formattedDate(nextMatchItem.matchDate)} • ${formattedTime(nextMatchItem.matchDate)}`
+              : null,
+            empty: 'Planlı maç yok',
+          },
+          {
+            label: 'Son maç',
+            icon: MATCH_CENTER_KPI_ICONS.Trophy,
+            accent: 'text-emerald-400',
+            main: lastMatchItem
+              ? `${lastMatchItem.scoreHome} - ${lastMatchItem.scoreAway}`
+              : null,
+            sub: lastMatchItem
+              ? `vs ${lastMatchItem.homeTeam === 'Fenerbahçe' ? lastMatchItem.awayTeam : lastMatchItem.homeTeam}`
+              : null,
+            empty: 'Oynanmış maç yok',
+          },
+          {
+            label: standingsMeta?.season
+              ? `Puan (${standingsMeta.season}${standingsMeta.isFinal ? ' final' : ''})`
+              : 'Puan durumu',
+            icon: MATCH_CENTER_KPI_ICONS.BarChart3,
+            accent: 'text-sky-400',
+            main: fenerbahceStanding ? `${fenerbahceStanding.rank}. sıra` : null,
+            sub: fenerbahceStanding
+              ? `${fenerbahceStanding.points} puan • ${fenerbahceStanding.played} maç`
+              : null,
+            empty: 'Tablo yok',
+          },
+          {
+            label: 'Maç raporları',
+            icon: MATCH_CENTER_KPI_ICONS.FileText,
+            accent: 'text-[#FFD21F]',
+            main: matchReports.length > 0 ? `${matchReports.length} analiz` : null,
+            sub: matchReports.length > 0 ? 'Taktik rapor' : null,
+            empty: 'Rapor yok',
+          },
+        ]}
+      />
 
       {/* ============ 2. MAÇ SAHNESİ ============ */}
       {loading ? (
@@ -1217,217 +1177,26 @@ export const MacMerkeziPage: React.FC<MacMerkeziPageProps> = ({ onNavigate }) =>
         </>
       )}
 
-      {/* ============ 4. FİKSTÜR + PUAN DURUMU ============ */}
-      <section id="fixtures-and-calendar" className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-2">
-        {/* Fikstür */}
-        <motion.div {...fadeUp} className="lg:col-span-7 space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-3">
-            <h2 className="text-2xl md:text-3xl font-display font-black text-white italic uppercase tracking-tight">Fikstür</h2>
-            <div className="flex flex-wrap gap-1.5">
-              {['Tüm Maçlar', 'Yaklaşan Maçlar', 'Tamamlanan Maçlar', 'Hazırlık', 'Süper Lig'].map(filter => {
-                const isSelected = fixtureFilter === filter;
-                return (
-                  <button
-                    key={filter}
-                    onClick={() => setFixtureFilter(filter)}
-                    className={`px-3 py-1 rounded-lg text-[10px] font-mono font-black uppercase transition-all whitespace-nowrap cursor-pointer ${isSelected ? 'bg-fb-yellow text-fb-navy' : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'}`}
-                  >
-                    {filter}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {visibleFixtures.length > 0 ? (
-            <div className="content-auto space-y-3">
-              {visibleFixtures.map((entry, idx) => {
-                if (entry.kind === 'league') {
-                  const w = entry.week;
-                  return (
-                    <motion.div
-                      key={`w-${w.week}`}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(idx, 8) * 0.05, duration: 0.45 }}
-                      className={`p-4 md:p-5 rounded-2xl border transition-all ${w.derby ? 'bg-gradient-to-r from-[#FFD21F]/[0.06] to-transparent border-[#FFD21F]/25' : 'bg-[#0b101c] border-white/[0.05] hover:border-white/15'}`}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="p-2.5 bg-[#05080e] rounded-xl border border-white/5 text-center min-w-[54px] font-mono shrink-0">
-                          <div className="text-sm font-black italic text-fb-yellow">{w.week}</div>
-                          <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">Hafta</div>
-                        </div>
-
-                        <div className="flex items-center gap-3 flex-1 justify-center min-w-0">
-                          <div className="flex items-center gap-2 justify-end w-[38%] min-w-0">
-                            <span className="text-xs font-black text-white uppercase truncate">{w.home ? 'Fenerbahçe' : w.opponent}</span>
-                            <TeamBadge src={w.home ? '/logos/fenerbahce.png' : (w.logo || getTeamLogoPath(w.opponent))} name={w.home ? 'Fenerbahçe' : w.opponent} size="w-5 h-5" />
-                          </div>
-                          <div className="font-mono text-center min-w-[56px] shrink-0">
-                            <span className="text-[9px] text-slate-400 font-bold uppercase">vs</span>
-                          </div>
-                          <div className="flex items-center gap-2 w-[38%] min-w-0">
-                            <TeamBadge src={w.home ? (w.logo || getTeamLogoPath(w.opponent)) : '/logos/fenerbahce.png'} name={w.home ? w.opponent : 'Fenerbahçe'} size="w-5 h-5" />
-                            <span className="text-xs font-black text-white uppercase truncate">{w.home ? w.opponent : 'Fenerbahçe'}</span>
-                          </div>
-                        </div>
-
-                        <div className="w-4 shrink-0" />
-                      </div>
-                      <div className="flex items-center gap-3 mt-2.5 pl-[68px] text-[9px] text-slate-500 font-mono uppercase tracking-wider">
-                        <span className="text-emerald-400/80">Trendyol Süper Lig • {leagueFixture?.season}</span>
-                        <span className="text-white/15">•</span>
-                        <span className={w.home ? 'text-emerald-400' : 'text-sky-400'}>{w.home ? '⌂ İç Saha' : '✈ Deplasman'}</span>
-                        {w.derby && <span className="px-1.5 py-px rounded bg-[#FFD21F]/15 text-[#FFD21F] border border-[#FFD21F]/25 text-[8px]">DERBİ</span>}
-                        <span className="text-white/15">•</span>
-                        <span>Tarih açıklanacak</span>
-                      </div>
-                    </motion.div>
-                  );
-                }
-
-                const item = entry.match;
-                const matchDateObj = new Date(item.matchDate);
-                const itemFinished = item.status === 'finished' || item.status === 'completed';
-                const itemLive = item.status === 'live';
-                const isActive = resolvedActiveMatch?.id === item.id;
-                return (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(idx, 8) * 0.05, duration: 0.45 }}
-                    onClick={() => handleSelectFixture(item, itemFinished ? 'Maç Sonu' : 'Maç Önü')}
-                    className={`group p-4 md:p-5 rounded-2xl border cursor-pointer transition-all ${isActive ? 'bg-[#FFD21F]/[0.04] border-[#FFD21F]/25' : 'bg-[#0b101c] border-white/[0.05] hover:border-[#FFD21F]/20 hover:bg-white/[0.015]'}`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="p-2.5 bg-[#05080e] rounded-xl border border-white/5 text-center min-w-[54px] font-mono shrink-0">
-                        <div className="text-sm font-black italic text-fb-yellow">{matchDateObj.getDate()}</div>
-                        <div className="text-[8px] text-slate-400 font-extrabold uppercase mt-0.5">{matchDateObj.toLocaleDateString('tr-TR', { month: 'short' })}</div>
-                      </div>
-
-                      <div className="flex items-center gap-3 flex-1 justify-center min-w-0">
-                        <div className="flex items-center gap-2 justify-end w-[38%] min-w-0">
-                          <span className="text-xs font-black text-white uppercase truncate">{item.homeTeam}</span>
-                          <TeamBadge src={getTeamLogo(item.homeTeam, item.homeLogo)} name={item.homeTeam} size="w-5 h-5" />
-                        </div>
-                        <div className="font-mono text-center min-w-[56px] shrink-0">
-                          {itemFinished || itemLive ? (
-                            <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-fb-yellow text-sm font-black italic">{item.scoreHome} - {item.scoreAway}</span>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 font-bold">{formattedTime(item.matchDate)}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 w-[38%] min-w-0">
-                          <TeamBadge src={getTeamLogo(item.awayTeam, item.awayLogo)} name={item.awayTeam} size="w-5 h-5" />
-                          <span className="text-xs font-black text-white uppercase truncate">{item.awayTeam}</span>
-                        </div>
-                      </div>
-
-                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-[#FFD21F] group-hover:translate-x-0.5 transition-all shrink-0" />
-                    </div>
-                    <div className="flex items-center gap-3 mt-2.5 pl-[68px] text-[9px] text-slate-500 font-mono uppercase tracking-wider">
-                      <span className="text-emerald-400/80">{item.competition}</span>
-                      {item.venue && <><span className="text-white/15">•</span><span className="truncate">{item.venue.split('/')[0]}</span></>}
-                      {itemFinished && <><span className="text-white/15">•</span><span className="text-emerald-400">MS</span></>}
-                    </div>
-                  </motion.div>
-                );
-              })}
-
-              {combinedFixtures.length > FIXTURE_PREVIEW_COUNT && (
-                <button
-                  onClick={() => setShowAllFixtures(v => !v)}
-                  className="w-full py-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] text-[10px] font-black uppercase tracking-widest text-slate-300 hover:text-white transition-all cursor-pointer"
-                >
-                  {showAllFixtures ? 'Daralt' : `Tamamını Gör (${combinedFixtures.length} Karşılaşma)`}
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="p-8 rounded-xl bg-white/[0.01] border border-white/5 text-center text-slate-500 text-xs italic">
-              Seçilen kıstasa uygun maç kaydı bulunamadı.
-            </div>
-          )}
-        </motion.div>
-
-        {/* Puan Durumu — gerçek 18 takım */}
-        <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.55 }} className="lg:col-span-5 space-y-5">
-          <div className="flex items-end justify-between border-b border-white/5 pb-3">
-            <h2 className="text-2xl md:text-3xl font-display font-black text-white italic uppercase tracking-tight">Puan Durumu</h2>
-            {standingsMeta?.season && (
-              <span className="text-[9px] font-mono font-black text-[#FFD21F] bg-[#FFD21F]/10 border border-[#FFD21F]/20 px-2.5 py-1 rounded-lg uppercase tracking-wider">
-                {standingsMeta.season}{standingsMeta.isFinal ? ' • Final' : ''}
-              </span>
-            )}
-          </div>
-
-          {standings && standings.length > 0 ? (
-            <div className="rounded-2xl bg-[#0b101c] border border-white/[0.08] overflow-hidden shadow-xl">
-              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-mono">Trendyol Süper Lig</span>
-                {standingsMeta?.source && <span className="text-[8px] text-slate-500 font-mono uppercase">Kaynak: {standingsMeta.source}</span>}
-              </div>
-              <div className="px-2 pb-3">
-                <div className="content-auto grid grid-cols-12 text-[9px] font-extrabold uppercase text-slate-500 font-mono tracking-wider border-b border-white/5 pb-1.5 px-2 text-center">
-                  <div className="col-span-1">#</div>
-                  <div className="col-span-5 text-left pl-1">Takım</div>
-                  <div className="col-span-1">O</div>
-                  <div className="col-span-1 text-emerald-400">G</div>
-                  <div className="col-span-1 text-slate-400">B</div>
-                  <div className="col-span-1 text-rose-400">M</div>
-                  <div className="col-span-1">AV</div>
-                  <div className="col-span-1 font-black text-[#FFD21F]">P</div>
-                </div>
-                {(showFullStandings ? standings : standings.slice(0, 10)).map((row, index) => {
-                  const isFenerbahce = row.teamName?.toLowerCase().includes('fenerbahce') || row.teamName?.toLowerCase().includes('fenerbahçe');
-                  const rank = row.rank || index + 1;
-                  const inRelegation = rank > relegationStart;
-                  return (
-                    <div
-                      key={index}
-                      className={`grid grid-cols-12 items-center text-xs text-center py-2 px-2 rounded-lg border transition-all mt-0.5 ${
-                        isFenerbahce
-                          ? 'bg-fb-yellow/10 border-[#FFD21F]/30 text-white font-black shadow-[inset_0_0_14px_rgba(255,210,31,0.08)]'
-                          : 'bg-transparent border-transparent text-slate-300 hover:bg-white/[0.02]'
-                      }`}
-                    >
-                      <div className={`col-span-1 font-mono font-black text-[11px] ${rank === 1 ? 'text-[#FFD21F]' : inRelegation ? 'text-rose-400' : ''}`}>{rank}</div>
-                      <div className="col-span-5 flex items-center gap-2 text-left pl-1 font-semibold min-w-0">
-                        <TeamBadge src={row.logo || getTeamLogoPath(row.teamName)} name={row.teamName} size="w-4.5 h-4.5" />
-                        <span className={`truncate text-[11px] ${isFenerbahce ? 'text-[#FFD21F]' : ''}`}>{row.teamName || '—'}</span>
-                      </div>
-                      <div className="col-span-1 font-mono text-[11px]">{row.played}</div>
-                      <div className="col-span-1 font-mono text-[11px] text-emerald-400">{row.win}</div>
-                      <div className="col-span-1 font-mono text-[11px] text-slate-400">{row.draw}</div>
-                      <div className="col-span-1 font-mono text-[11px] text-rose-400">{row.lose}</div>
-                      <div className="col-span-1 font-mono text-[10px] text-slate-400">{row.goalsDiff > 0 ? `+${row.goalsDiff}` : row.goalsDiff}</div>
-                      <div className="col-span-1 font-mono font-black text-[#FFD21F] text-[11px]">{row.points}</div>
-                    </div>
-                  );
-                })}
-                {standings.length > 10 && (
-                  <button
-                    onClick={() => setShowFullStandings(v => !v)}
-                    className="w-full mt-2 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-300 transition-all cursor-pointer"
-                  >
-                    {showFullStandings ? 'Daralt' : `Tüm Tabloyu Gör (${standings.length} Takım)`}
-                  </button>
-                )}
-                {standingsMeta?.isFinal && (
-                  <div className="mt-3 px-2 flex items-center gap-2 text-[9px] text-slate-500 font-mono">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400/60 inline-block" /> Son 3 sıra küme düştü • {standingsMeta.season} sezonu final tablosu
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="p-10 rounded-2xl bg-[#0b101c] border border-white/[0.08] text-center text-slate-500 text-xs italic font-semibold leading-relaxed">
-              Puan durumu verisi henüz eklenmedi.
-            </div>
-          )}
-        </motion.div>
-      </section>
+      {/* ============ 4. FİKSTÜR + PUAN ============ */}
+      <MatchFixturesStandings
+        visibleFixtures={visibleFixtures}
+        combinedFixturesLength={combinedFixtures.length}
+        fixturePreviewCount={FIXTURE_PREVIEW_COUNT}
+        showAllFixtures={showAllFixtures}
+        onToggleFixtures={() => setShowAllFixtures((v) => !v)}
+        fixtureFilter={fixtureFilter}
+        onFixtureFilter={setFixtureFilter}
+        onSelectMatch={handleSelectFixture}
+        activeMatchId={resolvedActiveMatch?.id}
+        getTeamLogo={getTeamLogo}
+        formattedTime={formattedTime}
+        leagueFixture={leagueFixture}
+        standings={standings}
+        standingsMeta={standingsMeta}
+        showFullStandings={showFullStandings}
+        onToggleStandings={() => setShowFullStandings((v) => !v)}
+        relegationStart={relegationStart}
+      />
 
       {/* ============ 5. SON MAÇ RAPORLARI ============ */}
       <motion.section {...fadeUp} className="space-y-6 pt-2">
