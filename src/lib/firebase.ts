@@ -21,6 +21,7 @@ let app: any = null;
 let db: any = null;
 let auth: any = null;
 let storagePromise: Promise<any> | null = null;
+let appCheckInitPromise: Promise<void> | null = null;
 
 if (isFirebaseConfigured) {
   try {
@@ -35,10 +36,67 @@ if (isFirebaseConfigured) {
   }
 }
 
+/**
+ * Firebase App Check (reCAPTCHA v3) — free bot / abuse layer.
+ * Requires VITE_FIREBASE_APPCHECK_SITE_KEY (reCAPTCHA v3 site key from Firebase Console).
+ * Local dev: set VITE_FIREBASE_APPCHECK_DEBUG_TOKEN=true or a debug token string.
+ */
+export async function initFirebaseAppCheck(): Promise<void> {
+  if (!app || appCheckInitPromise) {
+    return appCheckInitPromise || Promise.resolve();
+  }
+
+  appCheckInitPromise = (async () => {
+    const siteKey =
+      metaEnv.VITE_FIREBASE_APPCHECK_SITE_KEY ||
+      metaEnv.VITE_RECAPTCHA_SITE_KEY ||
+      '';
+    if (!siteKey) {
+      if (metaEnv.DEV) {
+        console.warn(
+          'App Check skipped: set VITE_FIREBASE_APPCHECK_SITE_KEY (reCAPTCHA v3 site key).'
+        );
+      }
+      return;
+    }
+
+    try {
+      // Debug provider for local / CI without real reCAPTCHA challenges
+      if (metaEnv.DEV || metaEnv.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN) {
+        const debugToken = metaEnv.VITE_FIREBASE_APPCHECK_DEBUG_TOKEN;
+        (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN =
+          debugToken === 'true' || debugToken === true ? true : debugToken || true;
+      }
+
+      const { initializeAppCheck, ReCaptchaV3Provider } = await import(
+        'firebase/app-check'
+      );
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(siteKey),
+        isTokenAutoRefreshEnabled: true,
+      });
+      if (metaEnv.DEV) {
+        console.log('Firebase App Check initialized (reCAPTCHA v3)');
+      }
+    } catch (e) {
+      console.warn('Firebase App Check init failed (non-fatal):', e);
+    }
+  })();
+
+  return appCheckInitPromise;
+}
+
+// Kick off App Check as early as possible (non-blocking)
+if (typeof window !== 'undefined' && isFirebaseConfigured) {
+  void initFirebaseAppCheck();
+}
+
 export { app, db, auth, isFirebaseConfigured };
 
 export const getFirebaseStorage = async () => {
   if (!app) return null;
+  // Ensure App Check token is registered before Storage calls when enforcement is on
+  await initFirebaseAppCheck();
   if (!storagePromise) {
     storagePromise = import('firebase/storage').then(({ getStorage }) => getStorage(app));
   }
@@ -49,6 +107,7 @@ export const googleProvider = auth ? new GoogleAuthProvider() : null;
 
 export const ensureAnonymousUser = async () => {
   if (!auth) throw new Error('Firebase Auth yapılandırılmadı.');
+  await initFirebaseAppCheck();
   if (auth.currentUser) return auth.currentUser;
   const credential = await signInAnonymously(auth);
   return credential.user;
@@ -59,6 +118,7 @@ export const loginWithGoogleAdmin = async () => {
   if (!auth || !googleProvider) {
     throw new Error('Firebase Admin girişi kullanılamıyor.');
   }
+  await initFirebaseAppCheck();
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
 };

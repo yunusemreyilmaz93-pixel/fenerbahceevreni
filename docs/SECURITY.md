@@ -46,12 +46,32 @@ Kullanıcı bir kez çıkış/giriş yapsın (ID token yenilensin).
 
 ### 4. Firebase App Check (ücretsiz reCAPTCHA v3)
 
-Console → App Check → Web app → reCAPTCHA v3  
-Enforcement’ı Auth / Firestore / Storage için aşamalı aç.
+Ayrıntılı: **`docs/APP_CHECK_SETUP.md`**
 
-### 5. Anonymous Auth
+- Env: `VITE_FIREBASE_APPCHECK_SITE_KEY`
+- Kod: `initFirebaseAppCheck()` (`src/lib/firebase.ts`)
+- Enforcement’ı Auth / Firestore / Storage için **metrics sonrası** aşamalı aç
 
-Oylar için açık kalabilir; App Check ile bot maliyeti düşer.
+### 5. Cloudflare (ücretsiz edge)
+
+Ayrıntılı: **`docs/CLOUDFLARE_SECURITY.md`**
+
+- DNS proxy ON, SSL Full (strict), Bot Fight Mode
+- `/api/*` cache bypass
+
+### 6. Anonymous Auth
+
+Oylar için açık kalabilir; App Check + rate limit ile bot maliyeti düşer.
+
+### 7. Otomatik testler
+
+```bash
+npm test
+# veya
+npm run security:test
+```
+
+Rules smoke + helper unit testleri (`tests/`).
 
 ## Public write endpoint’leri
 
@@ -82,8 +102,16 @@ await admin.auth().setCustomUserClaims(uid, { premium: true });
 ## Bilinen limitler (ücretsiz planda)
 
 - Rate limit IP tabanlıdır (paylaşımlı NAT’ta sıkılaşabilir).
-- App Check yoksa anonymous oy abuse mümkün; claim + rate limit + rules yine de yükseltir.
+- App Check site key yoksa init atlanır (site çalışır; bot koruması zayıf kalır).
 - Storage path’leri: `article-covers/`, `player-images/`, `team-logos/`, `sponsor-logos/` (+ opsiyonel `media/`, `reports/`).
+
+## Kritik: firestore.rules deploy
+
+Repo’daki `firestore.rules` Firebase Console ile senkron olmalı:
+
+```bash
+firebase deploy --only firestore:rules,storage
+```
 
 ## Yasak / kaldırıldı
 

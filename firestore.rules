@@ -7,30 +7,54 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
+    // ── Helpers ──────────────────────────────────────────────────────────
+    // Prefer custom claim `admin: true` (set via Admin SDK). Email allowlist is fallback.
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        request.auth.token.email == "yunusemreyilmaz93@gmail.com"
+      );
     }
 
-    // Admin email whitelist check
-    function isAdmin() {
-      return request.auth != null && 
-        (request.auth.token.email == "yunusemreyilmaz93@gmail.com");
+    function isPremium() {
+      return request.auth != null && request.auth.token.premium == true;
     }
 
     function incoming() {
       return request.resource.data;
     }
 
-    function existing() {
-      return resource.data;
+    function isValidEmail(value) {
+      return value is string
+        && value.size() >= 5
+        && value.size() <= 254
+        && value.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$');
+    }
+
+    function strMax(value, maxLen) {
+      return value is string && value.size() > 0 && value.size() <= maxLen;
+    }
+
+    function optionalStrMax(value, maxLen) {
+      return !(value is string) || value.size() <= maxLen;
+    }
+
+    // Public CMS: locked pieces require premium claim or admin
+    function canReadPremiumDoc() {
+      return isAdmin()
+        || isPremium()
+        || !('isLocked' in resource.data)
+        || resource.data.isLocked != true
+        || resource.data.get('visibility', 'public') == 'public'
+        || resource.data.get('access', 'public') == 'public'
+        || resource.data.get('teaserOnly', false) == true;
     }
 
     // ==========================================
     // 1. articles
     // ==========================================
     match /articles/{articleId} {
-      allow read: if true;
+      allow read: if canReadPremiumDoc();
       allow write: if isAdmin();
     }
 
@@ -46,7 +70,7 @@ service cloud.firestore {
     // 3. matchReports
     // ==========================================
     match /matchReports/{reportId} {
-      allow read: if true;
+      allow read: if canReadPremiumDoc();
       allow write: if isAdmin();
     }
 
@@ -62,23 +86,33 @@ service cloud.firestore {
     // 5. transferReports
     // ==========================================
     match /transferReports/{reportId} {
-      allow read: if true;
+      allow read: if canReadPremiumDoc();
       allow write: if isAdmin();
     }
 
     // ==========================================
     // 6. polls
+    // Parent: public read, admin write only.
+    // Votes: signed-in user creates own vote doc (uid == voteId). Aggregates via Admin SDK / API.
     // ==========================================
     match /polls/{pollId} {
       allow read: if true;
       allow write: if isAdmin();
-      
-      // Dynamic subcollection under active polls for voting (conforming to Section 9 voting security)
+
       match /votes/{voteId} {
-        allow read: if true;
-        allow create: if get(/databases/$(database)/documents/polls/$(pollId)).data.status == "active"
+        allow read: if request.auth != null && (request.auth.uid == voteId || isAdmin());
+        allow create: if request.auth != null
+                      && request.auth.uid == voteId
+                      && get(/databases/$(database)/documents/polls/$(pollId)).data.status == "active"
                       && incoming().optionId is string
-                      && incoming().createdAt is string;
+                      && incoming().optionId.size() > 0
+                      && incoming().optionId.size() <= 200
+                      && incoming().optionId in get(/databases/$(database)/documents/polls/$(pollId)).data.options
+                      && incoming().userId == request.auth.uid
+                      && incoming().createdAt is string
+                      && incoming().createdAt.size() <= 40
+                      && incoming().keys().hasAll(["optionId", "userId", "createdAt"])
+                      && incoming().keys().size() == 3;
         allow update, delete: if isAdmin();
       }
     }
@@ -88,11 +122,16 @@ service cloud.firestore {
     // ==========================================
     match /newsletterSubscribers/{subId} {
       allow read, update, delete: if isAdmin();
-      allow create: if incoming().email is string 
-                    && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
+      allow create: if isValidEmail(incoming().email)
                     && incoming().status == "active"
+                    && incoming().subscribedAt is string
+                    && incoming().subscribedAt.size() > 0
+                    && incoming().subscribedAt.size() <= 40
                     && incoming().keys().hasAll(['email', 'status', 'subscribedAt'])
-                    && incoming().keys().size() <= 15;
+                    && incoming().keys().size() <= 12
+                    && optionalStrMax(incoming().get('name', ''), 120)
+                    && optionalStrMax(incoming().get('source', ''), 80)
+                    && (!('interests' in incoming()) || (incoming().interests is list && incoming().interests.size() <= 20));
     }
 
     // ==========================================
@@ -100,10 +139,13 @@ service cloud.firestore {
     // ==========================================
     match /premiumWaitlist/{waitId} {
       allow read, update, delete: if isAdmin();
-      allow create: if incoming().email is string 
-                    && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
+      allow create: if isValidEmail(incoming().email)
+                    && strMax(incoming().name, 120)
+                    && strMax(incoming().planInterest, 80)
+                    && strMax(incoming().status, 40)
+                    && strMax(incoming().createdAt, 40)
                     && incoming().keys().hasAll(['email', 'name', 'planInterest', 'status', 'createdAt'])
-                    && incoming().keys().size() <= 15;
+                    && incoming().keys().size() <= 12;
     }
 
     // ==========================================
@@ -111,11 +153,18 @@ service cloud.firestore {
     // ==========================================
     match /contactMessages/{msgId} {
       allow read, update, delete: if isAdmin();
-      allow create: if incoming().email is string 
-                    && incoming().email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
+      allow create: if isValidEmail(incoming().email)
+                    && strMax(incoming().name, 120)
+                    && strMax(incoming().subject, 200)
+                    && strMax(incoming().message, 5000)
                     && incoming().status == "new"
+                    && strMax(incoming().createdAt, 40)
                     && incoming().keys().hasAll(['name', 'email', 'subject', 'message', 'status', 'createdAt'])
-                    && incoming().keys().size() <= 15;
+                    && incoming().keys().size() <= 16
+                    && optionalStrMax(incoming().get('messageType', ''), 40)
+                    && optionalStrMax(incoming().get('companyName', ''), 160)
+                    && optionalStrMax(incoming().get('websiteUrl', ''), 300)
+                    && optionalStrMax(incoming().get('budgetRange', ''), 80);
     }
 
     // ==========================================
@@ -143,10 +192,10 @@ service cloud.firestore {
     }
 
     // ==========================================
-    // 13. premiumContent
+    // 13. premiumContent — set isLocked: true when paywall is needed
     // ==========================================
     match /premiumContent/{contentId} {
-      allow read: if true;
+      allow read: if canReadPremiumDoc();
       allow write: if isAdmin();
     }
 
@@ -231,10 +280,10 @@ service cloud.firestore {
     }
 
     // ==========================================
-    // 24. premium
+    // 24. premium — set isLocked: true for full reports
     // ==========================================
     match /premium/{premiumId} {
-      allow read: if true;
+      allow read: if canReadPremiumDoc();
       allow write: if isAdmin();
     }
 
@@ -271,16 +320,37 @@ service cloud.firestore {
     }
 
     // ==========================================
-    // 29. externalPlayerMappings
+    // 29. externalPlayerMappings (legacy) — admin only
     // ==========================================
     match /externalPlayerMappings/{mappingId} {
       allow read, write: if isAdmin();
     }
 
     // ==========================================
-    // 30. dataSyncRuns
+    // 30. dataSyncRuns (legacy) — admin only
     // ==========================================
     match /dataSyncRuns/{runId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ==========================================
+    // 31. providerIds — admin only
+    // ==========================================
+    match /providerIds/{playerDocumentId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ==========================================
+    // 32. scrapeJobs — admin only
+    // ==========================================
+    match /scrapeJobs/{jobId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ==========================================
+    // 33. rateLimitBuckets — admin only
+    // ==========================================
+    match /rateLimitBuckets/{bucketId} {
       allow read, write: if isAdmin();
     }
   }
