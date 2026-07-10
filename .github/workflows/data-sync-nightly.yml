@@ -1,12 +1,17 @@
 # Nightly data pipeline — Fenerbahçe Evreni (A4+)
 #
 # Secrets (GitHub → Settings → Secrets and variables → Actions):
-#   FIREBASE_SERVICE_ACCOUNT_JSON  — full service account JSON text (or path not available in CI)
+#   FIREBASE_SERVICE_ACCOUNT_JSON  — full service account JSON text
+#   APISPORTS_KEY                  — API-Football free key (~100 req/day)
 #
 # Optional repository variables:
-#   SYNC_SEASON_STANDINGS  default 2025
+#   SYNC_SEASON_STANDINGS  default 2025  (TM saison_id; current table)
 #   SYNC_SEASON_SQUAD      default 2026
-#   FOTMOB_MATCH_LIMIT     default 10 (B DoD: son 10 FB advanced)
+#   SYNC_SEASON_FIXTURES   default 2024  (API-Football FREE max ≈ 2024)
+#   FOTMOB_MATCH_LIMIT     default 10
+#
+# API-Football free plan: seasons 2022–2024 only (verified). Current season → TM/FotMob.
+# Nightly budget: fixtures 1 req (+ standings fallback 1 only if TM fails).
 
 name: Data sync nightly
 
@@ -66,12 +71,27 @@ jobs:
         run: |
           python data-worker/run_job.py --type health_probe --trigger scheduler --require-firestore
 
-      - name: Sync standings
+      - name: Sync standings (API-Football → TM fallback)
         env:
           SEASON: ${{ vars.SYNC_SEASON_STANDINGS }}
+          APISPORTS_KEY: ${{ secrets.APISPORTS_KEY }}
         run: |
           SEASON="${SEASON:-2025}"
           python data-worker/run_job.py --type sync_standings --season "$SEASON" --trigger scheduler --require-firestore
+
+      - name: Sync fixtures (API-Football Fenerbahçe)
+        env:
+          SEASON: ${{ vars.SYNC_SEASON_FIXTURES }}
+          APISPORTS_KEY: ${{ secrets.APISPORTS_KEY }}
+          API_FOOTBALL_SEASON: ${{ vars.API_FOOTBALL_SEASON }}
+        run: |
+          if [ -z "$APISPORTS_KEY" ]; then
+            echo "::warning::APISPORTS_KEY secret missing — skipping sync_fixtures"
+            exit 0
+          fi
+          # Free plan: max season start year 2024 unless paid + API_FOOTBALL_ALLOW_CURRENT
+          SEASON="${API_FOOTBALL_SEASON:-${SEASON:-2024}}"
+          python data-worker/run_job.py --type sync_fixtures --season "$SEASON" --trigger scheduler --require-firestore
 
       - name: Sync squad
         env:

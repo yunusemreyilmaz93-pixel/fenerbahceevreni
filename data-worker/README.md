@@ -26,6 +26,33 @@ Unit: `python data-worker/test_firestore_io.py`
 
 ---
 
+## API-Football (API-Sports) — `fetch_api_football.py`
+
+Resmi REST yedek omurga. Env: `APISPORTS_KEY` (asla `VITE_` / client).
+
+| Free plan | Değer |
+|-----------|--------|
+| Günlük istek | ~100 |
+| Sezon erişimi | **2022–2024** (2025/2026 free’de yok — doğrulandı 2026-07) |
+| Nightly bütçe | `sync_fixtures` ≈ **1 istek** |
+
+```bash
+set APISPORTS_KEY=your_key_here
+python data-worker/fetch_api_football.py --mode status
+python data-worker/fetch_api_football.py --mode both --season 2024
+python data-worker/run_job.py --type sync_fixtures --season 2024
+```
+
+- Fikstür → `public/data/matches.json` (mevcut prep/FotMob kayıtları merge)
+- Puan (API) → `public/data/standings.api_football.json` (ana `standings.json` TM; API yalnızca TM fail fallback’te ana dosyaya yazılır)
+- Super Lig `league=203`, Fenerbahçe `team=611`
+- Unit: `python data-worker/test_api_football_normalize.py`
+- GH Actions secret: `APISPORTS_KEY`
+
+Güncel sezon için: Transfermarkt + FotMob. API-Football **paid** ile `API_FOOTBALL_ALLOW_CURRENT=1`.
+
+---
+
 ## Kadro Fetcher — `fetch_squad.py` (Scrapling, önerilen akış)
 
 Uygulamanın kullandığı `public/data/squad.json` dosyasını yeniden üreten, **yeniden
