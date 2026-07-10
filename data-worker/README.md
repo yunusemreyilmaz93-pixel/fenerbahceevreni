@@ -26,30 +26,20 @@ Unit: `python data-worker/test_firestore_io.py`
 
 ---
 
-## API-Football (API-Sports) — `fetch_api_football.py`
+## API-Football — **ürün yolunda yok** (free plan)
 
-Resmi REST yedek omurga. Env: `APISPORTS_KEY` (asla `VITE_` / client).
+Free plan doğrulandı: **sadece 2022–2024** sezonu. Güncel Süper Lig / kamp maçı için **işe yaramaz**.
 
-| Free plan | Değer |
-|-----------|--------|
-| Günlük istek | ~100 |
-| Sezon erişimi | **2022–2024** (2025/2026 free’de yok — doğrulandı 2026-07) |
-| Nightly bütçe | `sync_fixtures` ≈ **1 istek** |
+| Kaynak | Rol |
+|--------|-----|
+| **Transfermarkt** | Güncel puan, kadro |
+| **FotMob** | Advanced maç (xG, shotmap) |
+| API-Football free | Kullanma (eski sezon kirliliği) |
+| API-Football **paid** | İleride canlı skor / güncel fikstür |
 
-```bash
-set APISPORTS_KEY=your_key_here
-python data-worker/fetch_api_football.py --mode status
-python data-worker/fetch_api_football.py --mode both --season 2024
-python data-worker/run_job.py --type sync_fixtures --season 2024
-```
+Kod (`providers/api_football.py`, `fetch_api_football.py`) repoda kalabilir; `sync_fixtures` job’u bilerek **disabled**. Nightly API çağrısı yok.
 
-- Fikstür → `public/data/matches.json` (mevcut prep/FotMob kayıtları merge)
-- Puan (API) → `public/data/standings.api_football.json` (ana `standings.json` TM; API yalnızca TM fail fallback’te ana dosyaya yazılır)
-- Super Lig `league=203`, Fenerbahçe `team=611`
-- Unit: `python data-worker/test_api_football_normalize.py`
-- GH Actions secret: `APISPORTS_KEY`
-
-Güncel sezon için: Transfermarkt + FotMob. API-Football **paid** ile `API_FOOTBALL_ALLOW_CURRENT=1`.
+Logolar: site zaten `public/logos/` + `src/lib/teamLogos.ts` — free API logo CDN’ine bağımlılık yok.
 
 ---
 

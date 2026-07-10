@@ -181,17 +181,14 @@ def _api_football_season_year(requested: str) -> str:
 
 def job_sync_standings(season: str) -> tuple[int, int, str, dict[str, Any]]:
     """
-    Transfermarkt first for current season (site needs 2025-26 / 2026-27).
-    If TM fails and API key present → API-Football (free: max 2024) as fallback.
-    Cached standings.json last resort.
+    Transfermarkt live scrape → Firestore.
+    On 403/fail: cached public/data/standings.json (partial).
+    API-Football free is NOT used here (only seasons ≤2024 — not current product data).
     """
     meta: dict[str, Any] = {}
     written = 0
     path = REPO / "public" / "data" / "standings.json"
     year = _season_start_year(season)
-    summary = ""
-
-    # 1) Transfermarkt — current season scrape (primary for live table)
     code, out = run_subprocess(
         [py(), str(WORKER / "fetch_standings.py"), "--season", year]
     )
@@ -203,33 +200,9 @@ def job_sync_standings(season: str) -> tuple[int, int, str, dict[str, Any]]:
         meta["providerUsed"] = "transfermarkt"
         return code, written, summary, meta
 
-    # 2) API-Football fallback (free plan: often only ≤2024)
-    if _api_football_key_present():
-        af_year = _api_football_season_year(year)
-        code2, out2 = run_subprocess(
-            [
-                py(),
-                str(WORKER / "fetch_api_football.py"),
-                "--mode",
-                "standings",
-                "--season",
-                af_year,
-            ]
-        )
-        summary = (summary + " | " + (out2[-1200:] if out2 else "")).strip(" |")
-        if path.exists() and code2 == 0:
-            written, result = _upsert_standings_from_path(path, af_year)
-            meta = fs_meta(result)
-            meta["providerUsed"] = "api_football"
-            meta["apiFootballSeason"] = af_year
-            meta["jobOutcome"] = "partial" if af_year != year else "success"
-            return 0, written, summary, meta
-        meta["apiFootballStandingsExit"] = code2
-
-    # 3) Cached snapshot
     if path.exists() and path.stat().st_size > 50:
         written, result = _upsert_standings_from_path(path, year)
-        meta.update(fs_meta(result))
+        meta = fs_meta(result)
         meta["usedCachedSnapshot"] = True
         meta["scrapeExit"] = code
         meta["jobOutcome"] = "partial"
@@ -242,73 +215,21 @@ def job_sync_standings(season: str) -> tuple[int, int, str, dict[str, Any]]:
 
 def job_sync_fixtures(season: str) -> tuple[int, int, str, dict[str, Any]]:
     """
-    API-Football Fenerbahçe fikstürü (1 req) → matches.json + Firestore matches.
-    Free plan: seasons 2022–2024 (auto-clamp). Paid: set API_FOOTBALL_ALLOW_CURRENT=1.
+    Disabled for free API-Football: product needs current season; free max ≈ 2024.
+    Paid plan later: re-enable via fetch_api_football + API_FOOTBALL_ALLOW_CURRENT=1.
     """
-    meta: dict[str, Any] = {}
-    if not _api_football_key_present():
-        return (
-            1,
-            0,
-            "APISPORTS_KEY missing — sync_fixtures requires API-Football",
-            {"providerUsed": None},
-        )
-
-    af_year = _api_football_season_year(season)
-    all_comp = (os.environ.get("API_FOOTBALL_ALL_COMPETITIONS") or "").strip().lower() in (
-        "1",
-        "true",
-        "yes",
+    return (
+        1,
+        0,
+        "sync_fixtures disabled: API-Football free plan has no current season "
+        f"(requested {season}). Use Transfermarkt/FotMob for current data; "
+        "or paid API + API_FOOTBALL_ALLOW_CURRENT=1.",
+        {
+            "providerUsed": None,
+            "disabled": True,
+            "reason": "free_plan_no_current_season",
+        },
     )
-    args = [
-        py(),
-        str(WORKER / "fetch_api_football.py"),
-        "--mode",
-        "fixtures",
-        "--season",
-        af_year,
-    ]
-    if all_comp:
-        args.append("--all-competitions")
-
-    code, out = run_subprocess(args)
-    summary = out[-2000:] if out else ""
-    path = REPO / "public" / "data" / "matches.json"
-    written = 0
-    meta["apiFootballSeason"] = af_year
-    meta["providerUsed"] = "api_football"
-
-    if code != 0 or not path.exists():
-        return code if code != 0 else 1, 0, summary, meta
-
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        matches = data.get("matches") or []
-        docs = []
-        fetched = data.get("fetchedAt") or data.get("updatedAt") or utc_now()
-        for m in matches:
-            if not isinstance(m, dict) or not m.get("id"):
-                continue
-            docs.append(
-                {
-                    **m,
-                    "id": m["id"],
-                    "provider": m.get("provider") or "api_football",
-                    "fetchedAt": m.get("fetchedAt") or fetched,
-                }
-            )
-        result = upsert_collection(
-            COLLECTIONS["matches"], docs, respect_locked_fields=True
-        )
-        meta.update(fs_meta(result))
-        meta["apiMatchCount"] = data.get("apiMatchCount")
-        meta["mergedMatches"] = len(docs)
-        written = records_for_job(result, code=0)
-        if written == 0 and docs:
-            written = len(docs)
-        return 0, written, summary, meta
-    except Exception as e:
-        return 1, 0, summary + f" | upsert error: {e}", meta
 
 
 def job_sync_squad(season: str) -> tuple[int, int, str, dict[str, Any]]:
