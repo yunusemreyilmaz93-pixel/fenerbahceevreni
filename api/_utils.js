@@ -1,4 +1,8 @@
-// Shared Serverless Helper for API-Sports proxies
+// Shared Serverless Helper for API-Sports proxies (Vercel)
+
+function isProd() {
+  return process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+}
 
 export async function fetchFromApiSports(action, backendRoute, externalUrl) {
   const apiKey = process.env.APISPORTS_KEY;
@@ -7,13 +11,7 @@ export async function fetchFromApiSports(action, backendRoute, externalUrl) {
       statusCode: 400,
       json: {
         success: false,
-        message: "API anahtarı bulunamadı. APISPORTS_KEY secret ayarını kontrol edin. Lütfen Vercel veya environment variables panelinden ekleyin.",
-        debug: {
-          backendRoute,
-          externalEndpoint: externalUrl,
-          status: 400,
-          contentType: "application/json"
-        }
+        message: "API anahtarı bulunamadı. APISPORTS_KEY secret ayarını kontrol edin.",
       }
     };
   }
@@ -29,7 +27,6 @@ export async function fetchFromApiSports(action, backendRoute, externalUrl) {
     const statusCode = response.status;
     const contentType = response.headers.get("content-type") || "";
     
-    // Retrieve rate-limiting custom headers from API-Sports
     const remaining = response.headers.get("x-ratelimit-remaining") || "Bilinmiyor";
     const limit = response.headers.get("x-ratelimit-limit") || "Bilinmiyor";
     const requests = response.headers.get("x-ratelimit-requests") || "Bilinmiyor";
@@ -38,21 +35,21 @@ export async function fetchFromApiSports(action, backendRoute, externalUrl) {
 
     if (!contentType.includes("application/json")) {
       const rawText = await response.text();
-      return {
-        statusCode: 502,
-        json: {
-          success: false,
-          message: "API-Football yanıtı JSON formatında değil.",
-          details: `API-Sports tarafından JSON dışı bir yanıt döndürüldü. Lütfen bağlantınızı ve API anahtarınızı kontrol edin.`,
-          debug: {
-            backendRoute,
-            externalEndpoint: externalUrl,
-            status: statusCode,
-            contentType,
-            errorPreview: rawText.substring(0, 300)
-          }
-        }
+      const json = {
+        success: false,
+        message: "API-Football yanıtı JSON formatında değil.",
+        details: "API-Sports tarafından JSON dışı bir yanıt döndürüldü.",
       };
+      if (!isProd()) {
+        json.debug = {
+          backendRoute,
+          externalEndpoint: externalUrl,
+          status: statusCode,
+          contentType,
+          errorPreview: rawText.substring(0, 300)
+        };
+      }
+      return { statusCode: 502, json };
     }
 
     const rawData = await response.json();
@@ -75,55 +72,57 @@ export async function fetchFromApiSports(action, backendRoute, externalUrl) {
     }
 
     if (!success) {
-      return {
-        statusCode: 200, 
-        json: {
-          success: false,
-          isApiError: true,
-          message: turkishError,
-          data: rawData,
-          debug: {
-            backendRoute,
-            externalEndpoint: externalUrl,
-            status: statusCode,
-            contentType
-          },
-          headers: rateLimits
-        }
-      };
-    }
-
-    return {
-      statusCode: 200,
-      json: {
-        success: true,
-        message: "API bağlantısı başarılı.",
+      const json = {
+        statusCode: 200,
+        success: false,
+        isApiError: true,
+        message: turkishError,
         data: rawData,
-        debug: {
+        headers: rateLimits
+      };
+      // Strip nested debug in prod
+      if (!isProd()) {
+        json.debug = {
           backendRoute,
           externalEndpoint: externalUrl,
           status: statusCode,
-          contentType: "application/json"
-        },
-        headers: rateLimits
+          contentType
+        };
       }
+      return { statusCode: 200, json };
+    }
+
+    const ok = {
+      success: true,
+      message: "API bağlantısı başarılı.",
+      data: rawData,
+      headers: rateLimits
     };
+    if (!isProd()) {
+      ok.debug = {
+        backendRoute,
+        externalEndpoint: externalUrl,
+        status: statusCode,
+        contentType: "application/json"
+      };
+    }
+    return { statusCode: 200, json: ok };
 
   } catch (error) {
-    return {
-      statusCode: 500,
-      json: {
-        success: false,
-        message: "API bağlantısı başarısız.",
-        details: error?.message || "Bilinmeyen sunucu hatası",
-        debug: {
-          backendRoute,
-          externalEndpoint: externalUrl,
-          status: 500,
-          contentType: "exception",
-          errorPreview: error?.stack || error?.message
-        }
-      }
+    const json = {
+      success: false,
+      message: "API bağlantısı başarısız.",
     };
+    if (!isProd()) {
+      json.details = error?.message || "Bilinmeyen sunucu hatası";
+      json.debug = {
+        backendRoute,
+        externalEndpoint: externalUrl,
+        status: 500,
+        contentType: "exception",
+        errorPreview: error?.stack || error?.message
+      };
+    }
+    return { statusCode: 500, json };
   }
 }

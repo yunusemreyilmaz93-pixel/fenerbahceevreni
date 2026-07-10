@@ -120,5 +120,5 @@ Uygulamayı kendi bilgisayarınızda yerel olarak test etmek isterseniz:
 
 ## 🔄 Admin ve Veritabanı Yönetimi
 
-* **Yönetici Yetkilendirmesi:** Projede hem Google Kimlik Doğrulaması hem de geleneksel yönetici şifresi (`fener1907`) aktiftir. Yönetici e-postalarını doğrudan `.env` veya hosting sağlayıcısının panelindeki `VITE_ADMIN_EMAILS` değişkeninden güvenle listeleyebilirsiniz.
+* **Yönetici Yetkilendirmesi:** Yalnızca Google + Firebase Auth. Admin e-postaları `ADMIN_EMAILS` / `VITE_ADMIN_EMAILS` allowlist veya `admin: true` custom claim (`node scripts/setAdminClaim.mjs email`). Sabit şifre **yok**.
 * **İlk Veri Seeding:** Firebase ilk kez kurulduğunda veritabanı boş olacaktır. `src/lib/dbService.ts` üzerinde tanımlı olan veri tohumlama yapısı, Firebase bağlantısı yoksa yerel depolama (`localStorage`) ile çalışır. Firebase bağlandığında admin panel üzerinden dilediğiniz makale, transfer raporu veya oyuncu analizini panel arayüzünü kullanarak oluşturabilir, güncelleyebilir veya silebilirsiniz.

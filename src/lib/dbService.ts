@@ -324,8 +324,12 @@ export const normalizeCollectionName = (colName: string): string => {
   if (norm === 'contact_messages' || norm === 'contact-messages') return 'contactMessages';
   if (norm === 'transfer_reports' || norm === 'transfer-reports') return 'transferReports';
   if (norm === 'homepage_settings' || norm === 'homepage-settings' || norm === 'homeSettings' || norm === 'home_settings' || norm === 'home-settings') return 'homeSettings';
-  if (norm === 'newsletterSubscribers' || norm === 'newsletter-subscribers' || norm === 'newsletter_subscribers') return 'newsletter';
-  
+  // Keep newsletterSubscribers as canonical Firestore collection (rules + API).
+  // Legacy alias "newsletter" (waitlist forms) maps to newsletterSubscribers.
+  if (norm === 'newsletter' || norm === 'newsletter-subscribers' || norm === 'newsletter_subscribers') {
+    return 'newsletterSubscribers';
+  }
+
   // Soccerdata normalized custom collections
   if (norm === 'advanced_player_stats' || norm === 'advanced-player-stats') return 'advancedPlayerStats';
   if (norm === 'advanced_match_stats' || norm === 'advanced-match-stats') return 'advancedMatchStats';
@@ -601,43 +605,72 @@ export const dbGetDataSyncRuns = async (
     return list;
   }
 };
+/**
+ * Cast a poll vote securely.
+ * Prefer server API (Admin SDK aggregates). Client never updates poll parent
+ * (Firestore rules: polls write = admin only).
+ *
+ * Fallback when API/Admin unavailable: write only votes/{uid} subdoc (rules-compliant).
+ * Aggregate counts stay unchanged until server processes them.
+ */
 export async function castPollVote(pollId: string, optionId: string, userId: string): Promise<void> {
-  if (!isFirebaseConfigured || !db) {
-    throw new Error('Firebase oy sistemi hazir degil.');
+  if (!pollId || !optionId || !userId) {
+    throw new Error('Oy için pollId, optionId ve userId gerekli.');
   }
 
-  await runTransaction(db, async (transaction) => {
-    const pollRef = doc(db, 'polls', pollId);
-    const voteRef = doc(db, 'polls', pollId, 'votes', userId);
-    const [pollSnap, voteSnap] = await Promise.all([
-      transaction.get(pollRef),
-      transaction.get(voteRef)
-    ]);
+  // 1) Secure path: backend transaction
+  try {
+    const { apiCastPollVote } = await import('./secureApi');
+    await apiCastPollVote(pollId, optionId);
+    return;
+  } catch (apiErr: any) {
+    const msg = String(apiErr?.message || apiErr || '');
+    // Definitive client errors — do not fall back (would create double-vote risk)
+    if (
+      msg.includes('daha önce') ||
+      msg.includes('Geçersiz') ||
+      msg.includes('aktif değil') ||
+      msg.includes('bulunamadı') ||
+      msg.includes('Oturum')
+    ) {
+      throw apiErr instanceof Error ? apiErr : new Error(msg);
+    }
+    console.warn('Vote API unavailable, trying client vote-doc fallback:', msg);
+  }
 
-    if (!pollSnap.exists()) throw new Error('Anket bulunamadi.');
+  // 2) Fallback: vote subdocument only (no poll aggregate mutation)
+  if (!isFirebaseConfigured || !db) {
+    throw new Error('Firebase oy sistemi hazır değil.');
+  }
+  if (auth?.currentUser?.uid !== userId) {
+    throw new Error('Oy kimliği oturum ile eşleşmiyor.');
+  }
+
+  const voteRef = doc(db, 'polls', pollId, 'votes', userId);
+  const pollRef = doc(db, 'polls', pollId);
+
+  await runTransaction(db, async (transaction) => {
+    const pollSnap = await transaction.get(pollRef);
+    if (!pollSnap.exists()) throw new Error('Anket bulunamadı.');
     const poll = pollSnap.data() as any;
-    if (poll.status !== 'active') throw new Error('Bu anket artik aktif degil.');
-    if (!Array.isArray(poll.options) || !poll.options.includes(optionId)) {
+    if (poll.status !== 'active') throw new Error('Bu anket artık aktif değil.');
+
+    const options: string[] = Array.isArray(poll.options)
+      ? poll.options.map((o: any) => (typeof o === 'string' ? o : o?.id || o?.label))
+      : [];
+    if (!options.includes(optionId)) {
       throw new Error('Geçersiz anket seçeneği.');
     }
-    if (voteSnap.exists()) throw new Error('Bu ankette daha önce oy kullandınız.');
 
-    const options = poll.options as string[];
-    const votes = Array.isArray(poll.votes) ? [...poll.votes] : options.map(() => 0);
-    const optionIndex = options.indexOf(optionId);
-    while (votes.length < options.length) votes.push(0);
-    votes[optionIndex] = (Number(votes[optionIndex]) || 0) + 1;
+    const voteSnap = await transaction.get(voteRef);
+    if (voteSnap.exists()) throw new Error('Bu ankette daha önce oy kullandınız.');
 
     transaction.set(voteRef, {
       optionId,
       userId,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     });
-    transaction.update(pollRef, {
-      votes,
-      totalVotes: votes.reduce((sum, value) => sum + (Number(value) || 0), 0),
-      updatedAt: new Date().toISOString()
-    });
+    // Intentionally NO update to poll parent — rules forbid non-admin writes.
   });
 }
 

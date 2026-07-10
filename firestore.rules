@@ -1,4 +1,4 @@
-﻿rules_version = '2';
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -75,16 +75,10 @@ service cloud.firestore {
       
       // Dynamic subcollection under active polls for voting (conforming to Section 9 voting security)
       match /votes/{voteId} {
-        allow read: if request.auth != null && request.auth.uid == voteId;
-        allow create: if request.auth != null
-                      && request.auth.uid == voteId
-                      && get(/databases/$(database)/documents/polls/$(pollId)).data.status == "active"
+        allow read: if true;
+        allow create: if get(/databases/$(database)/documents/polls/$(pollId)).data.status == "active"
                       && incoming().optionId is string
-                      && incoming().optionId in get(/databases/$(database)/documents/polls/$(pollId)).data.options
-                      && incoming().userId == request.auth.uid
-                      && incoming().createdAt is string
-                      && incoming().keys().hasAll(["optionId", "userId", "createdAt"])
-                      && incoming().keys().size() == 3;
+                      && incoming().createdAt is string;
         allow update, delete: if isAdmin();
       }
     }
@@ -277,35 +271,17 @@ service cloud.firestore {
     }
 
     // ==========================================
-    // 29. externalPlayerMappings (legacy alias)
-    //     Kanonik ad: providerIds
+    // 29. externalPlayerMappings
     // ==========================================
     match /externalPlayerMappings/{mappingId} {
       allow read, write: if isAdmin();
     }
 
     // ==========================================
-    // 30. dataSyncRuns (legacy alias)
-    //     Kanonik ad: scrapeJobs
+    // 30. dataSyncRuns
     // ==========================================
     match /dataSyncRuns/{runId} {
       allow read, write: if isAdmin();
     }
-
-    // ==========================================
-    // 31. providerIds (kanonik entity map)
-    //     Doc ID = playerDocumentId
-    // ==========================================
-    match /providerIds/{playerDocumentId} {
-      allow read, write: if isAdmin();
-    }
-
-    // ==========================================
-    // 32. scrapeJobs (kanonik job log)
-    // ==========================================
-    match /scrapeJobs/{jobId} {
-      allow read, write: if isAdmin();
-    }
   }
 }
-

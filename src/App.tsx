@@ -349,7 +349,7 @@ const AdminLogin = React.lazy(() => import('./components/Admin/AdminLogin').then
 const AdminLayout = React.lazy(() => import('./components/Admin/AdminLayout').then(m => ({ default: m.AdminLayout })));
 import { dbGetCollection } from './lib/dbService';
 import { onAuthStateChangedAdmin, isAdminUserLoggedIn, getAdminUser, logoutAdmin, auth, ensureAnonymousUser } from './lib/firebase';
-import { isAdminEmail } from './lib/envHelper';
+
 
 export default function App() {
   const [view, setView] = useState<'home' | 'universe' | 'match-center' | 'analysis' | 'transfer-radar' | 'players' | 'fan-room' | 'about' | 'contact' | 'predictor' | 'admin' | 'admin-login' | 'bulten' | 'privacy' | 'terms' | 'cookies' | 'kvkk' | '404'>('home');
@@ -448,21 +448,18 @@ export default function App() {
         const logged = await isAdminUserLoggedIn();
         if (logged) {
           const userObj = await getAdminUser();
-          if (userObj && isAdminEmail(userObj.email)) {
+          if (userObj) {
             setAdminUser(userObj);
             setUnauthorized(false);
             setView('admin');
-          } else if (userObj) {
-            setUnauthorized(true);
-            setAdminUser(null);
           } else {
             setUnauthorized(false);
             setView('admin-login');
           }
         } else {
-          // Check if Firebase auth has user logged in but unauthorized
+          // Signed in but not admin → unauthorized wall
           const fbUser = auth ? auth.currentUser : null;
-          if (fbUser && !isAdminEmail(fbUser.email)) {
+          if (fbUser) {
             setUnauthorized(true);
           } else {
             setUnauthorized(false);
@@ -496,7 +493,8 @@ export default function App() {
         setView((currentView) => currentView === 'admin-login' ? 'admin' : currentView);
       } else {
         const fbUser = auth ? auth.currentUser : null;
-        setUnauthorized(Boolean(fbUser && !isAdminEmail(fbUser.email)));
+        // Non-null Firebase user but not admin (filtered out by onAuthStateChangedAdmin)
+        setUnauthorized(Boolean(fbUser));
         setView((currentView) => currentView === 'admin' ? 'admin-login' : currentView);
       }
     });

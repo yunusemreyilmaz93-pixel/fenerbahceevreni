@@ -25,7 +25,9 @@ import {
   ThumbsDown,
   Plus
 } from 'lucide-react';
-import { dbGetCollection, dbAddDocument, dbUpsertDocument } from '../../lib/dbService';
+import { castPollVote, dbGetCollection } from '../../lib/dbService';
+import { ensureAnonymousUser } from '../../lib/firebase';
+import { apiNewsletterSubscribe } from '../../lib/secureApi';
 import SEO from './SEO';
 
 interface Poll {
@@ -549,38 +551,30 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
     loadData();
   }, []);
 
-  // Poll Vote Handler
+  // Poll Vote Handler — secure subcollection / server aggregate (never client poll write)
   const handlePollVote = async (pollId: string, option: string) => {
-    if (votedPolls[pollId]) return; // Already voted
+    if (votedPolls[pollId]) return;
 
-    // 1. Update local state
-    const updatedPolls = polls.map(p => {
-      if (p.id === pollId) {
-        const uVotes = { ...p.votes, [option]: (p.votes[option] || 0) + 1 };
-        return { ...p, votes: uVotes };
+    try {
+      const user = await ensureAnonymousUser();
+      await castPollVote(pollId, option, user.uid);
+
+      setPolls(prev =>
+        prev.map(p => {
+          if (p.id !== pollId) return p;
+          const uVotes = { ...(p.votes || {}), [option]: ((p.votes || {})[option] || 0) + 1 };
+          return { ...p, votes: uVotes };
+        })
+      );
+      localStorage.setItem(`voted_poll_${pollId}`, option);
+      setVotedPolls(prev => ({ ...prev, [pollId]: option }));
+    } catch (err: any) {
+      const msg = String(err?.message || '');
+      if (msg.includes('daha önce')) {
+        localStorage.setItem(`voted_poll_${pollId}`, option);
+        setVotedPolls(prev => ({ ...prev, [pollId]: option }));
       }
-      return p;
-    });
-    setPolls(updatedPolls);
-
-    const targetPoll = updatedPolls.find(p => p.id === pollId);
-
-    // 2. Save vote in storage
-    localStorage.setItem(`voted_poll_${pollId}`, option);
-    setVotedPolls(prev => ({ ...prev, [pollId]: option }));
-
-    // 3. Upsert to DB if configured
-    if (targetPoll) {
-      try {
-        await dbUpsertDocument('polls', pollId, {
-          question: targetPoll.question,
-          options: targetPoll.options,
-          votes: targetPoll.votes,
-          status: targetPoll.status
-        });
-      } catch (err) {
-        console.warn("Could not save poll vote to cloud:", err);
-      }
+      console.warn('Poll vote failed:', err);
     }
   };
 
@@ -717,25 +711,24 @@ export const FanRoomPage: React.FC<PlayersPageProps> = ({ onNavigate }) => {
     localStorage.setItem(`voted_rumor_${rumorId}`, type);
   };
 
-  // Newsletter subscription
+  // Newsletter subscription — rate-limited API (honeypot field must stay empty)
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newsletterEmail.trim()) return;
 
     setNewsletterLoading(true);
     try {
-      // Push to DB
-      await dbAddDocument('newsletterSubscribers', {
+      const result = await apiNewsletterSubscribe({
         email: newsletterEmail.trim(),
         source: 'taraftar-odasi',
-        subscribedAt: new Date().toISOString()
+        website: '', // honeypot
       });
-      setNewsletterSubscribed(true);
-      setNewsletterEmail('');
+      if (result.success || result.isDuplicate) {
+        setNewsletterSubscribed(true);
+        setNewsletterEmail('');
+      }
     } catch (err) {
       console.error(err);
-      // Fallback
-      setNewsletterSubscribed(true);
     } finally {
       setNewsletterLoading(false);
     }

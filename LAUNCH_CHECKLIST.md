@@ -23,7 +23,7 @@ Bu dosya, **Fenerbahçe Evreni** web portalının Firebase ve canlı yayın orta
 
 ## 📡 3. Fonksiyonel Denetim ve Test Senaryoları
 - [ ] **Yönetici Girişi:** `/admin` sayfasına gidildiğinde kullanıcı oturum açmamış ise `/admin/login` sayfasına yönlendiriyor mu?
-- [ ] **Kimlik Doğrulama Süreci:** Yönetici hızlı giriş şifresi (`fener1907`) girildiğinde başarıyla admin CMS konsoluna geçiş yapılıyor mu?
+- [ ] **Kimlik Doğrulama Süreci:** Yetkili Google hesabı ile admin CMS konsoluna geçiş yapılıyor mu? (Sabit şifre yok; Firebase Google Auth + allowlist/claim)
 - [ ] **Yönetici Olmayan Google Girişi:** Yetkisiz bir Google hesabı ile admin panel girişi denendiğinde ekrana **"Bu alana erişim yetkiniz yok."** uyarısı gelerek erişim engelleniyor mu?
 - [ ] **Yükleniyor Efekti:** Admin yetki doğrulanması sırasında düzgün çalışan bir "Yetki kontrol ediliyor..." spinner'ı gösteriliyor mu?
 - [ ] **Hata Mesajları:** Geçersiz şifrelerde Türkçe ve anlaşılır hata mesajları (`Giriş başarısız. Bilgileri kontrol et.`) gösteriliyor mu?
