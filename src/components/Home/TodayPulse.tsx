@@ -1,20 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import {
-  Activity,
   ArrowRight,
   BookOpen,
   Calendar,
   CheckCircle2,
   Clock,
   MessageSquare,
-  Sparkles,
   Vote,
 } from 'lucide-react';
 import { castPollVote, dbGetCollection } from '../../lib/dbService';
 import { ensureAnonymousUser } from '../../lib/firebase';
 import { getTeamLogoPath } from '../../lib/teamLogos';
-import { DataBadge, EmptyState, XGCompare } from '../ui';
+import { DataBadge, EmptyState, SignalHeading, XGCompare } from '../ui';
 
 interface TodayPulseProps {
   onNavigate: (view: string) => void;
@@ -54,21 +52,18 @@ function normalizePollOptions(poll: any): { id: string; label: string; votes: nu
   return raw.map((o: any, i: number) => {
     if (typeof o === 'string') {
       const votes =
-        typeof poll.votes === 'object' && poll.votes
-          ? Number(poll.votes[o] || 0)
-          : 0;
+        typeof poll.votes === 'object' && poll.votes ? Number(poll.votes[o] || 0) : 0;
       return { id: o, label: o, votes };
     }
     const id = String(o.id || o.label || o.text || `opt-${i}`);
     const label = String(o.label || o.text || o.id || id);
-    const votes = Number(o.votes ?? 0);
-    return { id, label, votes };
+    return { id, label, votes: Number(o.votes ?? 0) };
   });
 }
 
 /**
- * D2 — Bugünün nabzı: 1 maç + 1 analiz + 1 anket.
- * World-class: tek bakışta “bugün ne var?”, kaynak etiketi, sahte veri yok.
+ * Bugünün nabzı — home.md: solda büyük editoryal, sağda maç + anket.
+ * Üç eşit kart kalıbı yok.
  */
 const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) => {
   const [match, setMatch] = useState<any | null>(null);
@@ -77,13 +72,20 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
   const [voteError, setVoteError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const featuredArticle = useMemo(() => {
-    const published = (articles || []).filter(
+  const published = useMemo(() => {
+    return (articles || []).filter(
       (a) => a.status === 'published' || a.status === 'active' || !a.status
     );
-    const featured = published.find((a) => a.featured);
-    return featured || published[0] || null;
   }, [articles]);
+
+  const featuredArticle = useMemo(
+    () => published.find((a) => a.featured) || published[0] || null,
+    [published]
+  );
+  const sideStories = useMemo(
+    () => published.filter((a) => a !== featuredArticle).slice(0, 3),
+    [published, featuredArticle]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -141,200 +143,51 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
       });
     } catch (err: any) {
       const msg = String(err?.message || err || '');
-      if (msg.includes('daha önce')) {
-        setVotedOptionId(optionId);
-      } else {
-        setVoteError('Oy kaydedilemedi. Biraz sonra tekrar dene.');
-      }
+      if (msg.includes('daha önce')) setVotedOptionId(optionId);
+      else setVoteError('Oy kaydedilemedi. Biraz sonra tekrar dene.');
     }
   };
 
-  const isFinished =
-    match?.status === 'finished' || match?.status === 'completed';
+  const isFinished = match?.status === 'finished' || match?.status === 'completed';
   const isLive = match?.status === 'live';
   const homeLogo =
     match?.homeLogo || getTeamLogoPath(match?.homeTeam || '') || '/logos/fenerbahce.png';
-  const awayLogo =
-    match?.awayLogo || getTeamLogoPath(match?.awayTeam || '') || '';
-
-  const todayLabel = new Intl.DateTimeFormat('tr-TR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(new Date());
+  const awayLogo = match?.awayLogo || getTeamLogoPath(match?.awayTeam || '') || '';
 
   return (
     <section
       id="bugunun-nabzi"
       aria-label="Bugünün nabzı"
-      className="relative py-14 md:py-18 border-y border-white/[0.05]"
+      className="relative py-14 md:py-20 border-b border-[var(--fe-line-subtle)]"
     >
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-24 left-1/4 w-[420px] h-[420px] bg-fb-yellow/[0.045] rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-[360px] h-[360px] bg-[#002F6C]/22 rounded-full blur-[100px]" />
-      </div>
-
-      <div className="container mx-auto px-6 max-w-7xl relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div className="fe-container">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-fb-yellow" aria-hidden />
-              <span className="text-[11px] font-semibold tracking-wide text-fb-yellow">
-                Bugünün nabzı
-              </span>
-            </div>
-            <h2 className="text-2xl md:text-3xl font-display font-bold text-white tracking-tight">
-              Tek bakışta camia
+            <SignalHeading label="Bugünün nabzı" />
+            <h2
+              className="text-[1.75rem] md:text-[2rem] font-semibold text-[var(--fe-text-strong)] tracking-tight leading-tight"
+              style={{ fontFamily: 'var(--fe-font-editorial)' }}
+            >
+              Yayın masası
             </h2>
-            <p className="mt-1.5 text-[13px] text-slate-400 font-medium capitalize">{todayLabel}</p>
           </div>
-          <p className="text-[12px] text-slate-500 max-w-xs leading-relaxed hidden md:block">
-            Maç · analiz · anket — uydurma skor yok, kaynak etiketi var.
+          <p className="text-[13px] text-[var(--fe-text-faint)] max-w-xs leading-relaxed hidden md:block">
+            Analiz · maç · anket — kaynak etiketli, uydurma metrik yok.
           </p>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="lg:col-span-4 h-64 rounded-2xl ui-surface animate-pulse"
-              />
-            ))}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-7 h-72 fe-surface animate-pulse" />
+            <div className="lg:col-span-5 space-y-4">
+              <div className="h-36 fe-surface animate-pulse" />
+              <div className="h-36 fe-surface animate-pulse" />
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 items-stretch">
-            {/* ── 1. MAÇ ─────────────────────────────────────────── */}
-            <motion.article
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45 }}
-              className="lg:col-span-4 ui-surface ui-surface-hover rounded-2xl p-5 md:p-6 flex flex-col relative overflow-hidden"
-            >
-              <div className="absolute top-0 inset-x-0 h-px ui-hairline opacity-60" />
-              <div className="flex items-center justify-between gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-400">
-                  <Activity className="w-3.5 h-3.5 text-fb-yellow" aria-hidden />
-                  Maç
-                </span>
-                {match && (
-                  <span
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
-                      isLive
-                        ? 'bg-red-500/10 border-red-500/25 text-red-400'
-                        : isFinished
-                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                          : 'bg-fb-yellow/10 border-fb-yellow/25 text-fb-yellow'
-                    }`}
-                  >
-                    {isLive ? 'Canlı' : isFinished ? 'Maç sonu' : 'Yaklaşan'}
-                  </span>
-                )}
-              </div>
-
-              {!match ? (
-                <EmptyState
-                  icon={Calendar}
-                  title="Öne çıkan maç yok"
-                  description="Fikstür veya featured maç eklendiğinde burada nabız atar."
-                  action={{ label: 'Maç Merkezi', onClick: () => onNavigate('match-center') }}
-                />
-              ) : (
-                <>
-                  <p className="text-[12px] text-slate-500 font-medium mb-4">
-                    {match.competition || 'Süper Lig'} · {formatWhen(match.matchDate)}
-                  </p>
-
-                  <div className="flex items-center justify-between gap-3 mb-5">
-                    <div className="flex-1 text-center space-y-2 min-w-0">
-                      <img
-                        src={homeLogo}
-                        alt=""
-                        className="w-11 h-11 mx-auto object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                      <p className="text-[12px] font-bold text-white truncate leading-tight">
-                        {match.homeTeam}
-                      </p>
-                    </div>
-                    <div className="shrink-0 px-2 text-center">
-                      {isFinished || isLive ? (
-                        <p className="text-2xl md:text-3xl font-mono font-bold text-fb-yellow tabular-nums">
-                          {match.scoreHome ?? '—'}
-                          <span className="text-slate-500 mx-1">–</span>
-                          {match.scoreAway ?? '—'}
-                        </p>
-                      ) : (
-                        <p className="text-sm font-semibold text-slate-400 tracking-wide">vs</p>
-                      )}
-                    </div>
-                    <div className="flex-1 text-center space-y-2 min-w-0">
-                      {awayLogo ? (
-                        <img
-                          src={awayLogo}
-                          alt=""
-                          className="w-11 h-11 mx-auto object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/logos/super-lig.png';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-11 h-11 mx-auto rounded-xl bg-white/5 border border-white/10" />
-                      )}
-                      <p className="text-[12px] font-bold text-white truncate leading-tight">
-                        {match.awayTeam}
-                      </p>
-                    </div>
-                  </div>
-
-                  {(match.xGHome != null || match.xGAway != null) && (
-                    <div className="mb-4">
-                      <XGCompare
-                        home={match.xGHome}
-                        away={match.xGAway}
-                        homeLabel={match.homeTeam}
-                        awayLabel={match.awayTeam}
-                      />
-                    </div>
-                  )}
-
-                  <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06]">
-                    <DataBadge
-                      provider={match.statsProvider}
-                      fetchedAt={match.statsFetchedAt}
-                      showMissing={!match.statsProvider}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => onNavigate('match-center')}
-                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-fb-yellow hover:text-white transition-colors cursor-pointer"
-                    >
-                      Maç merkezi <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.article>
-
-            {/* ── 2. ANALİZ ───────────────────────────────────────── */}
-            <motion.article
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: 0.06 }}
-              className="lg:col-span-4 ui-surface ui-surface-hover rounded-2xl p-5 md:p-6 flex flex-col relative overflow-hidden"
-            >
-              <div className="absolute top-0 inset-x-0 h-px ui-hairline opacity-60" />
-              <div className="flex items-center justify-between gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-400">
-                  <BookOpen className="w-3.5 h-3.5 text-fb-yellow" aria-hidden />
-                  Analiz
-                </span>
-              </div>
-
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+            {/* ── Editorial feature (7) ── */}
+            <div className="lg:col-span-7 space-y-6">
               {!featuredArticle ? (
                 <EmptyState
                   icon={BookOpen}
@@ -343,35 +196,44 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                   action={{ label: 'Analizler', onClick: () => onNavigate('analysis') }}
                 />
               ) : (
-                <>
+                <article className="group">
                   {featuredArticle.coverImage ? (
-                    <div className="relative mb-4 rounded-xl overflow-hidden aspect-[16/9] bg-[#0B0F19] border border-white/[0.05]">
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('analysis')}
+                      className="block w-full relative mb-4 rounded-[var(--fe-radius-lg)] overflow-hidden aspect-[16/10] bg-[var(--fe-navy-950)] border border-[var(--fe-line-subtle)] cursor-pointer text-left"
+                    >
                       <img
                         src={featuredArticle.coverImage}
                         alt=""
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#111625] via-transparent to-transparent" />
-                    </div>
-                  ) : (
-                    <div className="mb-4 h-28 rounded-xl bg-gradient-to-br from-fb-navy/40 to-fb-yellow/5 border border-white/[0.05] flex items-center justify-center">
-                      <BookOpen className="w-8 h-8 text-fb-yellow/40" aria-hidden />
-                    </div>
-                  )}
-                  <p className="text-[11px] font-semibold text-fb-yellow mb-2">
+                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--fe-ink-950)] via-transparent to-transparent opacity-80" />
+                    </button>
+                  ) : null}
+                  <p className="text-[12px] fe-data font-medium text-[var(--fe-yellow-400)] mb-2">
                     {featuredArticle.category || 'Analiz'}
                   </p>
-                  <h3 className="text-lg font-display font-bold text-white leading-snug mb-2 line-clamp-3">
-                    {featuredArticle.title}
+                  <h3
+                    className="text-2xl md:text-[1.75rem] font-semibold text-[var(--fe-text-strong)] leading-snug mb-3 group-hover:text-[var(--fe-yellow-400)] transition-colors"
+                    style={{ fontFamily: 'var(--fe-font-editorial)' }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('analysis')}
+                      className="text-left cursor-pointer"
+                    >
+                      {featuredArticle.title}
+                    </button>
                   </h3>
                   {featuredArticle.excerpt && (
-                    <p className="text-[13px] text-slate-400 leading-relaxed line-clamp-3 mb-4">
+                    <p className="text-[15px] text-[var(--fe-text-muted)] leading-relaxed line-clamp-3 mb-4 max-w-xl">
                       {featuredArticle.excerpt}
                     </p>
                   )}
-                  <div className="mt-auto pt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06]">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="inline-flex items-center gap-1.5 text-[12px] text-[var(--fe-text-faint)] fe-data">
                       <Clock className="w-3 h-3" aria-hidden />
                       {featuredArticle.readingTime || '—'}
                       {featuredArticle.author ? ` · ${featuredArticle.author}` : ''}
@@ -379,107 +241,227 @@ const TodayPulse: React.FC<TodayPulseProps> = ({ onNavigate, articles = [] }) =>
                     <button
                       type="button"
                       onClick={() => onNavigate('analysis')}
-                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-fb-yellow hover:text-white transition-colors cursor-pointer"
+                      className="fe-btn-tertiary !text-[13px]"
                     >
                       Oku <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                </>
+                </article>
               )}
-            </motion.article>
 
-            {/* ── 3. ANKET ────────────────────────────────────────── */}
-            <motion.article
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: 0.12 }}
-              className="lg:col-span-4 ui-surface ui-surface-hover rounded-2xl p-5 md:p-6 flex flex-col relative overflow-hidden"
-            >
-              <div className="absolute top-0 inset-x-0 h-px ui-hairline opacity-60" />
-              <div className="flex items-center justify-between gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-400">
-                  <Vote className="w-3.5 h-3.5 text-fb-yellow" aria-hidden />
-                  Anket
-                </span>
-                {totalVotes > 0 && (
-                  <span className="text-[11px] text-slate-500 font-medium">{totalVotes} oy</span>
+              {/* Side stories — list rows, not equal cards */}
+              {sideStories.length > 0 && (
+                <ul className="border-t border-[var(--fe-line-subtle)] divide-y divide-[var(--fe-line-subtle)]">
+                  {sideStories.map((a: any) => (
+                    <li key={a.id || a.title}>
+                      <button
+                        type="button"
+                        onClick={() => onNavigate('analysis')}
+                        className="w-full text-left py-3.5 flex items-baseline justify-between gap-4 hover:text-[var(--fe-yellow-400)] transition-colors cursor-pointer group"
+                      >
+                        <span className="text-[14px] font-medium text-[var(--fe-text-strong)] group-hover:text-[var(--fe-yellow-400)] line-clamp-2">
+                          {a.title}
+                        </span>
+                        <span className="text-[11px] fe-data text-[var(--fe-text-faint)] shrink-0">
+                          {a.category || 'Analiz'}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* ── Data rail (5): match sheet + poll ── */}
+            <div className="lg:col-span-5 space-y-5">
+              {/* Match sheet */}
+              <div className="fe-surface p-5 relative">
+                <div className="absolute left-0 top-3 bottom-3 w-[2px] bg-[var(--fe-yellow-400)] rounded-r" />
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <span className="text-[12px] fe-data font-medium text-[var(--fe-text-muted)]">
+                    Maç
+                  </span>
+                  {match && (
+                    <span
+                      className={`text-[11px] fe-data font-medium px-2 py-0.5 rounded-[var(--fe-radius-xs)] border ${
+                        isLive
+                          ? 'border-[var(--fe-live)]/40 text-[var(--fe-live)]'
+                          : isFinished
+                            ? 'border-[var(--fe-success)]/30 text-[var(--fe-success)]'
+                            : 'border-[var(--fe-yellow-line)] text-[var(--fe-yellow-400)]'
+                      }`}
+                    >
+                      {isLive ? 'Canlı' : isFinished ? 'Maç sonu' : 'Yaklaşan'}
+                    </span>
+                  )}
+                </div>
+
+                {!match ? (
+                  <EmptyState
+                    icon={Calendar}
+                    title="Öne çıkan maç yok"
+                    description="Fikstür eklendiğinde burada nabız atar."
+                    action={{
+                      label: 'Maç merkezi',
+                      onClick: () => onNavigate('match-center'),
+                    }}
+                  />
+                ) : (
+                  <>
+                    <p className="text-[12px] text-[var(--fe-text-faint)] fe-data mb-3">
+                      {match.competition || 'Süper Lig'} · {formatWhen(match.matchDate)}
+                    </p>
+                    <div className="flex items-center justify-between gap-2 mb-4">
+                      <div className="flex-1 text-center min-w-0">
+                        <img
+                          src={homeLogo}
+                          alt=""
+                          className="w-9 h-9 mx-auto object-contain mb-1.5"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                        <p className="text-[12px] font-semibold text-[var(--fe-text-strong)] truncate">
+                          {match.homeTeam}
+                        </p>
+                      </div>
+                      <div className="shrink-0 px-1 text-center">
+                        {isFinished || isLive ? (
+                          <p className="text-xl fe-data font-semibold text-[var(--fe-yellow-400)] tabular-nums">
+                            {match.scoreHome ?? '—'} – {match.scoreAway ?? '—'}
+                          </p>
+                        ) : (
+                          <p className="text-sm font-medium text-[var(--fe-text-muted)]">vs</p>
+                        )}
+                      </div>
+                      <div className="flex-1 text-center min-w-0">
+                        {awayLogo ? (
+                          <img
+                            src={awayLogo}
+                            alt=""
+                            className="w-9 h-9 mx-auto object-contain mb-1.5"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/logos/super-lig.png';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-9 h-9 mx-auto mb-1.5 rounded bg-white/5" />
+                        )}
+                        <p className="text-[12px] font-semibold text-[var(--fe-text-strong)] truncate">
+                          {match.awayTeam}
+                        </p>
+                      </div>
+                    </div>
+                    {(match.xGHome != null || match.xGAway != null) && (
+                      <div className="mb-3">
+                        <XGCompare
+                          home={match.xGHome}
+                          away={match.xGAway}
+                          homeLabel={match.homeTeam}
+                          awayLabel={match.awayTeam}
+                        />
+                      </div>
+                    )}
+                    <div className="pt-3 border-t border-[var(--fe-line-subtle)] flex flex-wrap items-center justify-between gap-2">
+                      <DataBadge
+                        provider={match.statsProvider}
+                        fetchedAt={match.statsFetchedAt}
+                        showMissing={!match.statsProvider}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => onNavigate('match-center')}
+                        className="fe-btn-tertiary !text-[12px]"
+                      >
+                        Maç merkezi →
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
 
-              {!poll || pollOptions.length === 0 ? (
-                <EmptyState
-                  icon={MessageSquare}
-                  title="Aktif anket yok"
-                  description="Admin’den anket açıldığında taraftar nabzı burada akar."
-                  action={{ label: 'Taraftar odası', onClick: () => onNavigate('fan-room') }}
-                />
-              ) : (
-                <>
-                  <h3 className="text-base md:text-lg font-display font-bold text-white leading-snug mb-5">
-                    {poll.question || poll.title}
-                  </h3>
-                  <div className="space-y-2.5 flex-1" role="list">
-                    {pollOptions.map((opt) => {
-                      const pct =
-                        totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
-                      const selected = votedOptionId === opt.id;
-                      const showBars = !!votedOptionId;
-                      return (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          role="listitem"
-                          disabled={!!votedOptionId}
-                          onClick={() => handleVote(opt.id)}
-                          className={`relative w-full text-left rounded-xl border px-3.5 py-3 overflow-hidden transition-all cursor-pointer disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow ${
-                            selected
-                              ? 'border-fb-yellow/50 bg-fb-yellow/10'
-                              : 'border-white/[0.07] bg-white/[0.025] hover:border-white/15 hover:bg-white/[0.05]'
-                          }`}
-                        >
-                          {showBars && (
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${pct}%` }}
-                              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                              className="absolute inset-y-0 left-0 bg-fb-yellow/15 z-0"
-                            />
-                          )}
-                          <div className="relative z-10 flex items-center justify-between gap-2">
-                            <span className="text-[13px] font-semibold text-white flex items-center gap-2">
-                              {selected && (
-                                <CheckCircle2 className="w-4 h-4 text-fb-yellow shrink-0" />
-                              )}
-                              {opt.label}
-                            </span>
-                            {showBars && (
-                              <span className="text-[13px] font-mono font-bold text-fb-yellow tabular-nums">
-                                %{pct}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {voteError && (
-                    <p className="mt-3 text-[12px] text-rose-400 font-medium" role="alert">
-                      {voteError}
-                    </p>
+              {/* Poll */}
+              <div className="fe-surface p-5">
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <span className="text-[12px] fe-data font-medium text-[var(--fe-text-muted)] inline-flex items-center gap-1.5">
+                    <Vote className="w-3.5 h-3.5 text-[var(--fe-yellow-400)]" aria-hidden />
+                    Anket
+                  </span>
+                  {totalVotes > 0 && (
+                    <span className="text-[11px] fe-data text-[var(--fe-text-faint)]">
+                      {totalVotes} oy
+                    </span>
                   )}
-                  <div className="mt-4 pt-3 border-t border-white/[0.06] flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => onNavigate('fan-room')}
-                      className="inline-flex items-center gap-1 text-[12px] font-semibold text-fb-yellow hover:text-white transition-colors cursor-pointer"
-                    >
-                      Taraftar odası <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </>
-              )}
-            </motion.article>
+                </div>
+
+                {!poll || pollOptions.length === 0 ? (
+                  <EmptyState
+                    icon={MessageSquare}
+                    title="Aktif anket yok"
+                    description="Admin’den anket açıldığında burada akar."
+                    action={{
+                      label: 'Taraftar odası',
+                      onClick: () => onNavigate('fan-room'),
+                    }}
+                  />
+                ) : (
+                  <>
+                    <h3 className="text-[15px] font-semibold text-[var(--fe-text-strong)] leading-snug mb-4">
+                      {poll.question || poll.title}
+                    </h3>
+                    <div className="space-y-2" role="list">
+                      {pollOptions.map((opt) => {
+                        const pct =
+                          totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+                        const selected = votedOptionId === opt.id;
+                        const showBars = !!votedOptionId;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            role="listitem"
+                            disabled={!!votedOptionId}
+                            onClick={() => handleVote(opt.id)}
+                            className={`relative w-full text-left rounded-[var(--fe-radius-md)] border px-3 py-2.5 overflow-hidden transition-colors cursor-pointer disabled:cursor-default min-h-[44px] ${
+                              selected
+                                ? 'border-[var(--fe-yellow-line)] bg-[var(--fe-yellow-soft)]'
+                                : 'border-[var(--fe-line-subtle)] hover:border-[var(--fe-line)]'
+                            }`}
+                          >
+                            {showBars && (
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                                className="absolute inset-y-0 left-0 bg-[var(--fe-yellow-soft)] z-0"
+                              />
+                            )}
+                            <div className="relative z-10 flex items-center justify-between gap-2">
+                              <span className="text-[13px] font-medium text-[var(--fe-text-strong)] flex items-center gap-2">
+                                {selected && (
+                                  <CheckCircle2 className="w-4 h-4 text-[var(--fe-yellow-400)] shrink-0" />
+                                )}
+                                {opt.label}
+                              </span>
+                              {showBars && (
+                                <span className="text-[13px] fe-data font-semibold text-[var(--fe-yellow-400)] tabular-nums">
+                                  %{pct}
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {voteError && (
+                      <p className="mt-2 text-[12px] text-[var(--fe-danger)]" role="alert">
+                        {voteError}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>

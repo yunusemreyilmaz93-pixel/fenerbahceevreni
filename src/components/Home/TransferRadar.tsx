@@ -72,32 +72,29 @@ const TransferRadar: React.FC<TransferRadarProps> = ({ onNavigate }) => {
   return (
     <section
       id="transfer-radar"
-      className="relative overflow-hidden py-16 md:py-20 border-t border-b border-white/[0.05]"
+      className="relative py-14 md:py-16 border-t border-b border-[var(--fe-line-subtle)]"
     >
-      <div className="pointer-events-none absolute -top-20 right-[5%] h-[600px] w-[600px] rounded-full bg-fb-yellow/[0.035] blur-[140px]" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 h-[400px] w-[400px] rounded-full bg-blue-600/[0.04] blur-[120px]" />
-
-      <div className="relative z-10 mx-auto max-w-7xl px-6">
-        <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="fe-container relative z-10">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <div className="mb-2 flex items-center gap-2">
-              <div className="h-px w-5 bg-fb-yellow opacity-70" />
-              <span className="text-[11px] font-semibold tracking-wide text-fb-yellow">
-                Scout & küresel izleme
-              </span>
+            <div className="fe-signal-heading">
+              <span className="fe-signal-dot" />
+              <span className="fe-signal-line" />
+              <span className="fe-signal-label">Scout dosyası</span>
             </div>
-            <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-white">
-              Transfer <span className="text-fb-yellow">radar</span>
+            <h2
+              className="text-[1.75rem] md:text-[2rem] font-semibold tracking-tight text-[var(--fe-text-strong)]"
+              style={{ fontFamily: 'var(--fe-font-editorial)' }}
+            >
+              Transfer radar
             </h2>
           </div>
-
           <button
             type="button"
             onClick={() => onNavigate('transfer-radar')}
-            className="group flex items-center gap-2 text-[13px] font-semibold text-fb-yellow transition-colors hover:text-white cursor-pointer"
+            className="fe-btn-tertiary"
           >
-            Tüm scout raporları
-            <span className="transition-transform group-hover:translate-x-1">→</span>
+            Tüm scout raporları →
           </button>
         </div>
 

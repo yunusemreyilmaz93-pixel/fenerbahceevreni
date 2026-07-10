@@ -79,15 +79,14 @@ const SquadShowcase: React.FC<SquadShowcaseProps> = ({ onNavigate }) => {
   }, [players]);
 
   return (
-    <section className="py-16 md:py-20 border-t border-white/[0.05] relative overflow-hidden">
-      <div className="absolute top-[20%] left-[8%] w-[340px] h-[340px] bg-fb-navy/30 rounded-full blur-[100px] pointer-events-none" />
-
-      <div className="container mx-auto px-6 max-w-7xl relative z-10">
+    <section className="py-14 md:py-16 border-t border-[var(--fe-line-subtle)] relative">
+      <div className="fe-container relative z-10">
         <SectionHeader
-          kicker="2026-27 sezonu · A takım"
-          title="Kadrodan öne çıkanlar"
+          kicker="Kadro atlası"
+          title="Piyasa değeri liderleri"
           action={{ label: 'Tüm kadro', onClick: () => onNavigate('players') }}
-          className="mb-10"
+          className="mb-8"
+          editorial
         />
 
         {loading ? (
