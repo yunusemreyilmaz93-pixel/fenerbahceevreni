@@ -102,7 +102,7 @@ const HomePage: React.FC<HomePageProps> = ({
           transition={{ duration: 0.6 }}
           viewport={{ once: true, margin: "-100px" }}
         >
-          <LatestAnalysis onNavigate={onNavigate} />
+          <LatestAnalysis onNavigate={onNavigate} articles={articles} />
         </motion.div>
       )}
 
