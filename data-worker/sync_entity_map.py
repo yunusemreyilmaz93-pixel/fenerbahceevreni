@@ -190,13 +190,60 @@ def enrich_match_from_adv(match: dict, adv: dict) -> dict:
     if foul_a is not None:
         match["foulsAway"] = int(foul_a)
 
+    bc_h = metric_get(home_m, "Big chances")
+    bc_a = metric_get(away_m, "Big chances")
+    if bc_h is not None:
+        match["bigChancesHome"] = int(bc_h)
+    if bc_a is not None:
+        match["bigChancesAway"] = int(bc_a)
+
+    bcm_h = metric_get(home_m, "Big chances missed")
+    bcm_a = metric_get(away_m, "Big chances missed")
+    if bcm_h is not None:
+        match["bigChancesMissedHome"] = int(bcm_h)
+    if bcm_a is not None:
+        match["bigChancesMissedAway"] = int(bcm_a)
+
+    touch_h = metric_get(home_m, "Touches in opposition box")
+    touch_a = metric_get(away_m, "Touches in opposition box")
+    if touch_h is not None:
+        match["touchesOppBoxHome"] = int(touch_h)
+    if touch_a is not None:
+        match["touchesOppBoxAway"] = int(touch_a)
+
+    # Accurate passes: "676 (93%)" → accuracy % from parentheses
+    def pass_acc(m: dict) -> int | None:
+        raw = m.get("Accurate passes") or m.get("accurate_passes")
+        if raw is None:
+            return None
+        s = str(raw)
+        pct = re.search(r"\((\d+)%\)", s)
+        if pct:
+            return int(pct.group(1))
+        return None
+
+    pa_h, pa_a = pass_acc(home_m), pass_acc(away_m)
+    if pa_h is not None:
+        match["passAccuracyHome"] = pa_h
+    if pa_a is not None:
+        match["passAccuracyAway"] = pa_a
+
     if xg_h is not None or xg_a is not None:
         match["xGHome"] = xg_h
         match["xGAway"] = xg_a
         match["xG"] = f"{xg_h if xg_h is not None else '—'} – {xg_a if xg_a is not None else '—'}"
+    else:
+        # honesty: don't leave stale xG from older enrich
+        match.pop("xGHome", None)
+        match.pop("xGAway", None)
+        match.pop("xG", None)
 
     match["shotmapCount"] = len(adv.get("shotmap") or [])
     match["statsFlippedFromProvider"] = flipped
+    # provider orientation for UI notes
+    match["providerHomeTeam"] = adv.get("homeTeam")
+    match["providerAwayTeam"] = adv.get("awayTeam")
+    match["providerScore"] = adv.get("score")
     return match
 
 
@@ -323,6 +370,10 @@ def main() -> int:
         "foulsHome", "foulsAway", "xGHome", "xGAway", "xG", "shotmapCount",
         "statsProvider", "statsFetchedAt", "advancedMatchDocumentId",
         "statsFlippedFromProvider",
+        "bigChancesHome", "bigChancesAway", "bigChancesMissedHome", "bigChancesMissedAway",
+        "touchesOppBoxHome", "touchesOppBoxAway",
+        "passAccuracyHome", "passAccuracyAway",
+        "providerHomeTeam", "providerAwayTeam", "providerScore",
     )
 
     def strip_auto_stats(m: dict) -> dict:
@@ -420,8 +471,21 @@ def main() -> int:
     data["matches"] = new_matches
     data["updatedAt"] = utc_now()
     data["entityMapSyncedAt"] = utc_now()
-    data["source"] = data.get("source") or "entity-map + fotmob advanced"
+    data["source"] = "Kamp + FotMob advanced (xG/shotmap when available)"
     MATCHES_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Mirror advanced packs under public/ so production can serve without worker path
+    public_adv = REPO / "public" / "data" / "advanced"
+    public_adv.mkdir(parents=True, exist_ok=True)
+    mirrored = 0
+    if ADV_DIR.exists():
+        for p in ADV_DIR.glob("*__fotmob.json"):
+            try:
+                target = public_adv / p.name
+                target.write_text(p.read_text(encoding="utf-8"), encoding="utf-8")
+                mirrored += 1
+            except Exception:
+                continue
 
     player_maps = build_player_map()
     entity = {
@@ -446,6 +510,7 @@ def main() -> int:
         json.dumps(
             {
                 "ok": True,
+                "advancedMirrored": mirrored,
                 "matchesEnriched": updated,
                 "fotmobDocs": len(adv_list),
                 "playerMaps": len(player_maps),

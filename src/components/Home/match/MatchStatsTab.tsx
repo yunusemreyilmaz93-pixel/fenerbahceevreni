@@ -133,10 +133,13 @@ export const MatchStatsTab: React.FC<MatchStatsTabProps> = ({
             />
           </div>
           {[
-            { label: 'Topa Sahip Olma (%)', h: match.possessionHome, a: match.possessionAway, pct: true },
-            { label: 'Toplam Şut', h: match.shotsHome, a: match.shotsAway },
-            { label: 'İsabetli Şut', h: match.shotsOnTargetHome, a: match.shotsOnTargetAway },
-            { label: 'Pas İsabeti (%)', h: match.passAccuracyHome, a: match.passAccuracyAway, pct: true },
+            { label: 'Topa sahip olma (%)', h: match.possessionHome, a: match.possessionAway, pct: true },
+            { label: 'Toplam şut', h: match.shotsHome, a: match.shotsAway },
+            { label: 'İsabetli şut', h: match.shotsOnTargetHome, a: match.shotsOnTargetAway },
+            { label: 'Büyük şans', h: match.bigChancesHome, a: match.bigChancesAway },
+            { label: 'Kaçan büyük şans', h: match.bigChancesMissedHome, a: match.bigChancesMissedAway },
+            { label: 'Rakip ceza sahası teması', h: match.touchesOppBoxHome, a: match.touchesOppBoxAway },
+            { label: 'Pas isabeti (%)', h: match.passAccuracyHome, a: match.passAccuracyAway, pct: true },
             { label: 'Korner', h: match.cornersHome, a: match.cornersAway },
             { label: 'Faul', h: match.foulsHome, a: match.foulsAway },
           ]
@@ -146,10 +149,10 @@ export const MatchStatsTab: React.FC<MatchStatsTabProps> = ({
               const hw = s.pct ? Number(s.h) : (Number(s.h) / total) * 100;
               return (
                 <div key={s.label} className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-bold text-slate-300">
-                    <span className="font-mono text-white font-black">{s.h}</span>
-                    <span>{s.label}</span>
-                    <span className="font-mono text-white font-black">{s.a}</span>
+                  <div className="flex justify-between text-xs font-semibold text-slate-300">
+                    <span className="font-mono text-white font-bold tabular-nums">{s.h}</span>
+                    <span className="text-slate-400">{s.label}</span>
+                    <span className="font-mono text-white font-bold tabular-nums">{s.a}</span>
                   </div>
                   <div className="h-2 rounded-full bg-white/5 overflow-hidden flex">
                     <div className="bg-[#FFD21F]" style={{ width: `${hw}%` }} />
@@ -158,12 +161,24 @@ export const MatchStatsTab: React.FC<MatchStatsTabProps> = ({
                 </div>
               );
             })}
-          <XGCompare
-            home={match.xGHome}
-            away={match.xGAway}
-            homeLabel={match.homeTeam}
-            awayLabel={match.awayTeam}
-          />
+          {match.xGHome != null || match.xGAway != null ? (
+            <XGCompare
+              home={match.xGHome}
+              away={match.xGAway}
+              homeLabel={match.homeTeam}
+              awayLabel={match.awayTeam}
+            />
+          ) : (
+            <div className="p-3 rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
+              <p className="text-[12px] text-slate-500 font-medium leading-relaxed">
+                xG bu maç için sağlayıcıda yok
+                {/hazırlık|friendly|summer series/i.test(match.competition || '')
+                  ? ' (hazırlık maçlarında sık görülür).'
+                  : '.'}{' '}
+                Sahte xG basılmıyor.
+              </p>
+            </div>
+          )}
         </div>
       ) : (
         <EmptyState
@@ -184,8 +199,8 @@ export const MatchStatsTab: React.FC<MatchStatsTabProps> = ({
       {shotmapShots.length > 0 ? (
         <motion.div {...fadeUp} className="max-w-4xl space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[10px] font-black text-[#FFD21F] tracking-widest uppercase font-mono">
-              Şut Haritası
+            <span className="text-[13px] font-semibold text-fb-yellow tracking-wide">
+              Şut haritası
             </span>
             <DataBadge
               provider={match.statsProvider || 'fotmob'}
@@ -203,7 +218,11 @@ export const MatchStatsTab: React.FC<MatchStatsTabProps> = ({
         <EmptyState
           icon={Activity}
           title="Şut haritası yok"
-          description="Shotmap koordinatları sağlayıcıda yok veya henüz çekilmedi. Sıfır uydurma nokta basılmaz."
+          description={
+            /hazırlık|friendly|summer series/i.test(match.competition || '')
+              ? 'Hazırlık maçında FotMob shotmap/xG genelde yayınlamıyor. İstatistik çubukları (şut, possession) varsa onlar gerçek veridir.'
+              : 'Shotmap koordinatları sağlayıcıda yok veya henüz çekilmedi. Sıfır uydurma nokta basılmaz.'
+          }
           className="max-w-3xl"
         />
       ) : null}

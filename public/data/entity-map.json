@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "fetchedAt": "2026-07-10T13:01:45.327Z",
+  "fetchedAt": "2026-07-10T14:43:59.032Z",
   "matchMappings": [
     {
       "siteMatchId": "fb-admira-2026-07-08",
@@ -29,9 +29,8 @@
       "advancedDocId": "fotmob-4842573__fotmob",
       "homeTeam": "Kayserispor",
       "awayTeam": "Fenerbahçe",
-      "confidence": 0.85,
-      "mappingStatus": "confirmed",
-      "source": "advanced-stub"
+      "confidence": 0.9,
+      "mappingStatus": "confirmed"
     },
     {
       "siteMatchId": "fb-fotmob-4842577",
@@ -40,9 +39,8 @@
       "advancedDocId": "fotmob-4842577__fotmob",
       "homeTeam": "Fenerbahçe",
       "awayTeam": "Rizespor",
-      "confidence": 0.85,
-      "mappingStatus": "confirmed",
-      "source": "advanced-stub"
+      "confidence": 0.9,
+      "mappingStatus": "confirmed"
     },
     {
       "siteMatchId": "fb-fotmob-4842589",
@@ -51,9 +49,8 @@
       "advancedDocId": "fotmob-4842589__fotmob",
       "homeTeam": "Galatasaray",
       "awayTeam": "Fenerbahçe",
-      "confidence": 0.85,
-      "mappingStatus": "confirmed",
-      "source": "advanced-stub"
+      "confidence": 0.9,
+      "mappingStatus": "confirmed"
     },
     {
       "siteMatchId": "fb-fotmob-4842595",
@@ -62,9 +59,8 @@
       "advancedDocId": "fotmob-4842595__fotmob",
       "homeTeam": "Fenerbahçe",
       "awayTeam": "Başakşehir",
-      "confidence": 0.85,
-      "mappingStatus": "confirmed",
-      "source": "advanced-stub"
+      "confidence": 0.9,
+      "mappingStatus": "confirmed"
     },
     {
       "siteMatchId": "fb-fotmob-4842611",
@@ -73,9 +69,8 @@
       "advancedDocId": "fotmob-4842611__fotmob",
       "homeTeam": "Konyaspor",
       "awayTeam": "Fenerbahçe",
-      "confidence": 0.85,
-      "mappingStatus": "confirmed",
-      "source": "advanced-stub"
+      "confidence": 0.9,
+      "mappingStatus": "confirmed"
     },
     {
       "siteMatchId": "fb-fotmob-5237897",
@@ -84,9 +79,8 @@
       "advancedDocId": "fotmob-5237897__fotmob",
       "homeTeam": "Konyaspor",
       "awayTeam": "Fenerbahçe",
-      "confidence": 0.85,
-      "mappingStatus": "confirmed",
-      "source": "advanced-stub"
+      "confidence": 0.9,
+      "mappingStatus": "confirmed"
     }
   ],
   "playerMappingsCount": 31,
@@ -112,8 +106,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -136,8 +130,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -160,8 +154,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -184,8 +178,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -208,8 +202,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -232,8 +226,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -256,8 +250,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -280,8 +274,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -304,8 +298,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -328,8 +322,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -352,8 +346,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -376,8 +370,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -400,8 +394,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -424,8 +418,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -448,8 +442,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -472,8 +466,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -496,8 +490,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -520,8 +514,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -544,8 +538,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -568,8 +562,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -592,8 +586,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -616,8 +610,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -640,8 +634,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -664,8 +658,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -688,8 +682,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -712,8 +706,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -736,8 +730,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -760,8 +754,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -784,8 +778,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -808,8 +802,8 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     },
     {
       "schemaVersion": 1,
@@ -832,11 +826,11 @@
       },
       "mappingStatus": "review",
       "confidence": 0.5,
-      "createdAt": "2026-07-10T13:01:45.327Z",
-      "updatedAt": "2026-07-10T13:01:45.327Z"
+      "createdAt": "2026-07-10T14:43:59.031Z",
+      "updatedAt": "2026-07-10T14:43:59.031Z"
     }
   ],
   "fotmobAdvancedAvailable": 10,
   "matchesEnriched": 8,
-  "stubsAddedFromAdvanced": 6
+  "stubsAddedFromAdvanced": 0
 }

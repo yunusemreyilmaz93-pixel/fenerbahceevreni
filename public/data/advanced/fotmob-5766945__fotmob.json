@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "fotmob-5766945__fotmob",
+  "matchDocumentId": "fotmob-5766945",
+  "provider": "fotmob",
+  "providerMatchId": "5766945",
+  "homeTeam": "LASK",
+  "awayTeam": "Fenerbahçe",
+  "score": "",
+  "competition": "Club Friendlies",
+  "seasonKey": "",
+  "matchDate": "Tue, Jul 14, 2026, 17:30 UTC",
+  "teamMetrics": {
+    "home": {},
+    "away": {}
+  },
+  "playerMetrics": [],
+  "shotmap": [],
+  "heatmap": null,
+  "sourceUrl": "https://www.fotmob.com/match/5766945",
+  "fetchedAt": "2026-07-10T13:01:14.347Z",
+  "meta": {
+    "homeSlug": "lask",
+    "awaySlug": "fenerbah-e",
+    "finished": false
+  }
+}

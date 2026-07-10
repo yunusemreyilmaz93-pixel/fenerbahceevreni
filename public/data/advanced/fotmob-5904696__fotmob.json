@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "fotmob-5904696__fotmob",
+  "matchDocumentId": "fotmob-5904696",
+  "provider": "fotmob",
+  "providerMatchId": "5904696",
+  "homeTeam": "Fenerbahçe",
+  "awayTeam": "Pogoń Szczecin",
+  "score": "",
+  "competition": "Club Friendlies",
+  "seasonKey": "",
+  "matchDate": "Sat, Jul 11, 2026, 17:30 UTC",
+  "teamMetrics": {
+    "home": {},
+    "away": {}
+  },
+  "playerMetrics": [],
+  "shotmap": [],
+  "heatmap": null,
+  "sourceUrl": "https://www.fotmob.com/match/5904696",
+  "fetchedAt": "2026-07-10T13:01:12.947Z",
+  "meta": {
+    "homeSlug": "fenerbah-e",
+    "awaySlug": "pogo-szczecin",
+    "finished": false
+  }
+}

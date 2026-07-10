@@ -65,6 +65,16 @@ export function useMatchAdvanced(activeMatch: any | null) {
               cornersAway: activeMatch.cornersAway ?? next.cornersAway,
               foulsHome: activeMatch.foulsHome ?? next.foulsHome,
               foulsAway: activeMatch.foulsAway ?? next.foulsAway,
+              passAccuracyHome: activeMatch.passAccuracyHome ?? next.passAccuracyHome,
+              passAccuracyAway: activeMatch.passAccuracyAway ?? next.passAccuracyAway,
+              bigChancesHome: activeMatch.bigChancesHome ?? next.bigChancesHome,
+              bigChancesAway: activeMatch.bigChancesAway ?? next.bigChancesAway,
+              bigChancesMissedHome:
+                activeMatch.bigChancesMissedHome ?? next.bigChancesMissedHome,
+              bigChancesMissedAway:
+                activeMatch.bigChancesMissedAway ?? next.bigChancesMissedAway,
+              touchesOppBoxHome: activeMatch.touchesOppBoxHome ?? next.touchesOppBoxHome,
+              touchesOppBoxAway: activeMatch.touchesOppBoxAway ?? next.touchesOppBoxAway,
               xGHome: activeMatch.xGHome ?? next.xGHome,
               xGAway: activeMatch.xGAway ?? next.xGAway,
               statsProvider:

@@ -219,31 +219,52 @@ export function createPublicV1Router(getAdminDb: () => any) {
         }
       }
 
-      // Local advanced files
-      const advDir = path.join(process.cwd(), "data-worker", "output", "advanced");
-      for (const rid of resolvedIds) {
-        if (!rid) continue;
-        const candidates = [
-          path.join(advDir, `${rid}.json`),
-          path.join(advDir, `${rid}__${provider}.json`),
-          path.join(advDir, rid.endsWith(`__${provider}`) ? `${rid}.json` : `${rid}__${provider}.json`),
-        ];
-        for (const localPath of candidates) {
-          if (fs.existsSync(localPath)) {
-            const data = JSON.parse(fs.readFileSync(localPath, "utf-8"));
-            return res.json({ success: true, data, meta: { source: "local", file: path.basename(localPath) } });
+      // Local advanced files (worker output + public mirror for deploys)
+      const advDirs = [
+        path.join(process.cwd(), "data-worker", "output", "advanced"),
+        path.join(process.cwd(), "public", "data", "advanced"),
+      ];
+      for (const advDir of advDirs) {
+        for (const rid of resolvedIds) {
+          if (!rid) continue;
+          const candidates = [
+            path.join(advDir, `${rid}.json`),
+            path.join(advDir, `${rid}__${provider}.json`),
+            path.join(
+              advDir,
+              rid.endsWith(`__${provider}`) ? `${rid}.json` : `${rid}__${provider}.json`
+            ),
+          ];
+          for (const localPath of candidates) {
+            if (fs.existsSync(localPath)) {
+              const data = JSON.parse(fs.readFileSync(localPath, "utf-8"));
+              return res.json({
+                success: true,
+                data,
+                meta: { source: "local", file: path.basename(localPath) },
+              });
+            }
           }
         }
       }
 
-      // Scan directory for providerMatchId
+      // Scan directories for providerMatchId
       try {
-        if (fs.existsSync(advDir)) {
+        for (const advDir of advDirs) {
+          if (!fs.existsSync(advDir)) continue;
           for (const f of fs.readdirSync(advDir)) {
             if (!f.endsWith(".json")) continue;
-            if (resolvedIds.some((rid) => rid && f.includes(String(rid).replace(/__fotmob$/, "")))) {
+            if (
+              resolvedIds.some(
+                (rid) => rid && f.includes(String(rid).replace(/__fotmob$/, ""))
+              )
+            ) {
               const data = JSON.parse(fs.readFileSync(path.join(advDir, f), "utf-8"));
-              return res.json({ success: true, data, meta: { source: "local-scan", file: f } });
+              return res.json({
+                success: true,
+                data,
+                meta: { source: "local-scan", file: f },
+              });
             }
           }
         }

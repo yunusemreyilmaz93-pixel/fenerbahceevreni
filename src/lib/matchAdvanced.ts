@@ -14,6 +14,14 @@ export type MatchAdvancedOverlay = {
   cornersAway?: number | null;
   foulsHome?: number | null;
   foulsAway?: number | null;
+  passAccuracyHome?: number | null;
+  passAccuracyAway?: number | null;
+  bigChancesHome?: number | null;
+  bigChancesAway?: number | null;
+  bigChancesMissedHome?: number | null;
+  bigChancesMissedAway?: number | null;
+  touchesOppBoxHome?: number | null;
+  touchesOppBoxAway?: number | null;
   xGHome?: number | null;
   xGAway?: number | null;
   statsProvider?: string;
@@ -50,6 +58,14 @@ export function overlayFromAdvancedDoc(
   const H = flipped ? awayM : homeM;
   const A = flipped ? homeM : awayM;
   const shotmap = Array.isArray(adv?.shotmap) ? adv.shotmap : [];
+  const passAcc = (side: Record<string, unknown>): number | null => {
+    const raw = side['Accurate passes'] ?? side['accurate_passes'];
+    if (raw == null) return null;
+    const m = String(raw).match(/\((\d+)%\)/);
+    if (m) return parseInt(m[1], 10);
+    return num(side, ['Accurate passes']);
+  };
+
   return {
     possessionHome: num(H, ['Ball possession', 'possession']),
     possessionAway: num(A, ['Ball possession', 'possession']),
@@ -61,6 +77,14 @@ export function overlayFromAdvancedDoc(
     cornersAway: num(A, ['Corners']),
     foulsHome: num(H, ['Fouls committed', 'Fouls']),
     foulsAway: num(A, ['Fouls committed', 'Fouls']),
+    passAccuracyHome: passAcc(H),
+    passAccuracyAway: passAcc(A),
+    bigChancesHome: num(H, ['Big chances']),
+    bigChancesAway: num(A, ['Big chances']),
+    bigChancesMissedHome: num(H, ['Big chances missed']),
+    bigChancesMissedAway: num(A, ['Big chances missed']),
+    touchesOppBoxHome: num(H, ['Touches in opposition box']),
+    touchesOppBoxAway: num(A, ['Touches in opposition box']),
     xGHome: num(H, ['expectedGoals', 'Expected goals', 'xG']),
     xGAway: num(A, ['expectedGoals', 'Expected goals', 'xG']),
     statsProvider: adv?.provider || match?.statsProvider || 'fotmob',
