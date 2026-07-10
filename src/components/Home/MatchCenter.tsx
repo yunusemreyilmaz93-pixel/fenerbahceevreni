@@ -7,6 +7,23 @@ interface MatchCenterProps {
   onNavigate: (view: string) => void;
 }
 
+const MATCH_DATE_FORMATTER = new Intl.DateTimeFormat('tr-TR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric'
+});
+const MATCH_TIME_FORMATTER = new Intl.DateTimeFormat('tr-TR', {
+  hour: '2-digit',
+  minute: '2-digit'
+});
+
+const formatMatchDate = (value?: string) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return `${MATCH_DATE_FORMATTER.format(date)} • ${MATCH_TIME_FORMATTER.format(date)}`;
+};
+
 const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'preview' | 'xi' | 'poll'>('preview');
   const [matchData, setMatchData] = useState<any>(null);
@@ -24,8 +41,10 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
   useEffect(() => {
     const fetchMatchDetails = async () => {
       try {
-        const matchesList = await dbGetCollection('matches');
-        const teamsList = await dbGetCollection('teams');
+        const [matchesList, teamsList] = await Promise.all([
+          dbGetCollection('matches'),
+          dbGetCollection('teams')
+        ]);
         
         // Find featured or first upcoming or live match
         const activeMatch = matchesList.find((m: any) => m.featured) || 
@@ -130,8 +149,8 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
         </div>
 
         {loading ? (
-          <div className="py-16 text-center text-[#FFD21F] text-xs font-black uppercase tracking-widest font-mono">
-            Veriler Alınıyor...
+          <div aria-live="polite" className="py-16 text-center text-[#FFD21F] text-xs font-black uppercase tracking-widest font-mono">
+            Veriler Alınıyor…
           </div>
         ) : !matchData ? (
           <div className="p-16 rounded-2xl bg-[#111625] border border-white/[0.08] text-center space-y-4">
@@ -144,7 +163,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             
             {/* Match Overview card (Left) */}
-            <div className="lg:col-span-4 rounded-2xl bg-[#111625] border border-white/[0.08] p-6 text-center flex flex-col justify-between hover:border-white/[0.12] transition-colors shadow-lg relative">
+            <div className="ui-card ui-card-interactive lg:col-span-4 rounded-2xl bg-[#111625] border border-white/[0.08] p-6 text-center flex flex-col justify-between hover:border-white/[0.12] transition-colors shadow-lg relative">
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-red-500 via-transparent to-red-500 opacity-65" />
               
               <div>
@@ -177,6 +196,8 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                         <img loading="lazy"
                           src="/logos/fenerbahce.png" 
                           alt="Fenerbahçe" 
+                          width={36}
+                          height={36}
                           className="w-9 h-9 object-contain"
                           referrerPolicy="no-referrer"
                         />
@@ -186,7 +207,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                       </div>
                     </div>
                     {(matchData.status === 'live' || isFinished) && (
-                      <span className="text-xl font-mono font-black text-[#FFD21F]">{matchData.scoreHome}</span>
+                      <span className="text-xl font-mono font-black tabular-nums text-[#FFD21F]">{matchData.scoreHome}</span>
                     )}
                   </div>
 
@@ -202,6 +223,8 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                           <img loading="lazy"
                             src={opponentLogo} 
                             alt={matchData.awayTeam === 'Fenerbahçe' ? matchData.homeTeam : matchData.awayTeam} 
+                            width={36}
+                            height={36}
                             className="w-9 h-9 object-contain" 
                             referrerPolicy="no-referrer"
                           />
@@ -218,7 +241,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                       </div>
                     </div>
                     {(matchData.status === 'live' || isFinished) && (
-                      <span className="text-xl font-mono font-black text-white">{matchData.scoreAway}</span>
+                      <span className="text-xl font-mono font-black tabular-nums text-white">{matchData.scoreAway}</span>
                     )}
                   </div>
                 </div>
@@ -227,12 +250,10 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
               {/* Stadium & Date */}
               <div className="space-y-4 pt-6 border-t border-white/[0.05]">
                 <div className="text-left bg-[#0B0F19]/45 rounded-xl p-3.5 flex items-center gap-3 border border-white/[0.03]">
-                  <Calendar className="w-4 h-4 text-[#FFD21F] shrink-0" />
+                  <Calendar aria-hidden="true" className="w-4 h-4 text-[#FFD21F] shrink-0" />
                   <div>
                     <div className="text-xs font-black text-white uppercase tracking-wider font-mono">
-                      {matchData.matchDate
-                        ? `${new Date(matchData.matchDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })} • ${new Date(matchData.matchDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`
-                        : '—'}
+                      {formatMatchDate(matchData.matchDate)}
                     </div>
                     <span className="text-[10px] text-slate-400 font-bold leading-none">
                       {matchData.venue || '—'}
@@ -243,10 +264,10 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
             </div>
 
             {/* Interactive Tactical Workspace tabs (Right) */}
-            <div className="lg:col-span-8 rounded-2xl bg-[#111625] border border-white/[0.08] flex flex-col overflow-hidden shadow-lg hover:border-white/[0.12] transition-colors">
+            <div className="ui-card ui-card-interactive lg:col-span-8 rounded-2xl border border-white/[0.08] flex flex-col overflow-hidden shadow-lg hover:border-white/[0.12] transition-colors">
               
               {/* Tab Header bar */}
-              <div className={`grid ${isFinished ? 'grid-cols-2' : 'grid-cols-3'} border-b border-white/[0.06] bg-white/[0.01]`}>
+              <div role="tablist" aria-label="Maç merkezi bölümleri" className={`grid ${isFinished ? 'grid-cols-2' : 'grid-cols-3'} border-b border-white/[0.06] bg-white/[0.01]`}>
                 {[
                   { id: 'preview' as const, label: isFinished ? 'Maç Özeti' : 'Maç Önü Analizi' },
                   { id: 'xi' as const, label: isFinished ? 'İlk 11' : 'Muhtemel 11' },
@@ -254,8 +275,13 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                 ].map((tab) => (
                   <button 
                     key={tab.id}
+                    type="button"
+                    role="tab"
+                    id={`match-tab-${tab.id}`}
+                    aria-selected={activeTab === tab.id}
+                    aria-controls={`match-panel-${tab.id}`}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-4 text-xs font-black tracking-widest uppercase transition-all cursor-pointer relative ${
+                    className={`py-4 text-xs font-black tracking-widest uppercase transition-colors duration-200 cursor-pointer relative ${
                       activeTab === tab.id 
                         ? 'text-[#FFD21F] bg-[#151C30]/40' 
                         : 'text-slate-400 hover:text-white hover:bg-white/[0.01]'
@@ -278,6 +304,9 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                   {activeTab === 'preview' && (
                     <motion.div
                       key="preview"
+                      role="tabpanel"
+                      id="match-panel-preview"
+                      aria-labelledby="match-tab-preview"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -325,6 +354,9 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                   {activeTab === 'xi' && (
                     <motion.div
                       key="xi"
+                      role="tabpanel"
+                      id="match-panel-xi"
+                      aria-labelledby="match-tab-xi"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
@@ -366,7 +398,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
 
                       {!isFinished && xiList.length > 0 && (
                         <div className="pt-2 border-t border-white/[0.04] text-xs text-slate-400 flex items-center gap-2 italic">
-                          <AlertTriangle className="w-3.5 h-3.5 text-[#FFD21F] shrink-0" />
+                          <AlertTriangle aria-hidden="true" className="w-3.5 h-3.5 text-[#FFD21F] shrink-0" />
                           Teknik heyetin son antrenman tercihleri doğrultusunda kadroda değişiklik olabilir.
                         </div>
                       )}
@@ -376,13 +408,16 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                   {activeTab === 'poll' && !isFinished && (
                     <motion.div
                       key="poll"
+                      role="tabpanel"
+                      id="match-panel-poll"
+                      aria-labelledby="match-tab-poll"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       className="space-y-6 text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <Vote className="w-5 h-5 text-[#FFD21F]" />
+                        <Vote aria-hidden="true" className="w-5 h-5 text-[#FFD21F]" />
                         <h3 className="text-sm font-black text-white uppercase tracking-widest font-mono">
                           Bu Karşılaşma Nasıl Sonuçlanır?
                         </h3>
@@ -393,7 +428,7 @@ const MatchCenter: React.FC<MatchCenterProps> = ({ onNavigate }) => {
                           <p className="text-sm text-slate-300 leading-relaxed font-semibold">
                             Taraftar topluluğunun maç beklentisini ölçüyoruz. Oyunu ver, güncel dağılımı gör.
                           </p>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <button 
                               onClick={() => handleVote('home')}
                               className="p-4 rounded-xl bg-[#0B0F19] border border-white/10 hover:border-[#FFD21F] font-black text-xs uppercase tracking-wider text-center text-white transition-all hover:scale-[1.01] cursor-pointer"
