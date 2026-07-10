@@ -105,25 +105,70 @@ def records_for_job(result: UpsertResult, *, code: int) -> int:
     return result.local_count
 
 
+def _upsert_standings_from_path(path: Path, season: str) -> tuple[int, UpsertResult]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    doc = {
+        "id": f"super-lig-{data.get('season', season)}",
+        **data,
+        "provider": data.get("source") or "transfermarkt",
+        "fetchedAt": data.get("updatedAt") or utc_now(),
+    }
+    result = upsert_collection(COLLECTIONS["standings"], [doc])
+    return records_for_job(result, code=0), result
+
+
+def _upsert_squad_from_path(path: Path) -> tuple[int, UpsertResult]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    players = data.get("players") or []
+    docs = []
+    fetched = data.get("updatedAt") or data.get("scrapedAt") or utc_now()
+    for p in players:
+        pid = p.get("id") or p.get("slug")
+        if not pid:
+            continue
+        docs.append(
+            {
+                **p,
+                "id": pid,
+                "provider": data.get("source") or "transfermarkt",
+                "fetchedAt": p.get("fetchedAt") or fetched,
+            }
+        )
+    result = upsert_collection(COLLECTIONS["players"], docs)
+    return records_for_job(result, code=0), result
+
+
 def job_sync_standings(season: str) -> tuple[int, int, str, dict[str, Any]]:
+    """
+    Live scrape → Firestore. On provider 403 (common on CI), fall back to
+    committed public/data/standings.json so site source-of-truth still updates.
+    """
     code, out = run_subprocess(
         [py(), str(WORKER / "fetch_standings.py"), "--season", season]
     )
     meta: dict[str, Any] = {}
     written = 0
     path = REPO / "public" / "data" / "standings.json"
+    summary = out[-2000:] if out else ""
+
     if path.exists() and code == 0:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        doc = {
-            "id": f"super-lig-{data.get('season', season)}",
-            **data,
-            "provider": data.get("source") or "transfermarkt",
-            "fetchedAt": data.get("updatedAt") or utc_now(),
-        }
-        result = upsert_collection(COLLECTIONS["standings"], [doc])
+        written, result = _upsert_standings_from_path(path, season)
         meta = fs_meta(result)
-        written = records_for_job(result, code=code)
-    return code, written, out[-2000:] if out else "", meta
+        return code, written, summary, meta
+
+    # Scrape failed (e.g. Transfermarkt 403 on GitHub runners) — use last snapshot
+    if path.exists() and path.stat().st_size > 50:
+        written, result = _upsert_standings_from_path(path, season)
+        meta = fs_meta(result)
+        meta["usedCachedSnapshot"] = True
+        meta["scrapeExit"] = code
+        meta["jobOutcome"] = "partial"
+        note = f"scrape failed; upserted cached standings.json ({path.stat().st_size}B)"
+        summary = (summary + " | " + note).strip(" |")
+        # partial success if Firestore wrote (or local-only without require)
+        if result.status == "written" or result.local_count > 0:
+            return 0, written, summary, meta
+    return code, written, summary, meta
 
 
 def job_sync_squad(season: str) -> tuple[int, int, str, dict[str, Any]]:
@@ -133,27 +178,24 @@ def job_sync_squad(season: str) -> tuple[int, int, str, dict[str, Any]]:
     meta: dict[str, Any] = {}
     written = 0
     path = REPO / "public" / "data" / "squad.json"
+    summary = out[-2000:] if out else ""
+
     if path.exists() and code == 0:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        players = data.get("players") or []
-        docs = []
-        fetched = data.get("updatedAt") or data.get("scrapedAt") or utc_now()
-        for p in players:
-            pid = p.get("id") or p.get("slug")
-            if not pid:
-                continue
-            docs.append(
-                {
-                    **p,
-                    "id": pid,
-                    "provider": data.get("source") or "transfermarkt",
-                    "fetchedAt": p.get("fetchedAt") or fetched,
-                }
-            )
-        result = upsert_collection(COLLECTIONS["players"], docs)
+        written, result = _upsert_squad_from_path(path)
         meta = fs_meta(result)
-        written = records_for_job(result, code=code)
-    return code, written, out[-2000:] if out else "", meta
+        return code, written, summary, meta
+
+    if path.exists() and path.stat().st_size > 50:
+        written, result = _upsert_squad_from_path(path)
+        meta = fs_meta(result)
+        meta["usedCachedSnapshot"] = True
+        meta["scrapeExit"] = code
+        meta["jobOutcome"] = "partial"
+        note = f"scrape failed; upserted cached squad.json ({path.stat().st_size}B)"
+        summary = (summary + " | " + note).strip(" |")
+        if result.status == "written" or result.local_count > 0:
+            return 0, written, summary, meta
+    return code, written, summary, meta
 
 
 def job_health_probe() -> tuple[int, int, str, dict[str, Any]]:
@@ -428,15 +470,14 @@ def main() -> int:
     # A4: optional hard fail when Firestore was required but not written
     fs_status = (job_meta or {}).get("firestoreStatus")
     if args.require_firestore and code == 0:
-        if fs_status in (None, "skipped_no_credentials", "failed", "empty"):
-            # health_probe: clientReady is enough
-            if args.job_type == "health_probe":
-                if not (job_meta or {}).get("probe_clientReady"):
-                    code = 1
-                    summary = (summary or "") + " | require-firestore: client not ready"
-            elif fs_status != "written":
+        if args.job_type == "health_probe":
+            if not (job_meta or {}).get("probe_clientReady"):
                 code = 1
-                summary = (summary or "") + f" | require-firestore: status={fs_status}"
+                summary = (summary or "") + " | require-firestore: client not ready"
+        elif fs_status != "written":
+            # partial cache upsert must still hit Firestore when required
+            code = 1
+            summary = (summary or "") + f" | require-firestore: status={fs_status}"
 
     finished = utc_now()
     doc["finishedAt"] = finished
@@ -445,10 +486,19 @@ def main() -> int:
     doc["successCount"] = written if code == 0 else 0
     doc["failedCount"] = 0 if code == 0 else 1
     doc["recordsWritten"] = written if code == 0 else 0
-    doc["status"] = "success" if code == 0 else "failed"
+    # partial = scrape failed but cached snapshot upserted
+    if code == 0 and (job_meta or {}).get("jobOutcome") == "partial":
+        doc["status"] = "partial"
+    elif code == 0:
+        doc["status"] = "success"
+    else:
+        doc["status"] = "failed"
     if code != 0:
         clean = summary.replace("\\", "/").split("\n")[-1][:300]
         doc["errorSummary"] = clean or f"exit {code}"
+    elif doc["status"] == "partial":
+        clean = summary.replace("\\", "/").split("\n")[-1][:300] if summary else None
+        doc["errorSummary"] = clean  # scrape error kept for ops visibility
     else:
         doc["errorSummary"] = None
 
