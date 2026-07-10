@@ -327,6 +327,20 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
     return players.find(p => p.slug === selectedPlayerSlug);
   }, [players, selectedPlayerSlug]);
 
+  const comparisonPlayer = useMemo(() => {
+    if (!comparePlayerSlug) return null;
+    return players.find(p => p.slug === comparePlayerSlug) ?? null;
+  }, [players, comparePlayerSlug]);
+
+  const comparisonMetrics = useMemo(() => {
+    if (!currentPlayer || !comparisonPlayer) return [];
+
+    return [
+      { label: 'Genel Form', left: currentPlayer.formRating, right: comparisonPlayer.formRating, suffix: '/10' },
+      { label: 'Son Resmî Maç', left: currentPlayer.lastMatchRating, right: comparisonPlayer.lastMatchRating, suffix: '/10' },
+      { label: 'Yaş', left: currentPlayer.age, right: comparisonPlayer.age, suffix: '' }
+    ].filter((metric) => metric.left > 0 && metric.right > 0);
+  }, [currentPlayer, comparisonPlayer]);
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#070b13]" role="status" aria-live="polite">
@@ -893,7 +907,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
 
               {playerArticles.length === 0 ? (
                 <div className="p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
-                  <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                  <p className="text-xs text-slate-400 font-black uppercase tracking-widest font-mono">
                     Yayınlanmış oyuncu analizi henüz yok
                   </p>
                   <p className="text-xs text-slate-500 italic">
@@ -942,125 +956,91 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
             <div className="container mx-auto px-6 max-w-5xl space-y-8">
               
               {/* Back Breadcrumbs */}
-              <button 
+              <button
+                type="button"
                 onClick={handleBackToList}
-                className="group inline-flex items-center gap-1 text-xs text-fb-muted hover:text-white transition-colors uppercase font-black tracking-widest cursor-pointer"
+                className="group inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-semibold text-fb-muted transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/60"
               >
                 <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Oyuncular Listesine Dön
               </button>
 
-              {/* Detail Header Hero Display Card */}
-              <div className="p-8 rounded-3xl bg-fb-card border border-white/[0.08] relative overflow-hidden bg-gradient-to-br from-fb-card to-[#0E121E]">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-fb-yellow/[0.015] rounded-full blur-3xl pointer-events-none"></div>
+              {/* PLAYER PROFILE SUMMARY */}
+              <header className="ui-card relative overflow-hidden bg-gradient-to-br from-fb-card to-[#0E121E] p-5 md:p-8">
+                <div className="pointer-events-none absolute right-0 top-0 h-80 w-80 rounded-full bg-fb-yellow/[0.015] blur-3xl" />
 
-                <div className="flex flex-col md:flex-row gap-8 items-center justify-between pb-6 border-b border-white/[0.06]">
-                  
-                  {/* Left Specs Title block */}
-                  <div className="flex flex-col md:flex-row gap-6 items-center text-center md:text-left">
+                <div className="relative flex flex-col gap-6 border-b border-white/[0.06] pb-6 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
                     {currentPlayer.photo ? (
-                      <div className="w-24 h-24 rounded-2xl border-2 border-fb-yellow/30 overflow-hidden shadow-xl shrink-0 bg-fb-dark">
-                        <img 
-                          src={currentPlayer.photo} 
-                          alt={currentPlayer.name} 
-                          className="w-full h-full object-cover" 
+                      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-fb-yellow/30 bg-fb-dark shadow-xl">
+                        <img
+                          src={currentPlayer.photo}
+                          alt={currentPlayer.name}
+                          width={96}
+                          height={96}
+                          fetchPriority="high"
+                          className="h-full w-full object-cover"
                           referrerPolicy="no-referrer"
                         />
                       </div>
                     ) : (
-                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#121724] to-fb-yellow/10 border border-fb-yellow/30 flex items-center justify-center font-display font-heavy text-fb-yellow text-2xl italic shadow-inner shrink-0">
+                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-fb-yellow/30 bg-gradient-to-tr from-[#121724] to-fb-yellow/10 text-2xl font-black text-fb-yellow shadow-inner">
                         FE
                       </div>
                     )}
-                    <div>
-                      <h2 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase">
-                        {currentPlayer.shirtNumber && <span className="text-fb-yellow font-mono italic mr-2">#{currentPlayer.shirtNumber}</span>}
+
+                    <div className="min-w-0">
+                      <p className="mb-2 text-sm font-semibold text-fb-yellow">{currentPlayer.position || 'Mevki belirtilmedi'}</p>
+                      <h1 className="text-pretty text-3xl font-black leading-tight text-white md:text-4xl">
+                        {currentPlayer.shirtNumber ? <span className="mr-2 font-mono text-fb-yellow">#{currentPlayer.shirtNumber}</span> : null}
                         {currentPlayer.name}
-                      </h2>
-                      <div className="flex flex-wrap gap-2 items-center justify-center md:justify-start mt-1.5 text-xs text-fb-muted font-bold">
-                        <span className="text-fb-yellow font-black">{currentPlayer.position}</span>
-                        {currentPlayer.secondaryPosition && (
-                          <>
-                            <span>•</span>
-                            <span className="text-slate-300">{currentPlayer.secondaryPosition}</span>
-                          </>
-                        )}
-                        <span>•</span>
-                        <span>{currentPlayer.age} Yaşında</span>
-                        <span>•</span>
-                        <span>{currentPlayer.nationality}</span>
-                      </div>
+                      </h1>
+                      <p className="mt-2 text-sm text-fb-muted">
+                        {[currentPlayer.secondaryPosition, currentPlayer.age > 0 ? `${currentPlayer.age} yaş` : '', currentPlayer.nationality]
+                          .filter(Boolean)
+                          .join(' • ') || 'Profil bilgileri güncelleniyor'}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Right Dual ratings */}
-                  <div className="flex gap-4">
-                    <div className="p-4 rounded-2xl bg-fb-dark border border-white/5 text-center min-w-[90px]">
-                      <span className="text-xs font-black text-[#5C6F84] uppercase tracking-wider block mb-1">FORM PUANI</span>
-                      <span className="text-2xl font-display font-black text-emerald-400 leading-none">{currentPlayer.formRating}</span>
-                      <span className="text-xs text-slate-400 block mt-1">/ 10.0</span>
+                  <dl className="grid w-full grid-cols-2 gap-3 sm:w-auto">
+                    <div className="min-w-[8rem] rounded-2xl border border-white/5 bg-fb-dark p-4 text-center">
+                      <dt className="mb-2 text-xs font-semibold text-fb-muted">Form Puanı</dt>
+                      <dd className="tabular-nums text-2xl font-black leading-none text-emerald-400">
+                        {currentPlayer.formRating > 0 ? currentPlayer.formRating : '—'}
+                      </dd>
+                      <dd className="mt-2 text-xs text-slate-400">{currentPlayer.formRating > 0 ? '/10' : 'Veri yok'}</dd>
                     </div>
-
-                    <div className="p-4 rounded-2xl bg-fb-dark border border-white/5 text-center min-w-[90px]">
-                      <span className="text-xs font-black text-[#5C6F84] uppercase tracking-wider block mb-1">SON MAÇ</span>
-                      <span className="text-2xl font-display font-black text-fb-yellow leading-none">{currentPlayer.lastMatchRating}</span>
-                      <span className="text-xs text-slate-400 block mt-1">/ 10.0</span>
+                    <div className="min-w-[8rem] rounded-2xl border border-white/5 bg-fb-dark p-4 text-center">
+                      <dt className="mb-2 text-xs font-semibold text-fb-muted">Son Maç</dt>
+                      <dd className="tabular-nums text-2xl font-black leading-none text-fb-yellow">
+                        {currentPlayer.lastMatchRating > 0 ? currentPlayer.lastMatchRating : '—'}
+                      </dd>
+                      <dd className="mt-2 text-xs text-slate-400">{currentPlayer.lastMatchRating > 0 ? '/10' : 'Veri yok'}</dd>
                     </div>
-                  </div>
-
+                  </dl>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 pt-6 text-xs text-slate-300 border-t border-white/[0.04]">
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-xs font-black text-fb-muted block mb-1">TREND DURUMU</span>
-                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider ${
-                      currentPlayer.trend === 'yükselişte' 
-                        ? 'text-emerald-400' 
-                        : (currentPlayer.trend === 'düşüşte' ? 'text-rose-400' : 'text-slate-300')
-                    }`}>
-                      {currentPlayer.trend === 'yükselişte' && <TrendingUp size={11} />}
-                      {currentPlayer.trend === 'düşüşte' && <TrendingDown size={11} />}
-                      {currentPlayer.trend === 'stabil' && <Minus size={11} />}
-                      {currentPlayer.trend}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-xs font-black text-fb-muted block mb-1">BOY</span>
-                    <span className="text-[11px] font-black text-white">
-                      {currentPlayer.height ? `${currentPlayer.height} cm` : '182 cm'}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-xs font-black text-fb-muted block mb-1">TERCİH EDİLEN AYAK</span>
-                    <span className="text-[11px] font-black text-white">
-                      {currentPlayer.preferredFoot || 'Sağ Ayak'}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-xs font-black text-fb-muted block mb-1">PİYASA DEĞERİ</span>
-                    <span className="text-[11px] font-black text-fb-yellow">
-                      {currentPlayer.marketValue || '€12.5M'}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-xs font-black text-fb-muted block mb-1">SÖZLEŞME BİTİŞ</span>
-                    <span className="text-[11px] font-black text-white">
-                      {currentPlayer.contractEndDate || '30.06.2027'}
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 bg-white/[0.02] border border-white/5 rounded-xl text-center">
-                    <span className="text-xs font-black text-fb-muted block mb-1">ROLU / SEZON</span>
-                    <span className="text-[11px] font-black text-[#5C6F84]">
-                      {currentPlayer.status === 'active' ? (currentPlayer.firstXI ? 'AS (İLK XI)' : 'A TAKIM') : 'KİRALIK'} ({currentPlayer.season || '2026-27'})
-                    </span>
-                  </div>
-                </div>
-
-              </div>
+                <dl className="relative grid grid-cols-2 gap-3 pt-6 sm:grid-cols-3 lg:grid-cols-6">
+                  {[
+                    { label: 'Form Trendi', value: currentPlayer.trend || '—' },
+                    { label: 'Boy', value: currentPlayer.height ? `${currentPlayer.height} cm` : '—' },
+                    { label: 'Tercih Edilen Ayak', value: currentPlayer.preferredFoot || '—' },
+                    { label: 'Piyasa Değeri', value: currentPlayer.marketValue || '—', accent: true },
+                    { label: 'Sözleşme Bitişi', value: currentPlayer.contractEndDate || '—' },
+                    {
+                      label: 'Kadro Durumu',
+                      value: currentPlayer.status === 'active'
+                        ? (currentPlayer.firstXI ? 'İlk 11' : 'A Takım')
+                        : currentPlayer.status === 'loan' ? 'Kiralık' : 'Transfer Hedefi'
+                    }
+                  ].map((fact) => (
+                    <div key={fact.label} className="min-w-0 rounded-xl border border-white/5 bg-white/[0.02] p-3.5 text-center">
+                      <dt className="mb-1 text-xs font-semibold text-fb-muted">{fact.label}</dt>
+                      <dd className={`break-words text-sm font-bold ${fact.accent ? 'text-fb-yellow' : 'text-white'}`}>{fact.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </header>
 
               {/* Detailed Breakdown Tabs */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -1120,134 +1100,93 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                     )}
                   </div>
 
-                  {/* INTERACTIVE COMPARISON WIDGET (SÜPER KADRO KARŞILAŞTIRMA SİSTEMİ) */}
-                  <div className="p-6 md:p-8 rounded-3xl bg-fb-card border border-white/[0.08] text-left space-y-6 relative overflow-hidden bg-gradient-to-b from-fb-card to-fb-dark/40 shadow-2xl">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-fb-yellow/[0.01] rounded-full blur-[90px] pointer-events-none"></div>
-
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.04]">
-                      <div className="space-y-1">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-fb-yellow/10 border border-fb-yellow/20 text-fb-yellow text-xs uppercase font-black tracking-wider">
-                          <Activity size={10} /> TAKTİKSEL KARŞILAŞTIRMA MATRİSİ
-                        </span>
-                        <h3 className="text-base font-display font-black text-white italic uppercase tracking-tight leading-none">
-                          Oyuncu Karşılaştırma Laboratuvarı
-                        </h3>
+                  {/* PLAYER COMPARISON */}
+                  <section className="ui-card space-y-6 p-5 md:p-8" aria-labelledby="player-comparison-title">
+                    <div className="flex flex-col gap-5 border-b border-white/[0.06] pb-5 sm:flex-row sm:items-end sm:justify-between">
+                      <div className="space-y-2">
+                        <p className="inline-flex items-center gap-2 rounded bg-fb-yellow/10 px-2.5 py-1 text-xs font-semibold text-fb-yellow">
+                          <Activity size={14} aria-hidden="true" /> Oyuncu Karşılaştırması
+                        </p>
+                        <h2 id="player-comparison-title" className="text-xl font-bold text-white">Kadro İçi Kıyaslama</h2>
+                        <p id="comparison-help" className="max-w-xl text-sm leading-relaxed text-fb-muted">
+                          Yayınlanmış form, son maç ve yaş verilerini yan yana inceleyin.
+                        </p>
                       </div>
 
-                      <div className="relative shrink-0">
+                      <label className="block w-full sm:max-w-xs">
+                        <span className="mb-2 block text-sm font-semibold text-slate-200">Karşılaştırılacak Oyuncu</span>
                         <select
+                          name="comparison-player"
                           value={comparePlayerSlug || ''}
-                          onChange={(e) => setComparePlayerSlug(e.target.value ? e.target.value : null)}
-                          className="px-3.5 py-2 rounded-xl bg-slate-950 border border-white/10 text-xs text-white opacity-95 focus:outline-none focus:border-fb-yellow font-bold select-none cursor-pointer"
+                          aria-describedby="comparison-help"
+                          onChange={(e) => setComparePlayerSlug(e.target.value || null)}
+                          className="min-h-11 w-full cursor-pointer rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm text-white focus-visible:border-fb-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/30"
                         >
-                          <option value="">-- Karşılaştırılacak Oyuncu Seçin --</option>
+                          <option value="">Oyuncu seçin…</option>
                           {players
-                            .filter(p => p.slug !== currentPlayer.slug)
-                            .map(p => (
-                              <option key={p.id} value={p.slug}>
-                                {p.shirtNumber ? `#${p.shirtNumber} ` : ''}{p.name} ({p.position})
+                            .filter((player) => player.slug !== currentPlayer.slug)
+                            .map((player) => (
+                              <option key={player.id} value={player.slug}>
+                                {player.shirtNumber ? `#${player.shirtNumber} ` : ''}{player.name} ({player.position})
                               </option>
                             ))}
                         </select>
-                      </div>
+                      </label>
                     </div>
 
-                    {comparePlayerSlug ? (
-                      (() => {
-                        const companion = players.find(p => p.slug === comparePlayerSlug);
-                        if (!companion) return null;
-                        
-                        return (
-                          <div className="space-y-6 pt-2">
-                            {/* Comparison Side By Side Header info */}
-                            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-white/[0.04] text-center">
-                              <div className="p-3.5 rounded-2xl bg-fb-navy/20 border border-fb-yellow/15 relative">
-                                <span className="absolute top-2 left-3 text-xs font-black text-fb-yellow tracking-widest">HEDEF SEÇİM</span>
-                                <span className="text-xs font-black text-white block mt-1.5 uppercase italic truncate">{currentPlayer.name}</span>
-                                <span className="text-xs text-emerald-400 font-bold block">İndeks: {currentPlayer.formRating} Form</span>
+                    <div aria-live="polite">
+                      {comparisonPlayer ? (
+                        <div className="space-y-5">
+                          <div className="grid grid-cols-2 gap-3 text-center">
+                            {[currentPlayer, comparisonPlayer].map((player, index) => (
+                              <div key={player.id} className={`min-w-0 rounded-2xl border p-4 ${index === 0 ? 'border-fb-yellow/20 bg-fb-navy/20' : 'border-white/10 bg-white/[0.03]'}`}>
+                                <span className="mb-1 block text-xs font-semibold text-fb-muted">{index === 0 ? 'Seçili Oyuncu' : 'Karşılaştırılan'}</span>
+                                <strong className="block truncate text-base text-white">{player.name}</strong>
+                                <span className="mt-1 block text-sm text-fb-muted">{player.position || 'Mevki belirtilmedi'}</span>
                               </div>
-                              <div className="p-3.5 rounded-2xl bg-[#1A1F2C]/40 border border-white/5 relative">
-                                <span className="absolute top-2 left-3 text-xs font-black text-slate-400 tracking-widest">KIYAS MAKAM</span>
-                                <span className="text-xs font-black text-white block mt-1.5 uppercase italic truncate">{companion.name}</span>
-                                <span className="text-xs text-fb-yellow font-bold block">İndeks: {companion.formRating} Form</span>
-                              </div>
-                            </div>
-
-                            {/* Relative Metric Comparisons */}
-                            <div className="space-y-3.5">
-                              {/* Form Rating Relative Bar */}
-                              <div className="space-y-1">
-                                <div className="flex justify-between text-[11px] font-black text-fb-muted uppercase">
-                                  <span>{currentPlayer.name.split(' ')[0]}: {currentPlayer.formRating}</span>
-                                  <span className="text-white">GENEL FORM DEĞERİ (1-10)</span>
-                                  <span>{companion.name.split(' ')[0]}: {companion.formRating}</span>
-                                </div>
-                                <div className="h-2 bg-slate-950 rounded-full overflow-hidden flex">
-                                  <div 
-                                    className="h-full bg-emerald-500 rounded-l" 
-                                    style={{ width: `${(currentPlayer.formRating / (currentPlayer.formRating + companion.formRating)) * 100}%` }}
-                                  ></div>
-                                  <div 
-                                    className="h-full bg-fb-yellow rounded-r border-l border-slate-950/20" 
-                                    style={{ width: `${(companion.formRating / (currentPlayer.formRating + companion.formRating)) * 100}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-
-                              {/* Last Match Rating Relative Bar */}
-                              <div className="space-y-1">
-                                <div className="flex justify-between text-[11px] font-black text-fb-muted uppercase">
-                                  <span>{currentPlayer.name.split(' ')[0]}: {currentPlayer.lastMatchRating}</span>
-                                  <span className="text-white">SON RESMİ MAÇ DERECESİ</span>
-                                  <span>{companion.name.split(' ')[0]}: {companion.lastMatchRating}</span>
-                                </div>
-                                <div className="h-2 bg-slate-950 rounded-full overflow-hidden flex">
-                                  <div 
-                                    className="h-full bg-emerald-500 rounded-l" 
-                                    style={{ width: `${(currentPlayer.lastMatchRating / (currentPlayer.lastMatchRating + companion.lastMatchRating)) * 100}%` }}
-                                  ></div>
-                                  <div 
-                                    className="h-full bg-fb-yellow rounded-r border-l border-slate-950/20" 
-                                    style={{ width: `${(companion.lastMatchRating / (currentPlayer.lastMatchRating + companion.lastMatchRating)) * 100}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-
-                              {/* Age Relative Bar */}
-                              <div className="space-y-1">
-                                <div className="flex justify-between text-[11px] font-black text-fb-muted uppercase">
-                                  <span>{currentPlayer.name.split(' ')[0]}: {currentPlayer.age} Yaş</span>
-                                  <span className="text-white">FIZIKSEL AKTİF YAŞ KIYASI</span>
-                                  <span>{companion.name.split(' ')[0]}: {companion.age} Yaş</span>
-                                </div>
-                                <div className="h-2 bg-slate-950 rounded-full overflow-hidden flex">
-                                  <div 
-                                    className="h-full bg-emerald-500 rounded-l" 
-                                    style={{ width: `${(currentPlayer.age / (currentPlayer.age + companion.age)) * 100}%` }}
-                                  ></div>
-                                  <div 
-                                    className="h-full bg-fb-yellow rounded-r border-l border-slate-950/20" 
-                                    style={{ width: `${(companion.age / (currentPlayer.age + companion.age)) * 100}%` }}
-                                  ></div>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Summary Scouting Conclusion */}
-                            <div className="p-4 rounded-xl bg-slate-950/50 border border-white/5 text-[11px] text-fb-muted font-semibold leading-relaxed text-left">
-                              <strong>Karşılaştırma:</strong> {currentPlayer.formRating > 0 && companion.formRating > 0
-                                ? `${currentPlayer.name} ile ${companion.name} arasındaki form indeksi farkı ${Math.abs(currentPlayer.formRating - companion.formRating).toFixed(1)} puan.`
-                                : 'Form indeksi verisi yayınlandığında bu iki oyuncunun sayısal karşılaştırması burada görünecek.'}
-                            </div>
+                            ))}
                           </div>
-                        );
-                      })()
-                    ) : (
-                      <div className="py-8 text-center text-xs text-fb-muted leading-relaxed font-semibold">
-                        Aynı takım içerisindeki mevkidaşların form durumlarını as kadro asimetrik analiz şablonlarıyla kıyaslamak için yukarıdaki açılır kutudan bir oyuncu seçin.
-                      </div>
-                    )}
-                  </div>
+
+                          {comparisonMetrics.length > 0 ? (
+                            <div className="space-y-5">
+                              {comparisonMetrics.map((metric) => {
+                                const total = metric.left + metric.right;
+                                const leftPercent = (metric.left / total) * 100;
+                                return (
+                                  <div key={metric.label}>
+                                    <div className="mb-2 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-sm">
+                                      <span className="tabular-nums font-bold text-emerald-400">{metric.left}{metric.suffix}</span>
+                                      <span className="text-center font-semibold text-slate-200">{metric.label}</span>
+                                      <span className="tabular-nums text-right font-bold text-fb-yellow">{metric.right}{metric.suffix}</span>
+                                    </div>
+                                    <div className="flex h-2 overflow-hidden rounded-full bg-slate-950" aria-hidden="true">
+                                      <span className="bg-emerald-500" style={{ width: `${leftPercent}%` }} />
+                                      <span className="bg-fb-yellow" style={{ width: `${100 - leftPercent}%` }} />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5 text-center text-sm text-fb-muted">
+                              Bu iki oyuncu için karşılaştırılabilir sayısal veri henüz yayınlanmadı.
+                            </p>
+                          )}
+
+                          <p className="rounded-xl border border-white/5 bg-slate-950/50 p-4 text-sm leading-relaxed text-fb-muted">
+                            {currentPlayer.formRating > 0 && comparisonPlayer.formRating > 0
+                              ? `${currentPlayer.name} ile ${comparisonPlayer.name} arasındaki form puanı farkı ${Math.abs(currentPlayer.formRating - comparisonPlayer.formRating).toFixed(1)}.`
+                              : 'Form puanları yayınlandığında sayısal fark burada gösterilecek.'}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center">
+                          <p className="text-sm font-semibold text-slate-200">Karşılaştırma için bir oyuncu seçin.</p>
+                          <p className="mt-2 text-sm text-fb-muted">Mevkidaşları veya farklı rollerdeki oyuncuları yan yana inceleyebilirsiniz.</p>
+                        </div>
+                      )}
+                    </div>
+                  </section>
 
                   {/* A. GENEL BAKIŞ */}
                   <div className="p-6 rounded-2xl bg-[#121724]/90 border border-white/[0.05] space-y-4">
@@ -1255,11 +1194,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                       <FileText size={16} className="text-fb-yellow" /> A. Genel Bakış Raporu
                     </h3>
                     {currentPlayer.analysis ? (
-                      <p className="text-xs text-slate-300 leading-relaxed font-semibold">
+                      <p className="text-sm leading-relaxed text-slate-300">
                         {currentPlayer.analysis}
                       </p>
                     ) : (
-                      <p className="text-xs text-slate-500 italic leading-relaxed">
+                      <p className="text-sm leading-relaxed text-fb-muted">
                         Bu oyuncu için genel bakış raporu henüz hazırlanmadı.
                       </p>
                     )}
@@ -1274,12 +1213,14 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         ✓ Güçlü Yönler
                       </h4>
                       <ul className="space-y-2">
-                        {currentPlayer.strengths.map((str, i) => (
-                          <li key={i} className="text-xs font-bold text-slate-200 flex items-start gap-2">
-                            <span className="text-emerald-400 font-extrabold shrink-0">+</span>
-                            <span>{str}</span>
+                        {currentPlayer.strengths.length > 0 ? currentPlayer.strengths.map((strength, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-slate-200">
+                            <span className="shrink-0 font-bold text-emerald-400" aria-hidden="true">+</span>
+                            <span>{strength}</span>
                           </li>
-                        ))}
+                        )) : (
+                          <li className="text-sm text-fb-muted">Güçlü yön analizi henüz yayınlanmadı.</li>
+                        )}
                       </ul>
                     </div>
 
@@ -1289,12 +1230,14 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         ⚠ Gelişim Alanları & Riskler
                       </h4>
                       <ul className="space-y-2">
-                        {currentPlayer.weaknesses.map((wk, i) => (
-                          <li key={i} className="text-xs font-bold text-slate-200 flex items-start gap-2">
-                            <span className="text-rose-400 font-extrabold shrink-0">-</span>
-                            <span>{wk}</span>
+                        {currentPlayer.weaknesses.length > 0 ? currentPlayer.weaknesses.map((weakness, index) => (
+                          <li key={index} className="flex items-start gap-2 text-sm text-slate-200">
+                            <span className="shrink-0 font-bold text-rose-400" aria-hidden="true">−</span>
+                            <span>{weakness}</span>
                           </li>
-                        ))}
+                        )) : (
+                          <li className="text-sm text-fb-muted">Gelişim alanı analizi henüz yayınlanmadı.</li>
+                        )}
                       </ul>
                     </div>
 
@@ -1315,7 +1258,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                             <div className="flex items-center gap-2.5 min-w-0">
                               <span className={`w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-xs font-black font-mono ${m.result === 'G' ? 'bg-emerald-500/15 text-emerald-400' : m.result === 'M' ? 'bg-rose-500/15 text-rose-400' : 'bg-white/10 text-slate-300'}`}>{m.result}</span>
                               <div className="min-w-0">
-                                <div className="text-[11px] font-black text-white truncate">vs {m.opponent} <span className="font-mono text-fb-yellow">{m.score}</span></div>
+                                <div className="text-xs font-black text-white truncate">vs {m.opponent} <span className="font-mono text-fb-yellow">{m.score}</span></div>
                                 <div className="text-xs text-slate-500 font-mono uppercase truncate">{m.competition}</div>
                               </div>
                             </div>
@@ -1327,7 +1270,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                       </div>
                     ) : (
                       <div className="p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
-                        <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                        <p className="text-xs text-slate-400 font-black uppercase tracking-widest font-mono">
                           Bu oyuncu için maç kaydı henüz yok
                         </p>
                         <p className="text-xs text-slate-500 italic">
@@ -1363,7 +1306,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                             </div>
                           ))}
                         </div>
-                        <div className="flex flex-wrap gap-x-6 gap-y-1.5 pt-3 border-t border-white/[0.04] text-[11px] font-bold text-slate-300">
+                        <div className="flex flex-wrap gap-x-6 gap-y-1.5 pt-3 border-t border-white/[0.04] text-xs font-bold text-slate-300">
                           <span>🟨 Sarı Kart: <strong className="text-white">{currentPlayer.seasonStats.yellowCards}</strong></span>
                           {currentPlayer.seasonStats.secondYellows > 0 && <span>🟨🟥 Çift Sarı: <strong className="text-white">{currentPlayer.seasonStats.secondYellows}</strong></span>}
                           {currentPlayer.seasonStats.redCards > 0 && <span>🟥 Kırmızı: <strong className="text-white">{currentPlayer.seasonStats.redCards}</strong></span>}
@@ -1374,7 +1317,7 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                       </>
                     ) : (
                       <div className="p-8 rounded-2xl bg-white/[0.015] border border-dashed border-white/[0.08] text-center space-y-2">
-                        <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest font-mono">
+                        <p className="text-xs text-slate-400 font-black uppercase tracking-widest font-mono">
                           Geçmiş sezon istatistiği bulunmuyor
                         </p>
                         <p className="text-xs text-slate-500 italic">
@@ -1402,21 +1345,27 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         Premium öncü listeye katıldınız! Teşekkür ederiz.
                       </div>
                     ) : (
-                      <form onSubmit={handleWaitlistSubmit} className="space-y-2">
-                        <input 
-                          type="email" 
-                          required
-                          value={waitlistEmail}
-                          onChange={(e) => setWaitlistEmail(e.target.value)}
-                          placeholder="E-posta adresin..."
-                          className="w-full px-3 py-2 bg-fb-dark border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-fb-yellow"
-                        />
-                        <button 
-                          type="submit" 
+                      <form onSubmit={handleWaitlistSubmit} className="space-y-3">
+                        <label className="block text-left">
+                          <span className="mb-2 block text-sm font-semibold text-slate-200">E-posta Adresi</span>
+                          <input
+                            type="email"
+                            name="email"
+                            autoComplete="email"
+                            spellCheck={false}
+                            required
+                            value={waitlistEmail}
+                            onChange={(e) => setWaitlistEmail(e.target.value)}
+                            placeholder="ornek@eposta.com…"
+                            className="min-h-11 w-full rounded-lg border border-white/10 bg-fb-dark px-3 py-2.5 text-base text-white focus-visible:border-fb-yellow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/30"
+                          />
+                        </label>
+                        <button
+                          type="submit"
                           disabled={waitlistLoading}
-                          className="w-full py-2 bg-fb-yellow hover:bg-white text-fb-navy text-xs font-black uppercase rounded-lg transition-colors cursor-pointer"
+                          className="ui-button ui-button-primary w-full disabled:cursor-wait disabled:opacity-70"
                         >
-                          {waitlistLoading ? 'EKLENİYOR...' : 'ÖNCÜ LİSTEYE BÖLÜN'}
+                          {waitlistLoading ? 'Listeye ekleniyor…' : 'Öncü Listeye Katıl'}
                         </button>
                       </form>
                     )}
@@ -1432,8 +1381,9 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                         { title: "Merkez Orta Sahanın Hücum Genişleme Raporu", view: "analysis" },
                         { title: "Yeni Oyuncu Form Sıralama Şablonu", view: "players" }
                       ].map((item, idx) => (
-                        <div 
-                          key={idx} 
+                        <button
+                          type="button"
+                          key={idx}
                           onClick={() => {
                             if (item.view === 'players') {
                               handleBackToList();
@@ -1441,11 +1391,11 @@ export const PlayersPage: React.FC<PlayersPageProps> = ({ onNavigate, initialPla
                               onNavigate(item.view);
                             }
                           }}
-                          className="p-3 rounded bg-fb-dark/80 border border-white/5 hover:border-fb-yellow/20 cursor-pointer transition-colors flex items-center justify-between text-xs font-bold text-slate-100"
+                          className="p-3 rounded bg-fb-dark/80 border border-white/5 hover:border-fb-yellow/20  transition-colors flex items-center justify-between text-xs font-bold text-slate-100 w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fb-yellow/60"
                         >
                           <span className="truncate pr-2">{item.title}</span>
                           <ChevronRight size={14} className="shrink-0 text-fb-yellow" />
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
